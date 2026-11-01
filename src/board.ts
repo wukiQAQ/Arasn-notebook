@@ -31,6 +31,7 @@ export type Recovery = {
   base: Snapshot;
 };
 export type DesktopInfo = {
+  expanded: boolean;
   shortcut: string;
   shortcutOk: boolean;
   sharing: boolean;
@@ -46,6 +47,9 @@ declare global {
   interface Window {
     desktop?: {
       info(): Promise<DesktopInfo>;
+      layout(value: boolean): Promise<DesktopInfo>;
+      onLayout(callback: (value: boolean) => void): () => void;
+      onFocus(callback: () => void): () => void;
       share(enabled: boolean): Promise<DesktopInfo>;
       hide(): Promise<void>;
       shortcut(value: string): Promise<DesktopInfo>;

@@ -29,6 +29,7 @@ import {
   Value,
 } from "./board";
 import "./style.css";
+import { QuickPanel } from "./QuickPanel";
 
 const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
 const pointsPath = (points: number[][]) =>
@@ -55,6 +56,7 @@ function App() {
     value: TextValue;
   } | null>(null);
   const [info, setInfo] = useState<DesktopInfo | null>(null);
+  const [expanded, setExpanded] = useState(!window.desktop);
   const [dialog, setDialog] = useState<"share" | "settings" | null>(null);
   const [shortcut, setShortcut] = useState("Control+Alt+N");
   const [theme, setTheme] = useState<DesktopInfo["theme"]>(() => {
@@ -80,8 +82,13 @@ function App() {
         setInfo(value);
         setShortcut(value.shortcut);
         setTheme(value.theme);
+        setExpanded(value.expanded);
       });
-    return () => client.stop();
+    const unsubscribe = window.desktop?.onLayout(setExpanded);
+    return () => {
+      client.stop();
+      unsubscribe?.();
+    };
   }, [client]);
   useEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");
@@ -161,16 +168,18 @@ function App() {
   }, [toast]);
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+      if (event.key === "Escape") {
+        if (dialog) setDialog(null);
+        else if (window.desktop) void window.desktop.hide();
+        return;
+      }
       if (
         event.isComposing ||
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLInputElement
       )
         return;
-      if (event.key === "Escape") {
-        setDialog(null);
-        if (window.desktop) void window.desktop.hide();
-      }
       if (event.key === "Delete" && selected) commit(selected, null);
       if (event.ctrlKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
@@ -347,347 +356,379 @@ function App() {
     }
   }
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">A</span>
-          <div>
-            Arasn<span>办公随手页</span>
-          </div>
-        </div>
-        <button
-          className="new-note"
-          onClick={() =>
-            addText(
-              100 + (texts.length % 4) * 330,
-              110 + (Math.floor(texts.length / 4) % 4) * 190,
-            )
-          }
-          disabled={!client.ready}
-        >
-          <Plus size={17} /> 写一张便笺 <span>＋</span>
-        </button>
-        <div className="section-label">工作空间</div>
-        <button className="space active">
-          <Layers3 size={17} />
-          <span>我的随手页</span>
-          <span className="count">1</span>
-        </button>
-        <button className="space" onClick={() => setDialog("share")}>
-          <Network size={17} />
-          <span>局域网共享</span>
-          {info?.sharing && <i className="dot" />}
-        </button>
-        <div className="sidebar-note">
-          <span className="small-line" />
-          随手写，随时接着想。
-          <p>
-            临时想法、会议重点、
-            <br />
-            需要快速传递的小事。
-          </p>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="shortcut-label">
-            <Keyboard size={15} /> 快速呼出{" "}
-            <kbd>
-              {info?.shortcut
-                .replace("Control", "Ctrl")
-                .replaceAll("+", " + ") || "Ctrl + Alt + N"}
-            </kbd>
-          </div>
-          <button className="space" onClick={() => setDialog("settings")}>
-            <Settings2 size={16} /> 设置与快捷键
-          </button>
-          <span className="version">ARASN NOTEBOOK · 0.3</span>
-        </div>
-      </aside>
-      <main>
-        <header className="topbar">
-          <div className="breadcrumb">
-            工作空间 <span>/</span> <strong>我的随手页</strong>
-          </div>
-          <div className="header-actions">
-            <span
-              className={`save-state ${client.pending.length ? "pending" : ""}`}
-            >
-              <i className="dot" />
-              {client.status}
-            </span>
-            <button
-              className="icon-button"
-              title="隐藏到托盘"
-              aria-label="隐藏到托盘"
-              onClick={() =>
-                window.desktop
-                  ? window.desktop.hide()
-                  : setToast("浏览器版本可直接最小化窗口")
-              }
-            >
-              <Minus size={18} />
-            </button>
-          </div>
-        </header>
-        <section className="page-heading">
-          <div>
-            <div className="eyebrow">留一点空间，给正在发生的想法</div>
-            <h1>
-              我的随手页<span className="title-dot">.</span>
-            </h1>
-            <p>文字、草图与灵感，在这里自由放下。</p>
-          </div>
-          <div className="page-actions">
-            <button className="button" onClick={exportImage}>
-              <Download size={16} /> 导出图片
-            </button>
-            <button
-              className="button primary"
-              onClick={() => setDialog("share")}
-            >
-              <Network size={16} />
-              {info?.sharing ? "正在共享" : "局域网共享"}
-              <ArrowUpRight size={15} />
-            </button>
-          </div>
-        </section>
-        {info && !info.shortcutOk && (
-          <div className="notice">
-            快捷键被占用，可从托盘打开页面，或在设置中更换快捷键。
-          </div>
-        )}
-        {client.error && (
-          <div className="notice" role="status">
-            {client.error}
-            {client.conflicts.length > 0 && (
-              <button onClick={() => client.recover()}>
-                恢复 {client.conflicts.length} 条本机改动为新内容
-              </button>
-            )}
-            <button onClick={() => void client.tick()}>重试连接</button>
-          </div>
-        )}
-        <section className="workspace">
-          <div className="toolbar">
-            <div className="tool-group">
-              {(
-                [
-                  { id: "select", icon: MousePointer2, label: "选择与拖动" },
-                  { id: "text", icon: Type, label: "添加文字" },
-                  { id: "pen", icon: Pencil, label: "自由绘图" },
-                  { id: "erase", icon: Trash2, label: "删除笔迹" },
-                ] as const
-              ).map(({ id, icon: Icon, label }) => (
-                <button
-                  key={id}
-                  className={`tool ${tool === id ? "selected" : ""}`}
-                  onClick={() => setTool(id)}
-                  title={label}
-                  aria-label={label}
-                  aria-pressed={tool === id}
-                >
-                  <Icon size={19} />
-                </button>
-              ))}
-            </div>
-            <span className="divider" />
-            <div className="colors">
-              {COLORS.map((c, i) => (
-                <button
-                  key={c}
-                  aria-label={["墨色", "松绿", "朱红", "靛蓝"][i]}
-                  aria-pressed={color === c}
-                  className={`color ${color === c ? "chosen" : ""}`}
-                  style={{ background: c }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
-            </div>
-            <select
-              aria-label="画笔粗细"
-              value={width}
-              onChange={(e) => setWidth(Number(e.target.value))}
-            >
-              <option value={2}>细笔</option>
-              <option value={4}>中笔</option>
-              <option value={7}>粗笔</option>
-            </select>
-            <span className="divider" />
-            <button
-              className="tool"
-              title="撤销上次操作"
-              aria-label="撤销上次操作"
-              onClick={undoLast}
-            >
-              <Undo2 size={18} />
-            </button>
-            <span className="toolbar-spacer" />
-            <span className="paper-label">自由编辑页</span>
-            <select
-              aria-label="缩放"
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-            >
-              <option value={60}>60%</option>
-              <option value={80}>80%</option>
-              <option value={100}>100%</option>
-            </select>
-          </div>
-          <div className="paper-scroll">
-            <div style={{ width: 1600 * scale, height: 1000 * scale }}>
-              <div
-                ref={paper}
-                data-testid="paper"
-                className={`paper tool-${tool}`}
-                style={{ transform: `scale(${scale})` }}
-                onPointerDown={down}
-                onPointerMove={move}
-                onPointerUp={up}
-                onPointerCancel={up}
-              >
-                {!visible.length && !stroke && (
-                  <div className="empty-page">
-                    <div className="empty-symbol">
-                      <Pencil size={28} />
-                      <span>+</span>
-                    </div>
-                    <h2>从一个想法开始</h2>
-                    <p>点击任意位置写字，或拿起画笔画一画。</p>
-                    <span>内容会自动保存，随时回来继续。</span>
-                  </div>
-                )}
-                <svg className="ink" viewBox="0 0 1600 1000">
-                  {strokes.map(([id, item]) => {
-                    const s = item.value as StrokeValue;
-                    return (
-                      <path
-                        key={id}
-                        data-testid="stroke"
-                        d={pointsPath(s.points)}
-                        stroke={s.color}
-                        strokeWidth={s.width}
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        style={{
-                          pointerEvents: tool === "erase" ? "stroke" : "none",
-                          cursor: "crosshair",
-                        }}
-                        onPointerDown={(e) => {
-                          if (tool === "erase") {
-                            e.stopPropagation();
-                            commit(id, null);
-                          }
-                        }}
-                      />
-                    );
-                  })}
-                  {stroke && (
-                    <path
-                      d={pointsPath(stroke.points)}
-                      stroke={stroke.color}
-                      strokeWidth={stroke.width}
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  )}
-                </svg>
-                {texts.map(([id, item]) => {
-                  const value =
-                    dragPreview?.id === id
-                      ? dragPreview.value
-                      : (item.value as TextValue);
-                  return (
-                    <div
-                      key={id}
-                      className={`note ${selected === id ? "focused" : ""}`}
-                      style={{
-                        left: value.x,
-                        top: value.y,
-                        color: value.color,
-                      }}
-                      onPointerDown={(e) => {
-                        e.stopPropagation();
-                        setSelected(id);
-                      }}
-                    >
-                      <div
-                        className="note-handle"
-                        aria-label="拖动便笺"
-                        onPointerDown={(e) => {
-                          e.preventDefault();
-                          e.currentTarget.setPointerCapture(e.pointerId);
-                          drag.current = {
-                            id,
-                            value,
-                            x: e.clientX,
-                            y: e.clientY,
-                          };
-                          setDragPreview({ id, value });
-                        }}
-                      >
-                        <GripHorizontal size={17} />
-                        <div>
-                          <button
-                            aria-label="复制便笺"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => copy(value.text)}
-                          >
-                            <Copy size={13} />
-                          </button>
-                          <button
-                            aria-label="删除便笺"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => commit(id, null)}
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <textarea
-                        id={`note-${id}`}
-                        aria-label="便笺文字"
-                        placeholder="在这里写点什么…"
-                        value={value.text}
-                        maxLength={10000}
-                        onChange={(e) =>
-                          client.edit(id, { ...value, text: e.target.value })
-                        }
-                        onFocus={() => setSelected(id)}
-                        spellCheck={false}
-                      />
-                    </div>
-                  );
-                })}
+    <div className={`app-shell ${expanded ? "" : "compact-shell"}`}>
+      {!expanded ? (
+        <QuickPanel
+          client={client}
+          info={info}
+          expand={() => void window.desktop?.layout(true)}
+          settings={() => setDialog("settings")}
+          share={() => setDialog("share")}
+          undo={undoLast}
+          strokeCommit={commit}
+          copy={copy}
+        />
+      ) : (
+        <>
+          <aside className="sidebar">
+            <div className="brand">
+              <span className="brand-mark">A</span>
+              <div>
+                Arasn<span>办公随手页</span>
               </div>
             </div>
-          </div>
-          <footer className="canvas-footer">
-            <span>
-              <i className="dot" />
-              {info?.sharing
-                ? "局域网共享已开启"
-                : window.desktop
-                  ? "本机工作空间"
-                  : "已连接共享工作空间"}
-            </span>
-            <span>
-              {texts.length} 张便笺 · {strokes.length} 段笔迹{" "}
-              <span className="footer-separator">|</span>{" "}
-              {tool === "pen"
-                ? "按住鼠标绘图"
-                : tool === "text"
-                  ? "点击空白处添加文字"
-                  : tool === "erase"
-                    ? "点击笔迹删除"
-                    : "拖动便笺顶部调整位置"}
-            </span>
-          </footer>
-        </section>
-        <div className="bottom-caption">
-          给办公留一张随手可用的纸。<span>写下来，就不必一直记着。</span>
-        </div>
-      </main>
+            <button
+              className="new-note"
+              onClick={() =>
+                addText(
+                  100 + (texts.length % 4) * 330,
+                  110 + (Math.floor(texts.length / 4) % 4) * 190,
+                )
+              }
+              disabled={!client.ready}
+            >
+              <Plus size={17} /> 写一张便笺 <span>＋</span>
+            </button>
+            <div className="section-label">工作空间</div>
+            <button className="space active">
+              <Layers3 size={17} />
+              <span>我的随手页</span>
+              <span className="count">1</span>
+            </button>
+            <button className="space" onClick={() => setDialog("share")}>
+              <Network size={17} />
+              <span>局域网共享</span>
+              {info?.sharing && <i className="dot" />}
+            </button>
+            <div className="sidebar-note">
+              <span className="small-line" />
+              随手写，随时接着想。
+              <p>
+                临时想法、会议重点、
+                <br />
+                需要快速传递的小事。
+              </p>
+            </div>
+            <div className="sidebar-bottom">
+              <div className="shortcut-label">
+                <Keyboard size={15} /> 快速呼出{" "}
+                <kbd>
+                  {info?.shortcut
+                    .replace("Control", "Ctrl")
+                    .replaceAll("+", " + ") || "Ctrl + Alt + N"}
+                </kbd>
+              </div>
+              <button className="space" onClick={() => setDialog("settings")}>
+                <Settings2 size={16} /> 设置与快捷键
+              </button>
+              <span className="version">ARASN NOTEBOOK · 0.4</span>
+            </div>
+          </aside>
+          <main>
+            <header className="topbar">
+              <div className="breadcrumb">
+                工作空间 <span>/</span> <strong>我的随手页</strong>
+              </div>
+              <div className="header-actions">
+                {window.desktop && (
+                  <button
+                    className="button"
+                    aria-label="收回小窗"
+                    onClick={() => void window.desktop?.layout(false)}
+                  >
+                    收回小窗
+                  </button>
+                )}
+                <span
+                  className={`save-state ${client.pending.length ? "pending" : ""}`}
+                >
+                  <i className="dot" />
+                  {client.status}
+                </span>
+                <button
+                  className="icon-button"
+                  title="隐藏到托盘"
+                  aria-label="隐藏到托盘"
+                  onClick={() =>
+                    window.desktop
+                      ? window.desktop.hide()
+                      : setToast("浏览器版本可直接最小化窗口")
+                  }
+                >
+                  <Minus size={18} />
+                </button>
+              </div>
+            </header>
+            <section className="page-heading">
+              <div>
+                <div className="eyebrow">留一点空间，给正在发生的想法</div>
+                <h1>
+                  我的随手页<span className="title-dot">.</span>
+                </h1>
+                <p>文字、草图与灵感，在这里自由放下。</p>
+              </div>
+              <div className="page-actions">
+                <button className="button" onClick={exportImage}>
+                  <Download size={16} /> 导出图片
+                </button>
+                <button
+                  className="button primary"
+                  onClick={() => setDialog("share")}
+                >
+                  <Network size={16} />
+                  {info?.sharing ? "正在共享" : "局域网共享"}
+                  <ArrowUpRight size={15} />
+                </button>
+              </div>
+            </section>
+            {info && !info.shortcutOk && (
+              <div className="notice">
+                快捷键被占用，可从托盘打开页面，或在设置中更换快捷键。
+              </div>
+            )}
+            {client.error && (
+              <div className="notice" role="status">
+                {client.error}
+                {client.conflicts.length > 0 && (
+                  <button onClick={() => client.recover()}>
+                    恢复 {client.conflicts.length} 条本机改动为新内容
+                  </button>
+                )}
+                <button onClick={() => void client.tick()}>重试连接</button>
+              </div>
+            )}
+            <section className="workspace">
+              <div className="toolbar">
+                <div className="tool-group">
+                  {(
+                    [
+                      {
+                        id: "select",
+                        icon: MousePointer2,
+                        label: "选择与拖动",
+                      },
+                      { id: "text", icon: Type, label: "添加文字" },
+                      { id: "pen", icon: Pencil, label: "自由绘图" },
+                      { id: "erase", icon: Trash2, label: "删除笔迹" },
+                    ] as const
+                  ).map(({ id, icon: Icon, label }) => (
+                    <button
+                      key={id}
+                      className={`tool ${tool === id ? "selected" : ""}`}
+                      onClick={() => setTool(id)}
+                      title={label}
+                      aria-label={label}
+                      aria-pressed={tool === id}
+                    >
+                      <Icon size={19} />
+                    </button>
+                  ))}
+                </div>
+                <span className="divider" />
+                <div className="colors">
+                  {COLORS.map((c, i) => (
+                    <button
+                      key={c}
+                      aria-label={["墨色", "松绿", "朱红", "靛蓝"][i]}
+                      aria-pressed={color === c}
+                      className={`color ${color === c ? "chosen" : ""}`}
+                      style={{ background: c }}
+                      onClick={() => setColor(c)}
+                    />
+                  ))}
+                </div>
+                <select
+                  aria-label="画笔粗细"
+                  value={width}
+                  onChange={(e) => setWidth(Number(e.target.value))}
+                >
+                  <option value={2}>细笔</option>
+                  <option value={4}>中笔</option>
+                  <option value={7}>粗笔</option>
+                </select>
+                <span className="divider" />
+                <button
+                  className="tool"
+                  title="撤销上次操作"
+                  aria-label="撤销上次操作"
+                  onClick={undoLast}
+                >
+                  <Undo2 size={18} />
+                </button>
+                <span className="toolbar-spacer" />
+                <span className="paper-label">自由编辑页</span>
+                <select
+                  aria-label="缩放"
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                >
+                  <option value={60}>60%</option>
+                  <option value={80}>80%</option>
+                  <option value={100}>100%</option>
+                </select>
+              </div>
+              <div className="paper-scroll">
+                <div style={{ width: 1600 * scale, height: 1000 * scale }}>
+                  <div
+                    ref={paper}
+                    data-testid="paper"
+                    className={`paper tool-${tool}`}
+                    style={{ transform: `scale(${scale})` }}
+                    onPointerDown={down}
+                    onPointerMove={move}
+                    onPointerUp={up}
+                    onPointerCancel={up}
+                  >
+                    {!visible.length && !stroke && (
+                      <div className="empty-page">
+                        <div className="empty-symbol">
+                          <Pencil size={28} />
+                          <span>+</span>
+                        </div>
+                        <h2>从一个想法开始</h2>
+                        <p>点击任意位置写字，或拿起画笔画一画。</p>
+                        <span>内容会自动保存，随时回来继续。</span>
+                      </div>
+                    )}
+                    <svg className="ink" viewBox="0 0 1600 1000">
+                      {strokes.map(([id, item]) => {
+                        const s = item.value as StrokeValue;
+                        return (
+                          <path
+                            key={id}
+                            data-testid="stroke"
+                            d={pointsPath(s.points)}
+                            stroke={s.color}
+                            strokeWidth={s.width}
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            style={{
+                              pointerEvents:
+                                tool === "erase" ? "stroke" : "none",
+                              cursor: "crosshair",
+                            }}
+                            onPointerDown={(e) => {
+                              if (tool === "erase") {
+                                e.stopPropagation();
+                                commit(id, null);
+                              }
+                            }}
+                          />
+                        );
+                      })}
+                      {stroke && (
+                        <path
+                          d={pointsPath(stroke.points)}
+                          stroke={stroke.color}
+                          strokeWidth={stroke.width}
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                    </svg>
+                    {texts.map(([id, item]) => {
+                      const value =
+                        dragPreview?.id === id
+                          ? dragPreview.value
+                          : (item.value as TextValue);
+                      return (
+                        <div
+                          key={id}
+                          className={`note ${selected === id ? "focused" : ""}`}
+                          style={{
+                            left: value.x,
+                            top: value.y,
+                            color: value.color,
+                          }}
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            setSelected(id);
+                          }}
+                        >
+                          <div
+                            className="note-handle"
+                            aria-label="拖动便笺"
+                            onPointerDown={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.setPointerCapture(e.pointerId);
+                              drag.current = {
+                                id,
+                                value,
+                                x: e.clientX,
+                                y: e.clientY,
+                              };
+                              setDragPreview({ id, value });
+                            }}
+                          >
+                            <GripHorizontal size={17} />
+                            <div>
+                              <button
+                                aria-label="复制便笺"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => copy(value.text)}
+                              >
+                                <Copy size={13} />
+                              </button>
+                              <button
+                                aria-label="删除便笺"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => commit(id, null)}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                          <textarea
+                            id={`note-${id}`}
+                            aria-label="便笺文字"
+                            placeholder="在这里写点什么…"
+                            value={value.text}
+                            maxLength={10000}
+                            onChange={(e) =>
+                              client.edit(id, {
+                                ...value,
+                                text: e.target.value,
+                              })
+                            }
+                            onFocus={() => setSelected(id)}
+                            spellCheck={false}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              <footer className="canvas-footer">
+                <span>
+                  <i className="dot" />
+                  {info?.sharing
+                    ? "局域网共享已开启"
+                    : window.desktop
+                      ? "本机工作空间"
+                      : "已连接共享工作空间"}
+                </span>
+                <span>
+                  {texts.length} 张便笺 · {strokes.length} 段笔迹{" "}
+                  <span className="footer-separator">|</span>{" "}
+                  {tool === "pen"
+                    ? "按住鼠标绘图"
+                    : tool === "text"
+                      ? "点击空白处添加文字"
+                      : tool === "erase"
+                        ? "点击笔迹删除"
+                        : "拖动便笺顶部调整位置"}
+                </span>
+              </footer>
+            </section>
+            <div className="bottom-caption">
+              给办公留一张随手可用的纸。<span>写下来，就不必一直记着。</span>
+            </div>
+          </main>
+        </>
+      )}
       {dialog && (
         <div className="modal-backdrop" onClick={() => setDialog(null)}>
           <section

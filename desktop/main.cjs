@@ -31,10 +31,35 @@ let shortcut = "Control+Alt+N",
   links = [];
 const token = crypto.randomBytes(24).toString("hex");
 const staticDir = path.join(__dirname, "../dist");
+let expanded = false;
+function setLayout(value) {
+  if (typeof value !== "boolean") throw new Error("布局参数无效");
+  expanded = value;
+  const { workArea } = screen.getDisplayMatching(window.getBounds());
+  window.setMinimumSize(value ? 720 : 400, value ? 520 : 460);
+  window.setSize(
+    Math.min(value ? 1160 : 520, workArea.width),
+    Math.min(value ? 820 : 640, workArea.height),
+  );
+  const bounds = window.getBounds();
+  window.setPosition(
+    Math.max(
+      workArea.x,
+      Math.min(bounds.x, workArea.x + workArea.width - bounds.width),
+    ),
+    Math.max(
+      workArea.y,
+      Math.min(bounds.y, workArea.y + workArea.height - bounds.height),
+    ),
+  );
+  window.webContents.send("app:layout", expanded);
+  return info();
+}
 let preferences = { theme: "system", alwaysOnTop: false, startMinimized: true };
 const loginOptions = () => ({ path: process.execPath, args: ["--autostart"] });
 
 function show() {
+  setLayout(false);
   const { workArea } = screen.getDisplayNearestPoint(
     screen.getCursorScreenPoint(),
   );
@@ -51,6 +76,7 @@ function show() {
   });
   window.show();
   window.focus();
+  window.webContents.send("app:focus");
 }
 function registerShortcut(value) {
   if (
@@ -73,6 +99,7 @@ function registerShortcut(value) {
   shortcutOk = true;
 }
 const info = () => ({
+  expanded,
   shortcut,
   shortcutOk,
   sharing: !!shared,
@@ -122,10 +149,10 @@ if (lock)
         callback(false),
       );
       window = new BrowserWindow({
-        width: 1160,
-        height: 820,
-        minWidth: 720,
-        minHeight: 520,
+        width: 520,
+        height: 640,
+        minWidth: 400,
+        minHeight: 460,
         title: "Arasn · 办公随手页",
         backgroundColor: "#f5f7fa",
         autoHideMenuBar: true,
@@ -192,6 +219,7 @@ if (lock)
         });
       }
       secureHandle("app:info", info);
+      secureHandle("app:layout", setLayout);
       const recoveryFile = path.join(app.getPath("userData"), "recovery.json");
       secureHandle("app:recovery", () =>
         fs.existsSync(recoveryFile)
