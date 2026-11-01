@@ -9,10 +9,12 @@ const path = require("node:path");
   delete env.ELECTRON_RUN_AS_NODE;
   const launch = () =>
     electron.launch({
-      executablePath: path.resolve(
-        __dirname,
-        "../release/ArasnNotebook-win32-x64/ArasnNotebook.exe",
-      ),
+      executablePath:
+        process.env.ARASN_TEST_EXE ||
+        path.resolve(
+          __dirname,
+          "../release/ArasnNotebook-win32-x64/ArasnNotebook.exe",
+        ),
       args: [],
       env,
     });
@@ -37,14 +39,12 @@ const path = require("node:path");
         page.evaluate(() => window.desktop.info().then((i) => i.alwaysOnTop)),
       )
       .toBe(true);
-    await page
-      .getByLabel("录入全局快捷键")
-      .dispatchEvent("keydown", {
-        key: "F8",
-        code: "F8",
-        ctrlKey: true,
-        altKey: true,
-      });
+    await page.getByLabel("录入全局快捷键").dispatchEvent("keydown", {
+      key: "F8",
+      code: "F8",
+      ctrlKey: true,
+      altKey: true,
+    });
     await page.getByRole("button", { name: "保存快捷键", exact: true }).click();
     await expect
       .poll(() =>
@@ -56,14 +56,12 @@ const path = require("node:path");
     await application.evaluate(({ globalShortcut }) =>
       globalShortcut.register("Control+Alt+F9", () => {}),
     );
-    await page
-      .getByLabel("录入全局快捷键")
-      .dispatchEvent("keydown", {
-        key: "F9",
-        code: "F9",
-        ctrlKey: true,
-        altKey: true,
-      });
+    await page.getByLabel("录入全局快捷键").dispatchEvent("keydown", {
+      key: "F9",
+      code: "F9",
+      ctrlKey: true,
+      altKey: true,
+    });
     await page.getByRole("button", { name: "保存快捷键", exact: true }).click();
     await expect(page.getByText(/快捷键已被占用/)).toBeVisible();
     expect((await page.evaluate(() => window.desktop.info())).shortcut).toBe(
@@ -72,6 +70,26 @@ const path = require("node:path");
     await expect(
       page.evaluate(() => window.desktop.settings({ theme: "invalid" })),
     ).rejects.toThrow();
+    for (const [shortcut, key, extra] of [
+      ["F8", "F8", {}],
+      ["Shift+F8", "F8", { shiftKey: true }],
+      ["Shift+Super+F8", "F8", { metaKey: true, shiftKey: true }],
+    ]) {
+      await page
+        .getByLabel("录入全局快捷键")
+        .dispatchEvent("keydown", { key, code: key, ...extra });
+      await page
+        .getByRole("button", { name: "保存快捷键", exact: true })
+        .click();
+      await expect
+        .poll(() =>
+          page.evaluate(() => window.desktop.info().then((i) => i.shortcut)),
+        )
+        .toBe(shortcut);
+    }
+    await page.evaluate(() =>
+      window.desktop.settings({ shortcut: "Control+Alt+F8" }),
+    );
     await page.getByLabel("开机自启动", { exact: true }).check();
     await expect
       .poll(() =>

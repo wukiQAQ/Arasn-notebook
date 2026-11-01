@@ -2,7 +2,13 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const root = path.resolve(__dirname, "..");
-const output = path.join(root, "release", "ArasnNotebook-win32-x64");
+const output = path.join(
+  root,
+  "release",
+  process.argv.includes("--versioned")
+    ? `ArasnNotebook-${require("../package.json").version}-win32-x64`
+    : "ArasnNotebook-win32-x64",
+);
 fs.mkdirSync(output, { recursive: true });
 fs.cpSync(path.join(root, "node_modules/electron/dist"), output, {
   recursive: true,

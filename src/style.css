@@ -1074,3 +1074,39 @@ h1 {
   background: #493d25;
   color: #efcf8b;
 }
+
+input[type="color"] {
+  width: 30px;
+  height: 27px;
+  padding: 2px;
+  border: 1px solid #cbd5df;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.format-tools label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8895a4;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.format-tools select,
+.shape-tools select {
+  flex: 1;
+}
+.toolbar {
+  overflow-x: auto;
+}
+.toolbar > * {
+  flex-shrink: 0;
+}
+.quick-drawing svg:focus-visible {
+  outline: 2px solid #39796b;
+  outline-offset: -2px;
+}
+[data-theme="dark"] .quick-input {
+  filter: invert(0.85) hue-rotate(180deg);
+}

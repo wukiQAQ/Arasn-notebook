@@ -4,6 +4,8 @@ export type TextValue = {
   x: number;
   y: number;
   color: string;
+  fontSize?: number;
+  bold?: boolean;
 };
 export type StrokeValue = {
   type: "stroke";

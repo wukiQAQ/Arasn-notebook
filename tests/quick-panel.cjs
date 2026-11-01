@@ -10,10 +10,12 @@ const path = require("node:path");
   let application, browser;
   try {
     application = await electron.launch({
-      executablePath: path.resolve(
-        __dirname,
-        "../release/ArasnNotebook-win32-x64/ArasnNotebook.exe",
-      ),
+      executablePath:
+        process.env.ARASN_TEST_EXE ||
+        path.resolve(
+          __dirname,
+          "../release/ArasnNotebook-win32-x64/ArasnNotebook.exe",
+        ),
       args: [],
       env,
     });
@@ -30,6 +32,12 @@ const path = require("node:path");
     const input = page.getByRole("textbox", { name: "便笺文字" });
     await expect(input).toBeEnabled();
     await input.fill("小窗写下的信息，切换后还在。");
+    await page.getByLabel("文字颜色", { exact: true }).fill("#a23bc4");
+    await page.getByLabel("文字字号").selectOption("24");
+    await page.getByRole("button", { name: "文字加粗", exact: true }).click();
+    await expect(input).toHaveCSS("color", "rgb(162, 59, 196)");
+    await expect(input).toHaveCSS("font-size", "24px");
+    await expect(input).toHaveCSS("font-weight", "700");
     await page.getByRole("tab", { name: "画图", exact: true }).click();
     const rect = await page.getByTestId("quick-canvas").boundingBox();
     await page.mouse.move(rect.x + 50, rect.y + 70);
@@ -37,11 +45,27 @@ const path = require("node:path");
     await page.mouse.move(rect.x + 150, rect.y + 120, { steps: 10 });
     await page.mouse.up();
     await expect(page.getByTestId("quick-stroke")).toHaveCount(1);
+    await page.getByLabel("自定义画笔颜色").fill("#ed8a22");
+    await page.getByLabel("画笔粗细").selectOption("12");
+    for (const [i, shape] of [
+      "line",
+      "arrow",
+      "rect",
+      "ellipse",
+      "triangle",
+    ].entries()) {
+      await page.getByLabel("绘图工具").selectOption(shape);
+      await page.mouse.move(rect.x + 40 + i * 48, rect.y + 45);
+      await page.mouse.down();
+      await page.mouse.move(rect.x + 110 + i * 48, rect.y + 115, { steps: 8 });
+      await page.mouse.up();
+      await expect(page.getByTestId("quick-stroke")).toHaveCount(i + 2);
+    }
     await page.getByRole("tab", { name: "打字", exact: true }).click();
     await expect(input).toHaveValue("小窗写下的信息，切换后还在。");
     await page.screenshot({ path: "docs/screenshots/quick-text.png" });
     await page.getByRole("tab", { name: "画图", exact: true }).click();
-    await expect(page.getByTestId("quick-stroke")).toHaveCount(1);
+    await expect(page.getByTestId("quick-stroke")).toHaveCount(6);
     await page.screenshot({ path: "docs/screenshots/quick-draw.png" });
     await page.getByRole("button", { name: "传递 / 共享" }).click();
     await page.getByRole("button", { name: "开启共享", exact: true }).click();
@@ -56,7 +80,19 @@ const path = require("node:path");
     await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveValue(
       "小窗写下的信息，切换后还在。",
     );
-    await expect(peer.getByTestId("stroke")).toHaveCount(1);
+    await expect(peer.getByTestId("stroke")).toHaveCount(6);
+    await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveCSS(
+      "font-size",
+      "24px",
+    );
+    await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveCSS(
+      "font-weight",
+      "700",
+    );
+    await expect(peer.getByTestId("stroke").last()).toHaveAttribute(
+      "stroke",
+      "#ed8a22",
+    );
     await peer
       .getByRole("textbox", { name: "便笺文字" })
       .fill("另一台客户端的回复");
@@ -64,7 +100,7 @@ const path = require("node:path");
     await page.getByRole("tab", { name: "打字", exact: true }).click();
     await expect(input).toHaveValue("另一台客户端的回复", { timeout: 10000 });
     await page.getByRole("button", { name: "展开完整页面" }).click();
-    await expect(page.getByTestId("stroke")).toHaveCount(1);
+    await expect(page.getByTestId("stroke")).toHaveCount(6);
     await expect(page.getByRole("textbox", { name: "便笺文字" })).toHaveValue(
       "另一台客户端的回复",
     );

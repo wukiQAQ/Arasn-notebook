@@ -1,13 +1,13 @@
 # Arasn Notebook 交接单
 
-更新：2026-11-01；版本：0.4.0。
+更新：2026-11-01；版本：0.5.0。
 
 ## 当前状态
 
 - 可运行的 Windows 办公随手页；默认 520×640 小窗、打字/画图切换、局域网信息共享。
 - 保留完整页面、便笺拖动、自动保存、离线队列、冲突副本、导出和0.3个性化设置。
 - 已验证打包程序小窗尺寸、切换不丢内容、展开/收回一致性、桌面与独立浏览器双向文字/笔迹同步；桌面生命周期和设置回归通过。
-- 本机程序：release/ArasnNotebook-win32-x64/ArasnNotebook.exe，需保留整个文件夹。
+- 本机程序：release/ArasnNotebook-0.5.0-win32-x64/ArasnNotebook.exe，需保留整个文件夹。
 - 0.3.0 本地提交 55a8613 曾因网络问题未推送；本轮提交及 GitHub 状态以 git log 与最终交付消息为准。
 - 真实两台电脑、防火墙、中文输入法、办公软件焦点、实际开机自启动和性能量化仍未验证。
 
@@ -36,3 +36,13 @@
 - desktop/server.cjs：白板保存、版本和 HTTP 访问控制。
 - tests/quick-panel.cjs、desktop-smoke.cjs、settings-smoke.cjs：小窗、生命周期、设置验证。
 - docs/VALIDATION.md、MVP-DESIGN.md、MVP-PLAN.md：证据、设计和进度。
+
+## 0.5.0 已完成与接续事项
+
+- 新增自定义十六进制颜色、文字字号与加粗、四档笔宽、直线/箭头/矩形/椭圆/三角形；小窗与完整页面共用 src/drawing.ts 几何逻辑。
+- 图形依旧保存为 stroke，文字使用可选 fontSize/bold 字段，旧数据无需迁移；服务端校验样式，PNG 导出也使用字号和加粗。
+- 快捷键放宽到 Shift/Win/Ctrl/Alt 组合及单独 F1–F24、PrintScreen；单独普通字母和修饰键不支持。
+- 6 项服务端/几何测试、小窗绘制全部图形/文字样式的双客户端同步、独立功能键与 Shift/Win 注册、原 UI 同步场景通过。
+- 用户旧程序运行中，未终止或覆盖；采用独立版本目录，桌面快捷方式改指新版。使用前需托盘退出旧版。旧自启动如已启用，需在新版重新关闭/开启以更新路径。
+- scripts/pack.cjs 支持 --versioned，npm run pack:versioned；小窗及设置测试支持 ARASN_TEST_EXE 指定新版路径。
+- GitHub 推送结果以最终交付和 git 状态为准。后续继续聚焦快捷呼出、两种编辑模式及传递能力。

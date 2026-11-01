@@ -1,6 +1,6 @@
 {
   "name": "arasn-notebook",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "A quick office whiteboard with local network sharing",
   "main": "desktop/main.cjs",
@@ -11,7 +11,8 @@
     "test": "node --test tests/server.test.cjs",
     "test:ui": "playwright test",
     "pack": "npm run build && node scripts/pack.cjs",
-    "test:desktop": "node tests/desktop-smoke.cjs"
+    "test:desktop": "node tests/desktop-smoke.cjs",
+    "pack:versioned": "npm run build && node scripts/pack.cjs --versioned"
   },
   "dependencies": {
     "lucide-react": "1.66.0",

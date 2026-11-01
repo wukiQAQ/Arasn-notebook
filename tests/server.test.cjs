@@ -19,6 +19,80 @@ const operation = (value, id = randomUUID(), expected = 0) => ({
   value,
 });
 
+test("custom colors and text formatting survive normalization, invalid styles are rejected", () => {
+  const store = createStore();
+  const op = operation({
+    ...text("样式"),
+    color: "#a23bc4",
+    fontSize: 24,
+    bold: true,
+  });
+  store.apply(op);
+  store.apply(op);
+  assert.deepEqual(store.snapshot().items[op.id].value, op.value);
+  for (const style of [
+    { color: "red;url(x)" },
+    { fontSize: 999 },
+    { bold: "yes" },
+  ])
+    assert.throws(() => store.apply(operation({ ...text("bad"), ...style })), {
+      status: 400,
+    });
+  store.apply(
+    operation({
+      type: "stroke",
+      color: "#123abc",
+      width: 12,
+      points: [
+        [0, 0],
+        [1600, 1000],
+      ],
+    }),
+  );
+});
+
+test("shapes handle reverse drags, zero distance and canvas edges", () => {
+  const { shapePoints } = require("../src/drawing.ts");
+  for (const shape of ["line", "arrow", "rect", "ellipse", "triangle"]) {
+    for (const [a, b] of [
+      [
+        [1600, 1000],
+        [0, 0],
+      ],
+      [
+        [0, 0],
+        [0, 0],
+      ],
+      [
+        [1, 1],
+        [0, 0],
+      ],
+    ]) {
+      const points = shapePoints(shape, a, b);
+      assert.ok(points.length >= 2);
+      assert.ok(
+        points.every(
+          ([x, y]) =>
+            Number.isFinite(x) &&
+            Number.isFinite(y) &&
+            x >= 0 &&
+            y >= 0 &&
+            x <= 1600 &&
+            y <= 1000,
+        ),
+      );
+      if (["rect", "ellipse", "triangle"].includes(shape)) {
+        assert.ok(
+          Math.hypot(
+            points[0][0] - points.at(-1)[0],
+            points[0][1] - points.at(-1)[1],
+          ) < 1e-8,
+        );
+      }
+    }
+  }
+});
+
 test("independent edits merge; retries do not duplicate; conflicting edits and resurrection fail", () => {
   const store = createStore();
   const first = operation(text("会议重点"));

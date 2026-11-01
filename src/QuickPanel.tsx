@@ -12,6 +12,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { BoardClient, DesktopInfo, StrokeValue, TextValue, uid } from "./board";
+import { SHAPES, Shape, shapePoints } from "./drawing";
 
 const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
 export function QuickPanel({
@@ -36,9 +37,15 @@ export function QuickPanel({
   const [mode, setMode] = useState<"text" | "draw">("text");
   const [selected, setSelected] = useState("");
   const [color, setColor] = useState(COLORS[0]);
+  const [textColor, setTextColor] = useState(COLORS[0]);
+  const [fontSize, setFontSize] = useState(18);
+  const [bold, setBold] = useState(false);
+  const [width, setWidth] = useState(7);
+  const [shape, setShape] = useState<Shape>("free");
   const [erase, setErase] = useState(false);
   const [ink, setInk] = useState<StrokeValue | null>(null);
   const activeStroke = useRef<StrokeValue | null>(null);
+  const anchor = useRef<number[]>([]);
   const input = useRef<HTMLTextAreaElement>(null);
   const svg = useRef<SVGSVGElement>(null);
   const items = Object.entries(client.view());
@@ -67,10 +74,18 @@ export function QuickPanel({
       text: "",
       x: 100 + (notes.length % 4) * 330,
       y: 100 + (Math.floor(notes.length / 4) % 4) * 190,
-      color,
+      color: textColor,
+      fontSize,
+      bold,
     });
     setSelected(id);
     input.current?.focus();
+  }
+  function formatText(patch: Partial<TextValue>) {
+    if (patch.color) setTextColor(patch.color);
+    if (patch.fontSize) setFontSize(patch.fontSize);
+    if (patch.bold !== undefined) setBold(patch.bold);
+    if (activeId && active) client.edit(activeId, { ...active, ...patch });
   }
   const point = (event: React.PointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -189,6 +204,39 @@ export function QuickPanel({
                 <Copy size={16} />
               </button>
             </div>
+            <div className="quick-tools format-tools">
+              <label>
+                文字颜色{" "}
+                <input
+                  type="color"
+                  aria-label="文字颜色"
+                  value={active?.color || textColor}
+                  onChange={(e) => formatText({ color: e.target.value })}
+                />
+              </label>
+              <select
+                aria-label="文字字号"
+                value={active ? active.fontSize || 18 : fontSize}
+                onChange={(e) =>
+                  formatText({ fontSize: Number(e.target.value) })
+                }
+              >
+                <option value={14}>小字</option>
+                <option value={18}>标准</option>
+                <option value={24}>大字</option>
+                <option value={32}>标题</option>
+              </select>
+              <button
+                className={`tool ${(active ? active.bold : bold) ? "selected" : ""}`}
+                aria-label="文字加粗"
+                aria-pressed={!!(active ? active.bold : bold)}
+                onClick={() =>
+                  formatText({ bold: !(active ? active.bold : bold) })
+                }
+              >
+                <strong>B</strong>
+              </button>
+            </div>
             <textarea
               ref={input}
               className="quick-input"
@@ -196,6 +244,11 @@ export function QuickPanel({
               disabled={!client.ready}
               maxLength={10000}
               value={active?.text || ""}
+              style={{
+                color: active?.color || textColor,
+                fontSize: active ? active.fontSize || 18 : fontSize,
+                fontWeight: (active ? active.bold : bold) ? 700 : 400,
+              }}
               placeholder="直接打字，随手记下…"
               onChange={(e) => {
                 const id = activeId || uid();
@@ -208,7 +261,9 @@ export function QuickPanel({
                         text: e.target.value,
                         x: 100,
                         y: 100,
-                        color,
+                        color: textColor,
+                        fontSize,
+                        bold,
                       },
                 );
                 setSelected(id);
@@ -233,6 +288,15 @@ export function QuickPanel({
                   />
                 ))}
               </div>
+              <input
+                type="color"
+                aria-label="自定义画笔颜色"
+                value={color}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  setErase(false);
+                }}
+              />
               <span className="toolbar-spacer" />
               <button
                 className={`tool ${erase ? "selected" : ""}`}
@@ -246,6 +310,32 @@ export function QuickPanel({
                 <Undo2 size={18} />
               </button>
             </div>
+            <div className="quick-tools shape-tools">
+              <select
+                aria-label="绘图工具"
+                value={shape}
+                onChange={(e) => {
+                  setShape(e.target.value as Shape);
+                  setErase(false);
+                }}
+              >
+                {SHAPES.map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="画笔粗细"
+                value={width}
+                onChange={(e) => setWidth(Number(e.target.value))}
+              >
+                <option value={2}>细笔</option>
+                <option value={4}>中笔</option>
+                <option value={7}>粗笔</option>
+                <option value={12}>加粗</option>
+              </select>
+            </div>
             <div className="quick-drawing">
               <svg
                 ref={svg}
@@ -256,11 +346,12 @@ export function QuickPanel({
                 onPointerDown={(e) => {
                   if (erase || !client.ready || e.button !== 0) return;
                   e.currentTarget.setPointerCapture(e.pointerId);
+                  anchor.current = point(e);
                   activeStroke.current = {
                     type: "stroke",
                     color,
-                    width: 7,
-                    points: [point(e)],
+                    width,
+                    points: [anchor.current],
                   };
                   setInk(activeStroke.current);
                 }}
@@ -275,7 +366,10 @@ export function QuickPanel({
                   if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 3) return;
                   activeStroke.current = {
                     ...activeStroke.current,
-                    points: [...activeStroke.current.points, p],
+                    points:
+                      shape === "free"
+                        ? [...activeStroke.current.points, p]
+                        : shapePoints(shape, anchor.current, p),
                   };
                   setInk(activeStroke.current);
                 }}
@@ -319,7 +413,10 @@ export function QuickPanel({
                 <div className="quick-draw-hint">按住鼠标，随手画一画</div>
               )}
             </div>
-            <p className="quick-hint">文字和图画分别保留，切换不会清空。</p>
+            <p className="quick-hint">
+              {shape === "free" ? "按住鼠标绘画。" : "按住并拖动鼠标绘制图形。"}{" "}
+              切换模式不会清空。
+            </p>
           </>
         )}
       </div>

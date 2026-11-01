@@ -81,12 +81,15 @@ function show() {
 function registerShortcut(value) {
   if (
     typeof value !== "string" ||
-    !/^(?:(?:Control|Alt|Shift|Super)\+)+(?:[A-Z0-9]|F(?:[1-9]|1[0-9]|2[0-4])|Space|Tab|Enter|Home|End|PageUp|PageDown|Up|Down|Left|Right)$/.test(
+    !/^(?:(?:Control|Alt|Shift|Super)\+)*(?:[A-Z0-9]|F(?:[1-9]|1[0-9]|2[0-4])|PrintScreen|Space|Tab|Enter|Home|End|PageUp|PageDown|Up|Down|Left|Right)$/.test(
       value,
     ) ||
-    !/(Control|Alt|Super)\+/.test(value)
+    (!value.includes("+") &&
+      !/^(F(?:[1-9]|1[0-9]|2[0-4])|PrintScreen)$/.test(value))
   )
-    throw new Error("请使用 Ctrl、Alt 或 Win 搭配字母、数字、方向键或功能键");
+    throw new Error(
+      "可用 Shift、Win、Ctrl、Alt 组合，或单独 F1–F24 / PrintScreen；不能只设置修饰键",
+    );
   if (value === shortcut && shortcutOk) return;
   if (
     !globalShortcut.register(value, () =>

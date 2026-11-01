@@ -3,7 +3,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 
-const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
 const idValid = (value) =>
   typeof value === "string" && /^[a-f0-9-]{32,36}$/.test(value);
 const finite = (n, max) =>
@@ -11,13 +10,21 @@ const finite = (n, max) =>
 const fail = (status, message) => Object.assign(new Error(message), { status });
 
 function validateValue(value) {
-  if (!value || !COLORS.includes(value.color)) throw fail(400, "颜色无效");
+  if (
+    !value ||
+    typeof value.color !== "string" ||
+    !/^#[a-fA-F0-9]{6}$/.test(value.color)
+  )
+    throw fail(400, "颜色无效");
   if (value.type === "text") {
     if (
       typeof value.text !== "string" ||
       value.text.length > 10000 ||
       !finite(value.x, 1320) ||
-      !finite(value.y, 860)
+      !finite(value.y, 860) ||
+      (value.fontSize !== undefined &&
+        ![14, 18, 24, 32].includes(value.fontSize)) ||
+      (value.bold !== undefined && typeof value.bold !== "boolean")
     )
       throw fail(400, "文字或位置超出限制");
     return {
@@ -26,11 +33,13 @@ function validateValue(value) {
       x: value.x,
       y: value.y,
       color: value.color,
+      ...(value.fontSize !== undefined ? { fontSize: value.fontSize } : {}),
+      ...(value.bold !== undefined ? { bold: value.bold } : {}),
     };
   }
   if (value.type === "stroke") {
     if (
-      ![2, 4, 7].includes(value.width) ||
+      ![2, 4, 7, 12].includes(value.width) ||
       !Array.isArray(value.points) ||
       value.points.length < 1 ||
       value.points.length > 3000 ||

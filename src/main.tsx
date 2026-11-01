@@ -30,6 +30,7 @@ import {
 } from "./board";
 import "./style.css";
 import { QuickPanel } from "./QuickPanel";
+import { SHAPES, Shape, shapePoints } from "./drawing";
 
 const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
 const pointsPath = (points: number[][]) =>
@@ -41,6 +42,8 @@ function App() {
   const [tool, setTool] = useState<"select" | "text" | "pen" | "erase">("text");
   const [color, setColor] = useState(COLORS[0]);
   const [width, setWidth] = useState(4);
+  const [shape, setShape] = useState<Shape>("free");
+  const drawingStart = useRef<number[]>([]);
   const [zoom, setZoom] = useState(80);
   const [selected, setSelected] = useState("");
   const [stroke, setStroke] = useState<StrokeValue | null>(null);
@@ -70,6 +73,10 @@ function App() {
     { id: string; previous: Value | null; expected: number }[]
   >([]);
   const items = client.view();
+  const selectedText =
+    items[selected]?.value?.type === "text"
+      ? (items[selected].value as TextValue)
+      : null;
   const visible = Object.entries(items).filter(([, item]) => item.value);
   const scale = zoom / 100;
   const texts = visible.filter(([, item]) => item.value?.type === "text");
@@ -145,10 +152,17 @@ function App() {
               ArrowDown: "Down",
               ArrowLeft: "Left",
               ArrowRight: "Right",
+              PrintScreen: "PrintScreen",
             } as Record<string, string>
           )[event.key];
-    if (!key || !(event.ctrlKey || event.altKey || event.metaKey))
-      return setToast("请搭配 Ctrl、Alt 或 Win 键录入组合");
+    if (
+      !key ||
+      (!(event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) &&
+        !/^(F\d+|PrintScreen)$/.test(key))
+    )
+      return setToast(
+        "支持 Shift / Win / Ctrl / Alt 组合，或单独 F1–F24 / PrintScreen",
+      );
     setShortcut(
       [
         event.ctrlKey && "Control",
@@ -242,6 +256,7 @@ function App() {
     }
     if (tool === "pen") {
       event.currentTarget.setPointerCapture(event.pointerId);
+      drawingStart.current = point;
       drawing.current = { type: "stroke", color, width, points: [point] };
       setStroke(drawing.current);
     }
@@ -270,7 +285,10 @@ function App() {
     if (Math.hypot(point[0] - last[0], point[1] - last[1]) < 2) return;
     drawing.current = {
       ...drawing.current,
-      points: [...drawing.current.points, point],
+      points:
+        shape === "free"
+          ? [...drawing.current.points, point]
+          : shapePoints(shape, drawingStart.current, point),
     };
     setStroke(drawing.current);
   }
@@ -311,12 +329,18 @@ function App() {
         ctx.fillStyle = "#f6f8fb";
         ctx.fillRect(value.x, value.y, 280, 140);
         ctx.fillStyle = value.color;
-        ctx.font = '18px "Segoe UI", "Microsoft YaHei", sans-serif';
+        const fontSize = value.fontSize || 18;
+        ctx.font = `${value.bold ? "bold " : ""}${fontSize}px "Segoe UI", "Microsoft YaHei", sans-serif`;
         let row = 0,
           line = "";
         for (const char of value.text + "\n") {
           if (char === "\n" || ctx.measureText(line + char).width > 248) {
-            ctx.fillText(line, value.x + 16, value.y + 38 + row * 25);
+            if (fontSize + row * fontSize * 1.4 > 120) break;
+            ctx.fillText(
+              line,
+              value.x + 16,
+              value.y + 20 + fontSize + row * fontSize * 1.4,
+            );
             row++;
             line = char === "\n" ? "" : char;
           } else line += char;
@@ -421,7 +445,7 @@ function App() {
               <button className="space" onClick={() => setDialog("settings")}>
                 <Settings2 size={16} /> 设置与快捷键
               </button>
-              <span className="version">ARASN NOTEBOOK · 0.4</span>
+              <span className="version">ARASN NOTEBOOK · 0.5</span>
             </div>
           </aside>
           <main>
@@ -533,10 +557,75 @@ function App() {
                       aria-pressed={color === c}
                       className={`color ${color === c ? "chosen" : ""}`}
                       style={{ background: c }}
-                      onClick={() => setColor(c)}
+                      onClick={() => {
+                        setColor(c);
+                        if (selectedText && tool !== "pen" && tool !== "erase")
+                          client.edit(selected, { ...selectedText, color: c });
+                      }}
                     />
                   ))}
                 </div>
+                <input
+                  type="color"
+                  aria-label="自定义颜色"
+                  value={color}
+                  onChange={(e) => {
+                    setColor(e.target.value);
+                    const note = client.view()[selected]?.value;
+                    if (
+                      note?.type === "text" &&
+                      tool !== "pen" &&
+                      tool !== "erase"
+                    )
+                      client.edit(selected, { ...note, color: e.target.value });
+                  }}
+                />
+                <select
+                  aria-label="绘图工具"
+                  value={shape}
+                  onChange={(e) => {
+                    setShape(e.target.value as Shape);
+                    setTool("pen");
+                  }}
+                >
+                  {SHAPES.map(([id, label]) => (
+                    <option key={id} value={id}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                {selectedText && (
+                  <>
+                    <select
+                      aria-label="文字字号"
+                      value={selectedText.fontSize || 18}
+                      onChange={(e) =>
+                        client.edit(selected, {
+                          ...selectedText,
+                          fontSize: Number(e.target.value),
+                        })
+                      }
+                    >
+                      <option value={14}>小字</option>
+                      <option value={18}>标准</option>
+                      <option value={24}>大字</option>
+                      <option value={32}>标题</option>
+                    </select>
+                    <button
+                      className={`tool ${selectedText.bold ? "selected" : ""}`}
+                      aria-label="文字加粗"
+                      aria-pressed={!!selectedText.bold}
+                      onClick={() =>
+                        client.edit(selected, {
+                          ...selectedText,
+                          bold: !selectedText.bold,
+                        })
+                      }
+                    >
+                      <strong>B</strong>
+                    </button>
+                  </>
+                )}
                 <select
                   aria-label="画笔粗细"
                   value={width}
@@ -545,6 +634,7 @@ function App() {
                   <option value={2}>细笔</option>
                   <option value={4}>中笔</option>
                   <option value={7}>粗笔</option>
+                  <option value={12}>加粗</option>
                 </select>
                 <span className="divider" />
                 <button
@@ -685,6 +775,10 @@ function App() {
                             aria-label="便笺文字"
                             placeholder="在这里写点什么…"
                             value={value.text}
+                            style={{
+                              fontSize: value.fontSize || 18,
+                              fontWeight: value.bold ? 700 : 400,
+                            }}
                             maxLength={10000}
                             onChange={(e) =>
                               client.edit(id, {
@@ -822,8 +916,8 @@ function App() {
                     disabled={!window.desktop || working}
                   />
                   <span className="setting-hint">
-                    点击输入框后按下组合键，支持字母、数字、方向键和 F1–F24；Esc
-                    结束录入。
+                    点击录入 Shift / Win / Ctrl / Alt 组合，或单独 F1–F24 /
+                    PrintScreen；Esc 结束录入。
                   </span>
                 </label>
                 <button
