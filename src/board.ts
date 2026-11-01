@@ -36,6 +36,11 @@ export type DesktopInfo = {
   sharing: boolean;
   links: string[];
   dataPath: string;
+  theme: "system" | "light" | "dark";
+  alwaysOnTop: boolean;
+  startMinimized: boolean;
+  openAtLogin: boolean;
+  autoStartSupported: boolean;
 };
 declare global {
   interface Window {
@@ -44,6 +49,7 @@ declare global {
       share(enabled: boolean): Promise<DesktopInfo>;
       hide(): Promise<void>;
       shortcut(value: string): Promise<DesktopInfo>;
+      settings(value: Partial<DesktopInfo>): Promise<DesktopInfo>;
       recovery(): Promise<Recovery | null>;
       saveRecovery(value: string): Promise<void>;
     };

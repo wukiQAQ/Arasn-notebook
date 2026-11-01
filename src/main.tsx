@@ -57,6 +57,10 @@ function App() {
   const [info, setInfo] = useState<DesktopInfo | null>(null);
   const [dialog, setDialog] = useState<"share" | "settings" | null>(null);
   const [shortcut, setShortcut] = useState("Control+Alt+N");
+  const [theme, setTheme] = useState<DesktopInfo["theme"]>(() => {
+    const saved = localStorage.getItem("arasn-theme");
+    return saved === "light" || saved === "dark" ? saved : "system";
+  });
   const [toast, setToast] = useState("");
   const [working, setWorking] = useState(false);
   const paper = useRef<HTMLDivElement>(null);
@@ -75,9 +79,81 @@ function App() {
       void window.desktop.info().then((value) => {
         setInfo(value);
         setShortcut(value.shortcut);
+        setTheme(value.theme);
       });
     return () => client.stop();
   }, [client]);
+  useEffect(() => {
+    const media = matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      document.documentElement.dataset.theme =
+        theme === "system" ? (media.matches ? "dark" : "light") : theme;
+    };
+    apply();
+    localStorage.setItem("arasn-theme", theme);
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [theme]);
+  async function changeSettings(patch: Partial<DesktopInfo>) {
+    const previous = info;
+    if (window.desktop)
+      setInfo((current) => (current ? { ...current, ...patch } : current));
+    setWorking(true);
+    try {
+      if (window.desktop) {
+        const updated = await window.desktop.settings(patch);
+        setInfo(updated);
+        setTheme(updated.theme);
+        setShortcut(updated.shortcut);
+      } else if (patch.theme) setTheme(patch.theme);
+      setToast("设置已保存");
+    } catch (error) {
+      setInfo(previous);
+      setToast((error as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  }
+  function captureShortcut(event: React.KeyboardEvent<HTMLInputElement>) {
+    event.preventDefault();
+    if (["Control", "Alt", "Shift", "Meta"].includes(event.key)) return;
+    if (event.key === "Escape") {
+      event.currentTarget.blur();
+      return;
+    }
+    const key = /^(Key[A-Z]|Digit[0-9])$/.test(event.code)
+      ? event.code.replace(/^(Key|Digit)/, "")
+      : /^F([1-9]|1[0-9]|2[0-4])$/.test(event.key)
+        ? event.key
+        : (
+            {
+              " ": "Space",
+              Enter: "Enter",
+              Tab: "Tab",
+              Home: "Home",
+              End: "End",
+              PageUp: "PageUp",
+              PageDown: "PageDown",
+              ArrowUp: "Up",
+              ArrowDown: "Down",
+              ArrowLeft: "Left",
+              ArrowRight: "Right",
+            } as Record<string, string>
+          )[event.key];
+    if (!key || !(event.ctrlKey || event.altKey || event.metaKey))
+      return setToast("请搭配 Ctrl、Alt 或 Win 键录入组合");
+    setShortcut(
+      [
+        event.ctrlKey && "Control",
+        event.altKey && "Alt",
+        event.shiftKey && "Shift",
+        event.metaKey && "Super",
+        key,
+      ]
+        .filter(Boolean)
+        .join("+"),
+    );
+  }
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 3500);
@@ -323,7 +399,7 @@ function App() {
           <button className="space" onClick={() => setDialog("settings")}>
             <Settings2 size={16} /> 设置与快捷键
           </button>
-          <span className="version">ARASN NOTEBOOK · 0.2</span>
+          <span className="version">ARASN NOTEBOOK · 0.3</span>
         </div>
       </aside>
       <main>
@@ -694,29 +770,93 @@ function App() {
                 <p>桌面应用运行时，随时呼出你的工作页。</p>
                 <label className="field-label">
                   全局快捷键
-                  <select
-                    value={shortcut}
-                    onChange={(e) => setShortcut(e.target.value)}
-                  >
-                    <option value="Control+Alt+N">Ctrl + Alt + N</option>
-                    <option value="Control+Shift+N">Ctrl + Shift + N</option>
-                    <option value="Alt+Shift+N">Alt + Shift + N</option>
-                  </select>
+                  <input
+                    aria-label="录入全局快捷键"
+                    readOnly
+                    value={shortcut
+                      .replace("Control", "Ctrl")
+                      .replace("Super", "Win")
+                      .replaceAll("+", " + ")}
+                    onKeyDown={captureShortcut}
+                    disabled={!window.desktop || working}
+                  />
+                  <span className="setting-hint">
+                    点击输入框后按下组合键，支持字母、数字、方向键和 F1–F24；Esc
+                    结束录入。
+                  </span>
                 </label>
                 <button
                   className="button primary"
-                  disabled={!window.desktop}
-                  onClick={async () => {
-                    try {
-                      setInfo(await window.desktop!.shortcut(shortcut));
-                      setToast("快捷键已保存");
-                    } catch (error) {
-                      setToast((error as Error).message);
-                    }
-                  }}
+                  disabled={!window.desktop || working}
+                  onClick={() => changeSettings({ shortcut })}
                 >
                   保存快捷键
                 </button>
+                <label className="field-label">
+                  外观主题
+                  <select
+                    aria-label="外观主题"
+                    value={theme}
+                    disabled={working}
+                    onChange={(e) =>
+                      changeSettings({
+                        theme: e.target.value as DesktopInfo["theme"],
+                      })
+                    }
+                  >
+                    <option value="system">跟随系统</option>
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                  </select>
+                </label>
+                <label className="setting-toggle">
+                  <span>
+                    开机自启动<small>登录 Windows 后自动运行</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    aria-label="开机自启动"
+                    checked={info?.openAtLogin || false}
+                    disabled={!info?.autoStartSupported || working}
+                    onChange={(e) =>
+                      changeSettings({ openAtLogin: e.target.checked })
+                    }
+                  />
+                </label>
+                {!info?.autoStartSupported && (
+                  <p className="setting-hint">
+                    开机自启动仅在打包后的 Windows 程序中可用。
+                  </p>
+                )}
+                <label className="setting-toggle">
+                  <span>
+                    开机启动时隐藏到托盘
+                    <small>按快捷键即可呼出，不打断工作</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    aria-label="开机启动时隐藏到托盘"
+                    checked={info?.startMinimized ?? true}
+                    disabled={!window.desktop || working}
+                    onChange={(e) =>
+                      changeSettings({ startMinimized: e.target.checked })
+                    }
+                  />
+                </label>
+                <label className="setting-toggle">
+                  <span>
+                    窗口始终置顶<small>在其他办公窗口之上显示</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    aria-label="窗口始终置顶"
+                    checked={info?.alwaysOnTop || false}
+                    disabled={!window.desktop || working}
+                    onChange={(e) =>
+                      changeSettings({ alwaysOnTop: e.target.checked })
+                    }
+                  />
+                </label>
                 <hr />
                 <h3>保存一份完整备份</h3>
                 <p>

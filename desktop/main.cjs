@@ -8,6 +8,7 @@ const {
   ipcMain,
   screen,
   dialog,
+  nativeTheme,
 } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -30,6 +31,8 @@ let shortcut = "Control+Alt+N",
   links = [];
 const token = crypto.randomBytes(24).toString("hex");
 const staticDir = path.join(__dirname, "../dist");
+let preferences = { theme: "system", alwaysOnTop: false, startMinimized: true };
+const loginOptions = () => ({ path: process.execPath, args: ["--autostart"] });
 
 function show() {
   const { workArea } = screen.getDisplayNearestPoint(
@@ -52,9 +55,12 @@ function show() {
 function registerShortcut(value) {
   if (
     typeof value !== "string" ||
-    !/^(Control\+Alt|Control\+Shift|Alt\+Shift)\+[A-Z]$/.test(value)
+    !/^(?:(?:Control|Alt|Shift|Super)\+)+(?:[A-Z0-9]|F(?:[1-9]|1[0-9]|2[0-4])|Space|Tab|Enter|Home|End|PageUp|PageDown|Up|Down|Left|Right)$/.test(
+      value,
+    ) ||
+    !/(Control|Alt|Super)\+/.test(value)
   )
-    throw new Error("请使用 Ctrl+Alt、Ctrl+Shift 或 Alt+Shift 加一个英文字母");
+    throw new Error("请使用 Ctrl、Alt 或 Win 搭配字母、数字、方向键或功能键");
   if (value === shortcut && shortcutOk) return;
   if (
     !globalShortcut.register(value, () =>
@@ -72,6 +78,10 @@ const info = () => ({
   sharing: !!shared,
   links,
   dataPath: app.getPath("userData"),
+  ...preferences,
+  openAtLogin:
+    app.isPackaged && app.getLoginItemSettings(loginOptions()).openAtLogin,
+  autoStartSupported: app.isPackaged && process.platform === "win32",
 });
 
 app.on("second-instance", () => window && show());
@@ -91,13 +101,17 @@ if (lock)
       const configFile = path.join(app.getPath("userData"), "settings.json");
       if (fs.existsSync(configFile)) {
         try {
-          shortcut =
-            JSON.parse(fs.readFileSync(configFile, "utf8")).shortcut ||
-            shortcut;
+          const saved = JSON.parse(fs.readFileSync(configFile, "utf8"));
+          shortcut = saved.shortcut || shortcut;
+          if (["system", "light", "dark"].includes(saved.theme))
+            preferences.theme = saved.theme;
+          for (const key of ["alwaysOnTop", "startMinimized"])
+            if (typeof saved[key] === "boolean") preferences[key] = saved[key];
         } catch {
           /* Keep default when only preferences are invalid. */
         }
       }
+      nativeTheme.themeSource = preferences.theme;
       store = createStore(path.join(app.getPath("userData"), "board.json"));
       local = await startServer({ store, token, staticDir });
       const origin = `http://127.0.0.1:${local.port}`;
@@ -115,7 +129,10 @@ if (lock)
         title: "Arasn · 办公随手页",
         backgroundColor: "#f5f7fa",
         autoHideMenuBar: true,
-        show: !process.env.ARASN_SMOKE,
+        show:
+          !process.env.ARASN_SMOKE &&
+          !(process.argv.includes("--autostart") && preferences.startMinimized),
+        alwaysOnTop: preferences.alwaysOnTop,
         webPreferences: {
           preload: path.join(__dirname, "preload.cjs"),
           nodeIntegration: false,
@@ -203,7 +220,63 @@ if (lock)
       secureHandle("app:hide", () => window.hide());
       secureHandle("app:shortcut", (value) => {
         registerShortcut(value);
-        fs.writeFileSync(configFile, JSON.stringify({ shortcut }));
+        fs.writeFileSync(
+          configFile,
+          JSON.stringify({ shortcut, ...preferences }),
+        );
+        return info();
+      });
+      secureHandle("app:settings", (patch) => {
+        if (!patch || typeof patch !== "object" || Array.isArray(patch))
+          throw new Error("设置无效");
+        const allowed = [
+          "shortcut",
+          "theme",
+          "alwaysOnTop",
+          "startMinimized",
+          "openAtLogin",
+        ];
+        if (Object.keys(patch).some((key) => !allowed.includes(key)))
+          throw new Error("未知设置");
+        if (
+          patch.theme !== undefined &&
+          !["system", "light", "dark"].includes(patch.theme)
+        )
+          throw new Error("主题无效");
+        for (const key of ["alwaysOnTop", "startMinimized", "openAtLogin"])
+          if (patch[key] !== undefined && typeof patch[key] !== "boolean")
+            throw new Error("设置值无效");
+        if (patch.openAtLogin !== undefined && !info().autoStartSupported)
+          throw new Error("请在打包后的 Windows 程序中设置开机自启动");
+        const previous = { ...preferences },
+          previousShortcut = shortcut;
+        const previousLogin = info().openAtLogin;
+        try {
+          if (patch.shortcut !== undefined) registerShortcut(patch.shortcut);
+          if (patch.openAtLogin !== undefined)
+            app.setLoginItemSettings({
+              ...loginOptions(),
+              openAtLogin: patch.openAtLogin,
+            });
+          for (const key of ["theme", "alwaysOnTop", "startMinimized"])
+            if (patch[key] !== undefined) preferences[key] = patch[key];
+          fs.writeFileSync(
+            `${configFile}.tmp`,
+            JSON.stringify({ shortcut, ...preferences }),
+          );
+          fs.renameSync(`${configFile}.tmp`, configFile);
+        } catch (error) {
+          preferences = previous;
+          if (shortcut !== previousShortcut) registerShortcut(previousShortcut);
+          if (patch.openAtLogin !== undefined)
+            app.setLoginItemSettings({
+              ...loginOptions(),
+              openAtLogin: previousLogin,
+            });
+          throw error;
+        }
+        nativeTheme.themeSource = preferences.theme;
+        window.setAlwaysOnTop(preferences.alwaysOnTop);
         return info();
       });
       let shareTask = Promise.resolve();
