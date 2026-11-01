@@ -1,0 +1,26 @@
+# Dependencies and build output
+node_modules/
+dist/
+target/
+src-tauri/target/
+
+# Local credentials and configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editor and OS state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local runtime data
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
