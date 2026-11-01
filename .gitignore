@@ -1,6 +1,10 @@
 # Dependencies and build output
 node_modules/
 dist/
+release/
+test-results/
+playwright-report/
+.runtime/
 target/
 src-tauri/target/
 
