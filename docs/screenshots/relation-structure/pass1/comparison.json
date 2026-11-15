@@ -1,0 +1,1144 @@
+{
+  "fixtureHash": "936aade91d82333b4835c2830ab9ec022b8f3f63ea2fea02ee84ad20e0055942",
+  "fixture": [
+    [
+      "研究问题",
+      -490,
+      -230
+    ],
+    [
+      "参考依据",
+      -80,
+      -230
+    ],
+    [
+      "实施条件",
+      330,
+      -230
+    ],
+    [
+      "可选方案",
+      -490,
+      50
+    ],
+    [
+      "确认结论",
+      -80,
+      50
+    ],
+    [
+      "附加材料",
+      184,
+      50
+    ],
+    [
+      "来源记录",
+      -80,
+      250
+    ]
+  ],
+  "pairs": [
+    [
+      0,
+      1,
+      "related",
+      "none"
+    ],
+    [
+      1,
+      2,
+      "reference",
+      "forward"
+    ],
+    [
+      0,
+      5,
+      "dependency",
+      "forward"
+    ],
+    [
+      3,
+      2,
+      "resolves",
+      "forward"
+    ],
+    [
+      4,
+      5,
+      "attachment",
+      "both"
+    ],
+    [
+      6,
+      1,
+      "source",
+      "forward"
+    ]
+  ],
+  "results": [
+    {
+      "name": "light-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -167 -158, -167 -158, -90 -158",
+          "color": "rgb(53, 104, 169)",
+          "label": "rgb(53, 104, 169)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.668907971789506,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 -158 C 243 -158, 243 -158, 320 -158",
+          "color": "rgb(114, 80, 171)",
+          "label": "rgb(114, 80, 171)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.085191524512048,
+          "arrow": "rgb(114, 80, 171)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -64 -158, -6 122, 174 122",
+          "color": "rgb(139, 92, 23)",
+          "label": "rgb(139, 92, 23)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.767607712106073,
+          "arrow": "rgb(139, 92, 23)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.0000762939453125
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 122 C -64 122, 140 -158, 320 -158",
+          "color": "rgb(40, 116, 72)",
+          "label": "rgb(40, 116, 72)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.703490812495996,
+          "arrow": "rgb(40, 116, 72)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000762939453125
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 122 C 206 122, 134 122, 174 122",
+          "color": "rgb(36, 120, 135)",
+          "label": "rgb(36, 120, 135)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.10767979121944,
+          "arrow": "rgb(36, 120, 135)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 322 C 346 322, -270 -158, -90 -158",
+          "color": "rgb(114, 80, 171)",
+          "label": "rgb(114, 80, 171)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.085191524512048,
+          "arrow": "rgb(114, 80, 171)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dark-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -167 -158, -167 -158, -90 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 -158 C 243 -158, 243 -158, 320 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -64 -158, -6 122, 174 122",
+          "color": "rgb(220, 172, 94)",
+          "label": "rgb(220, 172, 94)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.736807493626531,
+          "arrow": "rgb(220, 172, 94)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.0000762939453125
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 122 C -64 122, 140 -158, 320 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000762939453125
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 122 C 206 122, 134 122, 174 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 322 C 346 322, -270 -158, -90 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dark-selected",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -167 -158, -167 -158, -90 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 -158 C 243 -158, 243 -158, 320 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "2.5px",
+          "screenWidth": 2.5,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -64 -158, -6 122, 174 122",
+          "color": "color(srgb 0.892941 0.746118 0.507529)",
+          "label": "color(srgb 0.892941 0.746118 0.507529)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 7.987008826146814,
+          "arrow": "color(srgb 0.892941 0.746118 0.507529)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.0000762939453125
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 122 C -64 122, 140 -158, 320 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000762939453125
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 122 C 206 122, 134 122, 174 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 322 C 346 322, -270 -158, -90 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dark-51",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "51%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "3.90625px",
+          "screenWidth": 2.0000000949949026,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M -238.28125 -158 C -160.15625 -158, -177.65625 -158, -99.53125 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "3.90625px",
+          "screenWidth": 2.0000000949949026,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M 171.71875 -158 C 249.84375 -158, 232.34375 -158, 310.46875 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10.000000474974511,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "4.88281px",
+          "screenWidth": 2.4999988387435677,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M -238.28125 -158 C -3.3062500000000057 -158, -70.50625 122, 164.46875 122",
+          "color": "color(srgb 0.892941 0.746118 0.507529)",
+          "label": "color(srgb 0.892941 0.746118 0.507529)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 7.987008826146814,
+          "arrow": "color(srgb 0.892941 0.746118 0.507529)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10.000000474974511,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.00006103515625
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "3.90625px",
+          "screenWidth": 2.0000000949949026,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M -238.28125 122 C 69.69375000000002 122, 2.4937499999999773 -158, 310.46875 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10.000000474974511,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000457763671875
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "3.90625px",
+          "screenWidth": 2.0000000949949026,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M 171.71875 122 C 249.84375 122, 86.34375000000001 122, 164.46875 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10.000000474974511,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "3.90625px",
+          "screenWidth": 2.0000000949949026,
+          "hitWidth": 17.999975254952908,
+          "dash": "none",
+          "path": "M 171.71875 322 C 364.94375 322, -292.75625 -158, -99.53125 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10.000000474974511,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001220703125
+          ]
+        }
+      ]
+    },
+    {
+      "name": "short-dark-200",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "200%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "1px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -247 -158 C -166 -158, -166 -158, -85 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "1px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 163 -158 C 244 -158, 244 -158, 325 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "1.25px",
+          "screenWidth": 2.5,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -247 -158 C -157 -158, 89 122, 179 122",
+          "color": "color(srgb 0.892941 0.746118 0.507529)",
+          "label": "color(srgb 0.892941 0.746118 0.507529)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 7.987008826146814,
+          "arrow": "color(srgb 0.892941 0.746118 0.507529)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.000152587890625
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "1px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -247 122 C -157 122, 235 -158, 325 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.000152587890625
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "1px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 163 122 C 183 122, 159 122, 179 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "1px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 163 322 C 253 322, -175 -158, -85 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dark-reduced-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -167 -158, -167 -158, -90 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 -158 C 243 -158, 243 -158, 320 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "2.5px",
+          "screenWidth": 2.5,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -64 -158, -6 122, 174 122",
+          "color": "color(srgb 0.892941 0.746118 0.507529)",
+          "label": "color(srgb 0.892941 0.746118 0.507529)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 7.987008826146814,
+          "arrow": "color(srgb 0.892941 0.746118 0.507529)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.0000762939453125
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 122 C -64 122, 140 -158, 320 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000762939453125
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 122 C 206 122, 134 122, 174 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 322 C 346 322, -270 -158, -90 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mobile-dark-100",
+      "viewport": [
+        390,
+        720
+      ],
+      "zoom": "100%",
+      "styles": [
+        {
+          "type": "related",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -167 -158, -167 -158, -90 -158",
+          "color": "rgb(121, 167, 227)",
+          "label": "rgb(121, 167, 227)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.632813532563197,
+          "arrow": null,
+          "arrowPixels": null,
+          "start": false,
+          "end": false,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "reference",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 -158 C 243 -158, 243 -158, 320 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0
+          ]
+        },
+        {
+          "type": "dependency",
+          "width": "2.5px",
+          "screenWidth": 2.5,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 -158 C -64 -158, -6 122, 174 122",
+          "color": "color(srgb 0.892941 0.746118 0.507529)",
+          "label": "color(srgb 0.892941 0.746118 0.507529)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 7.987008826146814,
+          "arrow": "color(srgb 0.892941 0.746118 0.507529)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            0.0000762939453125
+          ]
+        },
+        {
+          "type": "resolves",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M -244 122 C -64 122, 140 -158, 320 -158",
+          "color": "rgb(115, 189, 146)",
+          "label": "rgb(115, 189, 146)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.281700474872116,
+          "arrow": "rgb(115, 189, 146)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0000762939453125
+          ]
+        },
+        {
+          "type": "attachment",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 122 C 206 122, 134 122, 174 122",
+          "color": "rgb(110, 185, 200)",
+          "label": "rgb(110, 185, 200)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 6.290726429404356,
+          "arrow": "rgb(110, 185, 200)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": true,
+          "end": true,
+          "tangent": [
+            0.0500030517578125,
+            0
+          ]
+        },
+        {
+          "type": "source",
+          "width": "2px",
+          "screenWidth": 2,
+          "hitWidth": 18,
+          "dash": "none",
+          "path": "M 166 322 C 346 322, -270 -158, -90 -158",
+          "color": "rgb(170, 150, 226)",
+          "label": "rgb(170, 150, 226)",
+          "labelHeight": "24px",
+          "labelRadius": "5px",
+          "labelPadding": "1px 8px",
+          "labelContrast": 5.446329829002223,
+          "arrow": "rgb(170, 150, 226)",
+          "arrowShape": "M 2 2 L 8 5 L 2 8",
+          "orient": "auto-start-reverse",
+          "arrowPixels": 10,
+          "start": false,
+          "end": true,
+          "tangent": [
+            0.04998779296875,
+            -0.0001373291015625
+          ]
+        }
+      ]
+    }
+  ]
+}

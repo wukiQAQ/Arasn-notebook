@@ -1,0 +1,362 @@
+[
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 447,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 447,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 330,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 330,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 562,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 562,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerdown",
+    "x": 896,
+    "y": 482,
+    "buttons": 1,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 976,
+    "y": 482,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "lostpointercapture",
+    "x": 976,
+    "y": 482,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerdown",
+    "x": 420,
+    "y": 164,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": ""
+  },
+  {
+    "type": "pointerup",
+    "x": 420,
+    "y": 164,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "pointerup",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "pointerdown",
+    "x": 184.25,
+    "y": 515,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerup",
+    "x": 184.25,
+    "y": 515,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerdown",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "pointerup",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 223,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 223,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 637,
+    "y": 395,
+    "buttons": 1,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 707,
+    "y": 425,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "lostpointercapture",
+    "x": 707,
+    "y": 425,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 184,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 184,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 1057,
+    "y": 548,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 1057,
+    "y": 548,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 330,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 330,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 184,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 184,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 1057,
+    "y": 548,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 1057,
+    "y": 548,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 601,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": ""
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 601,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool free-delete"
+  },
+  {
+    "type": "pointerdown",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "pointerup",
+    "x": 137.75,
+    "y": 515,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "pointerdown",
+    "x": 161,
+    "y": 408,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerup",
+    "x": 161,
+    "y": 408,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 420,
+    "y": 164,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 420,
+    "y": 164,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": ""
+  }
+]

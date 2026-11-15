@@ -1,0 +1,17 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),{randomUUID}=require('node:crypto');const {validateValue,legacySnapshot,createStore}=require('../desktop/server.cjs');const {StorageEngine}=require('../desktop/engines/storage-engine.cjs');
+test('attachment validation, local sharing boundary and dimensions',()=>{const roomId=randomUUID(),v={type:'free-file',roomId,contentRef:{kind:'file',id:randomUUID()},name:'图片.png',category:'图片',x:-500,y:250,width:320,height:240,localOnly:true,opacity:.6};assert.deepEqual(validateValue(v),v);for(const patch of [{x:Infinity},{width:0},{opacity:NaN},{localOnly:false}])assert.throws(()=>validateValue({...v,...patch}));const store=createStore();const id=randomUUID();store.apply({id,opId:randomUUID(),expected:0,value:{...v,roomId:store.snapshot().roomId}});assert.equal(Object.keys(legacySnapshot(store.snapshot()).items).length,0);assert.throws(()=>store.apply({id:randomUUID(),opId:randomUUID(),expected:0,value:v},{legacyOnly:true}));});
+test('free attachment protects managed file without relation migration, survives clear and restart',async()=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'arasn-free-file-'));let engine=new StorageEngine(path.join(dir,'data'));try{
+ const init=await engine.call('init');const source=path.join(dir,'source.txt');await fs.writeFile(source,'Keep this managed file.');const [result]=await engine.call('import',{paths:[source]});assert(result.ok);const id=randomUUID(),v={type:'free-file',roomId:init.state.roomId,contentRef:{kind:'file',id:result.file.id},name:result.file.name,category:result.file.category,x:-100,y:-100,width:320,height:140,localOnly:true};
+ await engine.call('board',{operation:{id,opId:randomUUID(),expected:0,value:v}});let owners=await engine.call('fileOwners',{id:result.file.id});assert(owners.some(o=>o.id===id));await engine.call('reference',{id:result.file.id});const scope=await engine.call('fileAreaPreview');await engine.call('clearFileArea',{refs:scope.refs});assert((await engine.call('fileOwners',{id:result.file.id})).some(o=>o.id===id));
+ await engine.close();engine=new StorageEngine(path.join(dir,'data'));const state=(await engine.call('init')).state;assert.deepEqual(state.items[id].value,v);
+ await engine.call('board',{operation:{id,opId:randomUUID(),expected:1,value:null}});const rows=await engine.call('list',{});assert(rows.rows.some(f=>f.id===result.file.id));assert.equal(await fs.readFile(source,'utf8'),'Keep this managed file.');
+ }finally{await engine.close();const cleanupTarget=await fs.realpath(dir);assert.equal(path.dirname(cleanupTarget),await fs.realpath(os.tmpdir()));await fs.rm(cleanupTarget,{recursive:true,force:true});}
+});
+
+test('continuous opacity adjustments undo as one history entry',async()=>{
+ const {DrawingHistory}=await import('../src/drawing-history.ts');const h=new DrawingHistory();let value={type:'stroke',color:'#263449',width:4,points:[[0,0],[10,10]]};const first=value;
+ for(const opacity of [.9,.8,.6]){const next={...value,opacity};h.record([{id:'s',before:value,after:next}],'opacity:s');value=next;}
+ assert.equal(h.past.length,1);assert.equal(h.apply(false,()=>value,(_id,v)=>{value=v;},()=>randomUUID()),'ok');assert.deepEqual(value,first);
+ assert.equal(h.apply(true,()=>value,(_id,v)=>{value=v;},()=>randomUUID()),'ok');assert.equal(value.opacity,.6);
+});

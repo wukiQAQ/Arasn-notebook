@@ -1,0 +1,29 @@
+{
+  "defaults": {
+    "outer": [
+      620,
+      700
+    ],
+    "content": [
+      604,
+      661
+    ]
+  },
+  "minimum": {
+    "outer": [
+      500,
+      540
+    ],
+    "content": [
+      484,
+      501
+    ]
+  },
+  "layout": {
+    "noOverflow": true,
+    "noteHeight": 314,
+    "footerFits": true
+  },
+  "oldBoundsMigrated": true,
+  "resizeAndNoteSurvivedRestart": true
+}

@@ -1,0 +1,93 @@
+const { expect } = require('@playwright/test');
+const assert = require('node:assert/strict');
+const { selectOption } = require('./helpers/select-option.cjs');
+
+module.exports = async ({ page, b, board, capture, size, record, other, stroke, text }) => {
+  const theme = page.getByRole('combobox', { name: '外观主题', exact: true });
+  await theme.focus(); await page.keyboard.press('Space');
+  await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(3);
+  await expect(page.getByRole('option', { selected: true })).toHaveText('深色');
+  await capture('theme-menu-dark');
+  await page.keyboard.press('Escape'); await expect(theme).toBeFocused();
+  const hidden = page.getByRole('checkbox', { name: '启动时隐藏窗口', exact: true });
+  await hidden.check();
+  await expect.poll(() => page.evaluate(async () => (await window.desktop.info()).startHidden)).toBe(true);
+  await hidden.focus();
+  assert.deepEqual(await hidden.evaluate(el => ({ width: el.offsetWidth, height: el.offsetHeight })), { width: 18, height: 18 });
+  await expect(page.getByRole('checkbox', { name: '开机自启动', exact: true })).toBeDisabled();
+  await capture('checkbox-focus-dark');
+  await hidden.uncheck();
+  await selectOption(page, '外观主题', 'light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await capture('settings-light');
+  await selectOption(page, '外观主题', 'dark');
+  await expect(theme).toContainText('深色');
+  await b('关闭弹窗').click();
+
+  await b('便笺列表').click();
+  await selectOption(page, '记录关联筛选', 'unlinked');
+  await expect(page.locator('.xigra-record-workspace .xigra-record-list button')).toHaveCount(0);
+  await selectOption(page, '记录关联筛选', 'linked');
+  await expect(page.locator('.xigra-record-workspace .xigra-record-list button')).toHaveCount(2);
+  await selectOption(page, '记录关联筛选', 'all');
+  const search = page.locator('.xigra-record-search input');
+  await search.fill('评审前');
+  await expect(page.locator('.xigra-record-workspace .xigra-record-list button')).toHaveCount(1);
+  await search.fill('');
+  const updated = text + '\n本轮补充：展示角色已经清楚。';
+  await page.locator('.xigra-record-editor').fill(updated);
+  await expect(page.locator('.xigra-record-paper .xigra-save-state')).toHaveText('已保存');
+  await b('文件管理').click(); await expect(page.getByRole('dialog', { name: '文件', exact: true })).toBeVisible();
+  await b('关闭文件').click();
+  await capture('records-verified-1440');
+  for (const width of [820, 390]) {
+    await size(width);
+    await expect(page.locator('.xigra-record-editor')).toBeVisible();
+    await capture(`records-${width}`);
+    await expect.poll(async () => {
+      const bounds = await page.locator('.xigra-record-editor').boundingBox();
+      return bounds.width > 200 && bounds.height > 180 && bounds.x >= 0 && bounds.x + bounds.width <= width + 1;
+    }).toBe(true);
+    await expect(b('打开关系画布')).toBeVisible();
+  }
+  await size(1440); await b('打开关系画布').click();
+  const snapshot = await board();
+  const nodeId = Object.keys(snapshot.items).find(id => snapshot.items[id].value?.type === 'canvas-node' && snapshot.items[id].value.contentRef.id === record);
+  const card = page.locator(`[data-topology-node="${nodeId}"]`);
+  await expect(card).toContainText('展示角色已经清楚');
+  await expect(card.locator('textarea')).toHaveCount(0);
+  await expect(card.locator('.node-sync')).toHaveText('已保存');
+  await card.dblclick();
+  await page.getByRole('combobox', { name: '节点类型', exact: true }).click();
+  await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(4);
+  await expect(page.locator('.app-select-item .app-type-dot')).toHaveCount(4);
+  await capture('node-type-menu');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: '节点详情', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: '节点类型', exact: true })).toBeFocused();
+  await page.getByRole('combobox', { name: '节点类型', exact: true }).click();
+  await page.getByRole('option', { name: '待办', exact: true }).click();
+  await expect.poll(async () => (await board()).items[nodeId].value.layout.kind).toBe('task');
+  await b('关闭详情').click();
+  await capture('relations-verified-1440');
+  for (const width of [820, 390]) { await size(width); await b('适配节点').click(); await capture(`relations-${width}`); }
+  await size(1440); await b('我的随手页').click();
+  const note = page.locator(`[data-note-id="${record}"]`);
+  await expect(note.locator('textarea')).toHaveValue(updated);
+  await expect(note.locator('.relation-anchor')).toHaveCount(0);
+  await capture('free-verified-1440');
+  for (const width of [820, 390]) { await size(width); await capture(`free-${width}`); }
+  await size(390); await b('设置与快捷键').first().click();
+  await page.getByLabel('启动时隐藏窗口', {exact:true}).scrollIntoViewIfNeeded();
+  await expect(theme).toContainText('深色');
+  await theme.scrollIntoViewIfNeeded(); await theme.click();
+  const menu = await page.getByRole('listbox').boundingBox();
+  assert(menu.x >= 0 && menu.x + menu.width <= 391);
+  await capture('settings-menu-390');
+  await page.keyboard.press('Escape'); await b('关闭弹窗').click();
+  const final = await board();
+  assert.equal(final.items[record].value.text, updated);
+  assert.equal(final.items[other].value.text, '一个新的想法\n先记录，再慢慢展开。');
+  assert.deepEqual(final.items[stroke].value.points, [[350, 500], [430, 460], [520, 510]]);
+  assert.equal(Object.values(final.items).filter(i => ['text', 'node'].includes(i.value?.type)).length, 2);
+};

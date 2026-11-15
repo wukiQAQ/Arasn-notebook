@@ -1,0 +1,101 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "title": "自由工作页",
+      "noPageOverflow": true,
+      "titleRight": 308,
+      "actionsLeft": 966,
+      "actionsRight": 1416
+    },
+    {
+      "width": 1440,
+      "title": "关系画布",
+      "noPageOverflow": true,
+      "titleRight": 292,
+      "actionsLeft": 1100,
+      "actionsRight": 1416
+    },
+    {
+      "width": 1440,
+      "title": "速记",
+      "noPageOverflow": true,
+      "titleRight": 260,
+      "actionsLeft": 1042,
+      "actionsRight": 1416
+    },
+    {
+      "width": 1440,
+      "title": "文件中心",
+      "noPageOverflow": true,
+      "titleRight": 292,
+      "actionsLeft": 1176,
+      "actionsRight": 1416
+    },
+    {
+      "width": 820,
+      "title": "自由工作页",
+      "noPageOverflow": true,
+      "titleRight": 276,
+      "actionsLeft": 378,
+      "actionsRight": 804
+    },
+    {
+      "width": 820,
+      "title": "关系画布",
+      "noPageOverflow": true,
+      "titleRight": 260,
+      "actionsLeft": 506,
+      "actionsRight": 804
+    },
+    {
+      "width": 820,
+      "title": "速记",
+      "noPageOverflow": true,
+      "titleRight": 228,
+      "actionsLeft": 448,
+      "actionsRight": 804
+    },
+    {
+      "width": 820,
+      "title": "文件中心",
+      "noPageOverflow": true,
+      "titleRight": 260,
+      "actionsLeft": 576,
+      "actionsRight": 804
+    },
+    {
+      "width": 390,
+      "title": "自由工作页",
+      "noPageOverflow": true,
+      "titleRight": 90,
+      "actionsLeft": 114,
+      "actionsRight": 380
+    },
+    {
+      "width": 390,
+      "title": "关系画布",
+      "noPageOverflow": true,
+      "titleRight": 74,
+      "actionsLeft": 210,
+      "actionsRight": 380
+    },
+    {
+      "width": 390,
+      "title": "速记",
+      "noPageOverflow": true,
+      "titleRight": 42,
+      "actionsLeft": 114,
+      "actionsRight": 380
+    },
+    {
+      "width": 390,
+      "title": "文件中心",
+      "noPageOverflow": true,
+      "titleRight": 74,
+      "actionsLeft": 210,
+      "actionsRight": 380
+    }
+  ],
+  "errors": []
+}

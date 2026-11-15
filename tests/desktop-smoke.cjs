@@ -26,7 +26,8 @@ const { randomUUID } = require("node:crypto");
   try {
     application = await launch();
     let page = await application.firstWindow();
-    await page.getByRole("button", { name: "展开完整页面" }).click();
+    await page.getByRole("button", { name: "打开工作区", exact: true }).click();
+    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
     await page.getByRole("button", { name: "写一张便笺" }).click();
     await page
       .getByRole("textbox", { name: "便笺文字" })
@@ -83,7 +84,8 @@ const { randomUUID } = require("node:crypto");
     application = null;
     application = await launch();
     page = await application.firstWindow();
-    await page.getByRole("button", { name: "展开完整页面" }).click();
+    await page.getByRole("button", { name: "打开工作区", exact: true }).click();
+    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
     await expect(page.getByRole("textbox", { name: "便笺文字" })).toHaveCount(
       2,
     );

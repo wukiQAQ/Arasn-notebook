@@ -1,0 +1,35 @@
+{
+  "report": [
+    {
+      "concept": "mellow",
+      "commands": true,
+      "drag": true,
+      "edit": true,
+      "zoom": true,
+      "realFileRead": true,
+      "hidePreservesContent": true,
+      "responsive": true
+    },
+    {
+      "concept": "cove",
+      "commands": true,
+      "drag": true,
+      "edit": true,
+      "zoom": true,
+      "realFileRead": true,
+      "hidePreservesContent": true,
+      "responsive": true
+    },
+    {
+      "concept": "afterglow",
+      "commands": true,
+      "drag": true,
+      "edit": true,
+      "zoom": true,
+      "realFileRead": true,
+      "hidePreservesContent": true,
+      "responsive": true
+    }
+  ],
+  "errors": []
+}

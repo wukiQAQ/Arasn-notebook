@@ -1,0 +1,124 @@
+{
+  "fixture": [
+    [
+      "整理研究线索",
+      "把零散资料转成可追溯的内容关系。\n先明确问题，再连接已有记录。",
+      -430,
+      -170,
+      "note",
+      "active"
+    ],
+    [
+      "哪些内容值得保留？",
+      "判断资料是否回答了当前问题。\n避免重复收集，把注意力留给正文。",
+      -50,
+      -170,
+      "question",
+      "open"
+    ],
+    [
+      "建立清晰的阅读路径",
+      "从核心问题到依据，再到下一步行动。\n让连接解释内容，而不遮挡内容。",
+      330,
+      -170,
+      "idea",
+      "open"
+    ],
+    [
+      "核对来源与结论",
+      "确认引用来源，检查结论的适用范围。\n保留原文，区分事实与推断。",
+      -240,
+      110,
+      "task",
+      "done"
+    ],
+    [
+      "准备下一轮讨论",
+      "汇总待确认的问题与后续任务。\n在同一个内容空间继续推进。",
+      140,
+      110,
+      "note",
+      "open"
+    ]
+  ],
+  "fixtureHash": "789e7a68e2db2c21c7576a901451ff7b9ee7c2c08913340123e8fea48ec731d6",
+  "camera": {
+    "x": 90,
+    "y": 30,
+    "zoom": 1
+  },
+  "results": [
+    {
+      "name": "light-1440-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(504px, 348px) scale(1);"
+    },
+    {
+      "name": "light-selected-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(504px, 348px) scale(1);"
+    },
+    {
+      "name": "light-inspector-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(504px, 348px) scale(1);"
+    },
+    {
+      "name": "dark-selected-100",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(504px, 348px) scale(1);"
+    },
+    {
+      "name": "dark-selected-zoomed",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "64%",
+      "world": "transform: translate(536.4px, 358.8px) scale(0.64);"
+    },
+    {
+      "name": "keyboard-focus",
+      "viewport": [
+        1440,
+        900
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(594px, 378px) scale(1);"
+    },
+    {
+      "name": "light-820-100",
+      "viewport": [
+        820,
+        700
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(304px, 236px) scale(1);"
+    },
+    {
+      "name": "light-390-100",
+      "viewport": [
+        390,
+        720
+      ],
+      "zoom": "100%",
+      "world": "transform: translate(185px, 223px) scale(1);"
+    }
+  ]
+}

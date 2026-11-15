@@ -1,0 +1,66 @@
+{
+  "light": [
+    {
+      "type": "related",
+      "color": "#3568A9",
+      "stroke": "rgb(53, 104, 169)"
+    },
+    {
+      "type": "reference",
+      "color": "#7250AB",
+      "stroke": "rgb(114, 80, 171)"
+    },
+    {
+      "type": "dependency",
+      "color": "#8B5C17",
+      "stroke": "rgb(139, 92, 23)"
+    },
+    {
+      "type": "resolves",
+      "color": "#287448",
+      "stroke": "rgb(40, 116, 72)"
+    },
+    {
+      "type": "attachment",
+      "color": "#247887",
+      "stroke": "rgb(36, 120, 135)"
+    },
+    {
+      "type": "source",
+      "color": "#7250AB",
+      "stroke": "rgb(114, 80, 171)"
+    }
+  ],
+  "dark": [
+    {
+      "type": "related",
+      "color": "#79A7E3",
+      "stroke": "rgb(121, 167, 227)"
+    },
+    {
+      "type": "reference",
+      "color": "#AA96E2",
+      "stroke": "rgb(170, 150, 226)"
+    },
+    {
+      "type": "dependency",
+      "color": "#DCAC5E",
+      "stroke": "rgb(220, 172, 94)"
+    },
+    {
+      "type": "resolves",
+      "color": "#73BD92",
+      "stroke": "rgb(115, 189, 146)"
+    },
+    {
+      "type": "attachment",
+      "color": "#6EB9C8",
+      "stroke": "rgb(110, 185, 200)"
+    },
+    {
+      "type": "source",
+      "color": "#AA96E2",
+      "stroke": "rgb(170, 150, 226)"
+    }
+  ]
+}

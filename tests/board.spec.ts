@@ -18,7 +18,7 @@ test("two clients share text and mouse drawing, recover offline edits and preser
     peer.getByRole("textbox", { name: "便笺文字" }).first(),
   ).toHaveValue("周一例会\n确认本周交付与分工", { timeout: 10000 });
   await page.getByRole("button", { name: "自由绘图", exact: true }).click();
-  const paper = await page.getByTestId("paper").boundingBox();
+  const paper = await page.locator(".paper-scroll").boundingBox();
   await page.mouse.move(paper!.x + 380, paper!.y + 120);
   await page.mouse.down();
   await page.mouse.move(paper!.x + 460, paper!.y + 160, { steps: 10 });
@@ -76,8 +76,24 @@ test("two clients share text and mouse drawing, recover offline edits and preser
     .getByRole("textbox", { name: "便笺文字" })
     .nth(1)
     .fill("待办清单\n□ 整理会议纪要\n□ 和同事确认方案");
+  await page.getByRole("button", { name: "选择与拖动", exact: true }).click();
+  const scroll = page.locator(".paper-scroll");
+  const beforePan = await page.locator(".paper").evaluate(el => new DOMMatrix(getComputedStyle(el).transform).e);
+  const blank = await scroll.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    for (let y = r.top + 60; y < r.bottom - 60; y += 40) for (let x = r.left + 60; x < r.right - 60; x += 40) {
+      const target = document.elementFromPoint(x, y);
+      if (target?.classList.contains('paper-scroll')) return { x, y };
+    }
+    throw new Error('No blank paper point');
+  });
+  const strokesBeforePan = await page.locator(".paper svg path").count();
+  await page.mouse.move(blank.x, blank.y); await page.mouse.down(); await page.mouse.move(blank.x - 50, blank.y - 40, { steps: 8 }); await page.mouse.up();
+  await expect.poll(() => page.locator(".paper").evaluate(el => new DOMMatrix(getComputedStyle(el).transform).e)).toBeLessThan(beforePan - 40);
+  expect(await page.locator(".paper svg path").count()).toBe(strokesBeforePan);
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "导出图片", exact: true }).click();
+  await page.getByRole("button", { name: "生成 PNG", exact: true }).click();
   expect((await download).suggestedFilename()).toBe("Arasn-随手页.png");
   await expect(page.locator(".save-state")).toHaveText("已保存");
   await page.screenshot({ path: "test-results/office-board.png" });

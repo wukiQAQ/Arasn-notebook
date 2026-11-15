@@ -8,8 +8,78 @@ const idValid = (value) =>
 const finite = (n, max) =>
   typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= max;
 const fail = (status, message) => Object.assign(new Error(message), { status });
+const worldCoordinate = (value) => typeof value === "number" && Math.abs(value) <= 1_000_000;
+
+function validFreeViewport(value) {
+  return value && idValid(value.roomId) && worldCoordinate(value.x) && worldCoordinate(value.y) &&
+    typeof value.zoom === "number" && value.zoom >= 0.25 && value.zoom <= 4;
+}
+
+function validTopologyViewport(value) {
+  return value && idValid(value.roomId) && worldCoordinate(value.x) && worldCoordinate(value.y) &&
+    typeof value.zoom === "number" && value.zoom >= 0.25 && value.zoom <= 2;
+}
+
+function validateTopology(value) {
+  if (!value || !worldCoordinate(value.x) || !worldCoordinate(value.y) ||
+      !finite(value.width, 720) || value.width < 120 || !finite(value.height, 480) || value.height < 96 ||
+      !["note", "question", "idea", "task", "file"].includes(value.kind) ||
+      !["open", "active", "done"].includes(value.status) ||
+      (value.hidden !== undefined && typeof value.hidden !== "boolean") ||
+      (value.locked !== undefined && typeof value.locked !== "boolean"))
+    throw fail(400, "节点布局或状态无效");
+  const { x, y, width, height, kind, status, hidden, locked } = value;
+  return { x, y, width, height, kind, status, ...(hidden ? { hidden } : {}), ...(locked !== undefined ? { locked } : {}) };
+}
+
+const REFERENCE_TYPES = ["canvas-node", "canvas-edge", "content-link"];
+const localTopologyItem = (item) => item?.value?.type === "node" || item?.value?.type === "free-file" ||
+  REFERENCE_TYPES.includes(item?.value?.type) || item?.value?.localOnly === true || item?.scope === "topology";
+
+function validateRef(ref) {
+  if (!ref || !["record", "file"].includes(ref.kind) || !idValid(ref.id)) throw fail(400, "内容引用无效");
+  return { kind: ref.kind, id: ref.id };
+}
+
+function legacySnapshot(snapshot) {
+  return { ...snapshot, items: Object.fromEntries(Object.entries(snapshot.items)
+    .filter(([, item]) => !localTopologyItem(item))
+    .map(([id, item]) => {
+      if (item.value?.type !== "text" || !item.value.topology) return [id, item];
+      const { topology, ...value } = item.value;
+      return [id, { ...item, value }];
+    })) };
+}
 
 function validateValue(value) {
+  if (value?.opacity !== undefined && (typeof value.opacity !== "number" || !Number.isFinite(value.opacity) || value.opacity < .1 || value.opacity > 1)) throw fail(400,"不透明度无效");
+  if (value?.type === "free-file") {
+    if (!idValid(value.roomId) || value.localOnly !== true || value.contentRef?.kind !== "file" || !idValid(value.contentRef.id) || typeof value.name !== "string" || value.name.length > 255 || typeof value.category !== "string" || value.category.length > 16 || !worldCoordinate(value.x) || !worldCoordinate(value.y) || !finite(value.width,1200) || value.width < 120 || !finite(value.height,1200) || value.height < 96) throw fail(400,"附件位置或引用无效");
+    return {type:"free-file",roomId:value.roomId,contentRef:validateRef(value.contentRef),name:value.name,category:value.category,x:value.x,y:value.y,width:value.width,height:value.height,localOnly:true,...(value.opacity!==undefined?{opacity:value.opacity}:{})};
+  }
+  if (REFERENCE_TYPES.includes(value?.type)) {
+    if (!idValid(value.roomId)) throw fail(400, "引用工作页无效");
+    if (value.type === "content-link") {
+      if (!idValid(value.recordId)) throw fail(400, "关联记录无效");
+      return { type: value.type, roomId: value.roomId, recordId: value.recordId, targetRef: validateRef(value.targetRef) };
+    }
+    if (!idValid(value.canvasId)) throw fail(400, "画布编号无效");
+    const base = { type: value.type, roomId: value.roomId, canvasId: value.canvasId };
+    if (value.type === "canvas-node") return { ...base, contentRef: validateRef(value.contentRef), layout: validateTopology(value.layout) };
+    if (!idValid(value.fromNodeId) || !idValid(value.toNodeId) || value.fromNodeId === value.toNodeId ||
+        typeof value.label !== "string" || value.label.length > 200 || !["none", "forward", "both"].includes(value.direction))
+      throw fail(400, "连接关系无效");
+    if (value.relationType !== undefined && !["related", "reference", "dependency", "resolves", "source", "attachment"].includes(value.relationType))
+      throw fail(400, "关系类型无效");
+    return { ...base, fromNodeId: value.fromNodeId, toNodeId: value.toNodeId, label: value.label, direction: value.direction,
+      ...(value.relationType !== undefined ? { relationType: value.relationType } : {}) };
+  }
+  if (["text", "node"].includes(value?.type) && value.title !== undefined &&
+      (typeof value.title !== "string" || value.title.length > 200 || /[\r\n]/.test(value.title))) throw fail(400, "便签标题超出限制");
+  if (value?.type === "node") {
+    if (typeof value.text !== "string" || value.text.length > 10000) throw fail(400, "节点正文超出限制");
+    return { type: "node", text: value.text, ...(value.title !== undefined ? { title: value.title } : {}), topology: validateTopology(value.topology) };
+  }
   if (
     !value ||
     typeof value.color !== "string" ||
@@ -20,24 +90,36 @@ function validateValue(value) {
     if (
       typeof value.text !== "string" ||
       value.text.length > 10000 ||
-      !finite(value.x, 1320) ||
-      !finite(value.y, 860) ||
+      !worldCoordinate(value.x) ||
+      !worldCoordinate(value.y) ||
+      (value.width !== undefined && (!finite(value.width,1200) || value.width<120)) ||
+      (value.height !== undefined && (!finite(value.height,1200) || value.height<96)) ||
       (value.fontSize !== undefined &&
         ![14, 18, 24, 32].includes(value.fontSize)) ||
       (value.bold !== undefined && typeof value.bold !== "boolean")
+      || (value.localOnly !== undefined && value.localOnly !== true)
     )
       throw fail(400, "文字或位置超出限制");
     return {
       type: "text",
       text: value.text,
+      ...(value.title !== undefined ? { title: value.title } : {}),
       x: value.x,
       y: value.y,
       color: value.color,
       ...(value.fontSize !== undefined ? { fontSize: value.fontSize } : {}),
       ...(value.bold !== undefined ? { bold: value.bold } : {}),
+      ...(value.width !== undefined ? {width:value.width}:{}),
+      ...(value.height !== undefined ? {height:value.height}:{}),
+      ...(value.opacity !== undefined ? {opacity:value.opacity}:{}),
+      ...(value.topology !== undefined ? { topology: validateTopology(value.topology) } : {}),
+      ...(value.localOnly === true ? { localOnly: true } : {}),
     };
   }
   if (value.type === "stroke") {
+    if ((value.brush !== undefined && !['ink','marker','dash'].includes(value.brush)) ||
+        (value.lineCap !== undefined && !['round','butt','square'].includes(value.lineCap)) ||
+        (value.smoothing !== undefined && (typeof value.smoothing !== 'number' || !Number.isFinite(value.smoothing) || value.smoothing < 0 || value.smoothing > 1))) throw fail(400,'笔刷参数无效');
     if (
       ![2, 4, 7, 12].includes(value.width) ||
       !Array.isArray(value.points) ||
@@ -47,8 +129,8 @@ function validateValue(value) {
         (p) =>
           !Array.isArray(p) ||
           p.length !== 2 ||
-          !finite(p[0], 1600) ||
-          !finite(p[1], 1000),
+          !worldCoordinate(p[0]) ||
+          !worldCoordinate(p[1]),
       )
     )
       throw fail(400, "笔迹超出限制");
@@ -57,12 +139,16 @@ function validateValue(value) {
       color: value.color,
       width: value.width,
       points: value.points,
+      ...(value.brush !== undefined ? {brush:value.brush}:{}),
+      ...(value.lineCap !== undefined ? {lineCap:value.lineCap}:{}),
+      ...(value.smoothing !== undefined ? {smoothing:value.smoothing}:{}),
+      ...(value.opacity !== undefined ? {opacity:value.opacity}:{}),
     };
   }
   throw fail(400, "不支持的内容类型");
 }
 
-function createStore(file) {
+function createStore(file, initial) {
   let state = {
     roomId: crypto.randomUUID(),
     revision: 0,
@@ -78,17 +164,29 @@ function createStore(file) {
       !loaded.receipts
     )
       throw new Error("白板数据损坏，请先备份数据文件");
-    for (const item of Object.values(loaded.items))
+    for (const item of Object.values(loaded.items)) {
       if (item.value) validateValue(item.value);
+      if (item.value?.roomId !== undefined && item.value.roomId !== loaded.roomId) throw new Error("引用工作页无效");
+    }
     state = loaded;
   }
+  if (initial) {
+    if (!initial.roomId || !initial.items || !initial.receipts || !Number.isSafeInteger(initial.revision)) throw new Error('白板数据无效');
+    for (const [id,item] of Object.entries(initial.items)) {
+      if (!idValid(id)) throw new Error('元素编号无效');
+      if (item.value) validateValue(item.value);
+      if (item.value?.roomId !== undefined && item.value.roomId !== initial.roomId) throw new Error("引用工作页无效");
+    }
+    state = structuredClone(initial);
+  }
   return {
+    dump: () => structuredClone(state),
     snapshot: () => ({
       roomId: state.roomId,
       revision: state.revision,
       items: state.items,
     }),
-    apply(operation) {
+    apply(operation, { legacyOnly = false } = {}) {
       if (
         !operation ||
         !idValid(operation.id) ||
@@ -98,26 +196,47 @@ function createStore(file) {
       )
         throw fail(400, "操作格式无效");
       const { id, opId, expected } = operation;
-      const value =
+      const current = Object.hasOwn(state.items, id) ? state.items[id] : undefined;
+      if (legacyOnly && (localTopologyItem(current) || localTopologyItem({ value: operation.value }) ||
+          operation.value?.topology !== undefined)) throw fail(403, "本机拓扑无法通过白板共享访问");
+      let value =
         operation.value === null ? null : validateValue(operation.value);
+      if (value?.roomId !== undefined && value.roomId !== state.roomId) throw fail(400, "引用属于其他工作页");
       const signature = JSON.stringify({ id, expected, value });
       if (Object.hasOwn(state.receipts, opId)) {
         if (state.receipts[opId].signature !== signature)
           throw fail(409, "操作编号重复");
         return this.snapshot();
       }
-      const current = Object.hasOwn(state.items, id)
-        ? state.items[id]
-        : undefined;
       if ((current?.version || 0) !== expected)
         throw fail(409, "这条内容刚被另一台电脑修改，你的改动已保留在本机");
       if (current?.value === null && value !== null)
         throw fail(409, "这条内容已删除，请另存为新便笺");
+      if (current?.value && value && (localTopologyItem(current) || localTopologyItem({ value })) &&
+          (current.value.type !== value.type || Boolean(current.value.localOnly) !== Boolean(value.localOnly)))
+        throw fail(409, "不能更改本机内容的类型或共享范围");
+      if (current?.value?.canvasId && value?.canvasId && current.value.canvasId !== value.canvasId)
+        throw fail(409, "不能将引用移动到其他画布");
+      if (value?.type === "free-file" && value.roomId !== state.roomId) throw fail(400,"附件工作页已更换");
+      if (value?.type === "canvas-edge") {
+        for (const endpoint of [value.fromNodeId, value.toNodeId]) {
+          const node = state.items[endpoint]?.value;
+          if (node?.type !== "canvas-node" || node.canvasId !== value.canvasId)
+            throw fail(400, "连接端点不在当前画布");
+        }
+      }
+      if (current?.value && value && (current.value.type === "node") !== (value.type === "node"))
+        throw fail(409, "项目类型已更换");
+      if (legacyOnly && value?.type === "stroke" && current?.value?.topology)
+        throw fail(409, "不能将拓扑便笺更换为笔迹");
+      if (legacyOnly && value?.type === "text" && current?.value?.type === "text" && current.value.topology)
+        value = { ...value, topology: current.value.topology };
       if (!current && Object.keys(state.items).length >= 5000)
         throw fail(413, "本页已达到容量上限，请先导出备份");
       const next = structuredClone(state);
       next.revision++;
-      next.items[id] = { version: (current?.version || 0) + 1, value };
+      next.items[id] = { version: (current?.version || 0) + 1, value,
+        ...(value === null && localTopologyItem(current) ? { scope: "topology" } : {}) };
       next.receipts[opId] = { signature };
       const receipts = Object.keys(next.receipts);
       if (receipts.length > 1000) delete next.receipts[receipts[0]];
@@ -142,6 +261,7 @@ function startServer({
   host = "127.0.0.1",
   port = 0,
   staticDir,
+  legacyOnly = false,
 }) {
   const server = http.createServer(async (req, res) => {
     const send = (status, value) => {
@@ -181,7 +301,7 @@ function startServer({
             res.writeHead(204);
             return res.end();
           }
-          return send(200, state);
+          return send(200, legacyOnly ? legacySnapshot(state) : state);
         }
         if (req.method === "POST" && url.pathname === "/api/ops") {
           if (!req.headers["content-type"]?.startsWith("application/json"))
@@ -203,7 +323,8 @@ function startServer({
           } catch {
             throw fail(400, "JSON 无效");
           }
-          return send(200, store.apply(operation));
+          const state = await store.apply(operation, { legacyOnly });
+          return send(200, legacyOnly ? legacySnapshot(state) : state);
         }
         return send(404, { error: "接口不存在" });
       }
@@ -246,12 +367,12 @@ function startServer({
         server,
         port: server.address().port,
         close: () =>
-          new Promise((r) => {
-            server.close(r);
+          new Promise((resolve, reject) => {
+            server.close(error => error ? reject(error) : resolve());
             server.closeAllConnections();
           }),
       }),
     );
   });
 }
-module.exports = { createStore, startServer, validateValue };
+module.exports = { createStore, startServer, validateValue, validFreeViewport, validTopologyViewport, legacySnapshot, localTopologyItem };

@@ -1,0 +1,84 @@
+{
+  "checks": [
+    {
+      "name": "appearance-dark-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-820",
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-390",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "before-pages-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "page": "我的随手页",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-6",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "page": "便笺列表",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-8",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "page": "文件",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-10",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "page": "打开关系画布",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-12",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    }
+  ],
+  "errors": []
+}

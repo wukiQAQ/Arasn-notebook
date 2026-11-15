@@ -1,0 +1,54 @@
+{
+  "report": [
+    {
+      "direction": "A",
+      "notes": true,
+      "commands": true,
+      "preciseDrag": true,
+      "keyboardMove": true,
+      "zoom": true,
+      "pan": true,
+      "realFileReadAndImagePreview": true,
+      "search": true,
+      "hidePreservesContent": true,
+      "drawingAndViewSurviveSwitch": true,
+      "emptyCommandSearch": true,
+      "tablet": true,
+      "mobile": true
+    },
+    {
+      "direction": "B",
+      "notes": true,
+      "commands": true,
+      "preciseDrag": true,
+      "keyboardMove": true,
+      "zoom": true,
+      "pan": true,
+      "realFileReadAndImagePreview": true,
+      "search": true,
+      "hidePreservesContent": true,
+      "drawingAndViewSurviveSwitch": true,
+      "emptyCommandSearch": true,
+      "tablet": true,
+      "mobile": true
+    },
+    {
+      "direction": "C",
+      "notes": true,
+      "commands": true,
+      "preciseDrag": true,
+      "keyboardMove": true,
+      "zoom": true,
+      "pan": true,
+      "realFileReadAndImagePreview": true,
+      "search": true,
+      "hidePreservesContent": true,
+      "drawingAndViewSurviveSwitch": true,
+      "emptyCommandSearch": true,
+      "tablet": true,
+      "mobile": true
+    }
+  ],
+  "errors": [],
+  "apiRequests": []
+}

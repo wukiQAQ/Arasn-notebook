@@ -1,0 +1,19 @@
+.file-preview.original-preview { width: min(1100px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 12px; }
+.original-preview header { flex-shrink: 0; }
+.original-preview header h2 { min-width: 0; max-height: 72px; overflow: auto; }
+.original-preview header button { flex-shrink: 0; }
+:root .file-preview.original-preview button { background: var(--ui-surface-card); color: var(--ink); border: 1px solid var(--line); }
+:root .file-preview.original-preview button[aria-pressed="true"] { background: var(--tint); }
+.image-preview-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.image-preview-tools button { min-height: 34px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; }
+.image-preview-tools button[aria-pressed="true"] { background: var(--tint); box-shadow: inset 0 0 0 1px var(--xigra-focus); }
+.image-preview-tools output { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+.image-preview-area { height: min(62dvh, 650px); min-height: 120px; overflow: auto; background: var(--desk); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.image-preview-area:focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 2px; }
+.image-preview-area img { display: block; max-width: none; max-height: none; margin: auto; }
+.image-preview-area[data-fit="true"] { display: flex; align-items: center; justify-content: center; }
+.image-preview-area[data-fit="true"] img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+.image-preview-message { max-width: 580px; margin: auto; overflow-wrap: anywhere; }
+.free-image-preview { display: block; width: 100%; min-height: 0; flex: 1; padding: 0; overflow: hidden; background: transparent; }
+.free-file-card .free-image-preview img { width: 100%; height: 100%; object-fit: contain; }
+@media (max-width: 480px) { .file-preview.original-preview { padding: 12px; gap: 10px; } .image-preview-tools button { padding-inline: 8px; } }

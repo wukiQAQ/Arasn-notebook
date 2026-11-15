@@ -1,0 +1,188 @@
+/* App-wide semantic roles. Short aliases keep the existing workbench layout rules reusable. */
+:root {
+  --graphite-l0: var(--ui-surface-app);
+  --graphite-l1: var(--ui-surface-subtle);
+  --graphite-l2: var(--ui-surface-card);
+  --graphite-l3: var(--ui-surface-floating);
+  --graphite-lift: var(--ui-shadow-card);
+  --graphite-glass: color-mix(in srgb, var(--graphite-l3) 94%, transparent);
+  --xigra-window: var(--graphite-l0);
+  --xigra-surface: var(--graphite-l2);
+  --xigra-subtle: var(--graphite-l1);
+  --xigra-text: var(--ui-text-primary);
+  --xigra-muted: var(--ui-text-secondary);
+  --xigra-brand: var(--ui-action);
+  --xigra-on-brand: var(--ui-on-action);
+  --xigra-selected: var(--ui-nav-active);
+  --xigra-on-selected: var(--ui-nav-on-active);
+  --xigra-border: var(--ui-border-subtle);
+  --xigra-control-border: var(--ui-border-control);
+  --xigra-focus: var(--ui-focus);
+  --xigra-hover: var(--ui-hover);
+  --xigra-pressed: var(--ui-pressed);
+  --xigra-brand-hover: var(--ui-action-hover);
+  --xigra-disabled: var(--ui-text-muted);
+  --xigra-success-bg: #e2f2e9;
+  --xigra-success: #256043;
+  --xigra-warning-bg: #f5ecd7;
+  --xigra-warning: #62450e;
+  --xigra-error-bg: #fbe9eb;
+  --xigra-error: #982b42;
+
+  --xigra-font: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --xigra-type-meta: 12px;
+  --xigra-line-meta: 18px;
+  --xigra-type-control: 14px;
+  --xigra-line-control: 20px;
+  --xigra-type-body: 16px;
+  --xigra-line-body: 24px;
+  --xigra-type-title: 18px;
+  --xigra-line-title: 26px;
+  --xigra-type-workbench: 24px;
+  --xigra-weight-emphasis: 600;
+
+  --xigra-space-1: 4px;
+  --xigra-space-2: 8px;
+  --xigra-space-3: 12px;
+  --xigra-space-4: 16px;
+  --xigra-space-6: 24px;
+  --xigra-space-8: 32px;
+  --xigra-radius-control: 7px;
+  --xigra-radius-selection: 8px;
+  --xigra-radius-panel: 11px;
+  --xigra-radius-window: 14px;
+  --xigra-border-width: 1px;
+  --xigra-focus-width: 2px;
+  --xigra-hit-target: 40px;
+  --xigra-shadow-floating: var(--ui-shadow-floating);
+  --xigra-scrim: #202a4264;
+  --xigra-layer-content: 0;
+  --xigra-layer-floating: 20;
+  --xigra-layer-dialog: 30;
+
+  --xigra-motion-control: 100ms;
+  --xigra-motion-mode: 120ms;
+  --xigra-motion-overlay: 150ms;
+  --xigra-motion-panel: 190ms;
+  --xigra-ease: cubic-bezier(.2, .8, .2, 1);
+
+  --desk: var(--xigra-window);
+  --rail: var(--xigra-subtle);
+  --surface: var(--xigra-surface);
+  --ink: var(--xigra-text);
+  --muted: var(--xigra-muted);
+  --line: var(--xigra-border);
+  --accent: var(--xigra-focus);
+  --tint: var(--xigra-selected);
+  font-family: var(--xigra-font);
+  color: var(--ink);
+  background: var(--desk);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --graphite-l0: var(--ui-surface-app);
+  --graphite-l1: var(--ui-surface-subtle);
+  --graphite-l2: var(--ui-surface-card);
+  --graphite-l3: var(--ui-surface-floating);
+  --graphite-lift: var(--ui-shadow-card);
+  --xigra-text: var(--ui-text-primary);
+  --xigra-muted: var(--ui-text-secondary);
+  --xigra-brand: var(--ui-action);
+  --xigra-on-brand: var(--ui-on-action);
+  --xigra-selected: var(--ui-nav-active);
+  --xigra-on-selected: var(--ui-nav-on-active);
+  --xigra-border: var(--ui-border-subtle);
+  --xigra-control-border: var(--ui-border-control);
+  --xigra-focus: var(--ui-focus);
+  --xigra-hover: var(--ui-hover);
+  --xigra-pressed: var(--ui-pressed);
+  --xigra-brand-hover: var(--ui-action-hover);
+  --xigra-disabled: var(--ui-text-muted);
+  --xigra-success-bg: #20382e;
+  --xigra-success: #a9e2c2;
+  --xigra-warning-bg: #45371f;
+  --xigra-warning: #f5d69c;
+  --xigra-error-bg: #492934;
+  --xigra-error: #ffc4ce;
+  --xigra-shadow-floating: var(--ui-shadow-floating);
+  --xigra-scrim: #0a0e17a1;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --xigra-motion-control: 0ms;
+    --xigra-motion-mode: 0ms;
+    --xigra-motion-overlay: 0ms;
+    --xigra-motion-panel: 0ms;
+  }
+}
+
+/* Navigation and relation roles share this theme source; values preserve the existing Graphite design. */
+:root {
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-6: 24px;
+  --ui-control-height: 36px;
+  --ui-radius-control: 7px;
+  --ui-radius-content: 10px;
+  --ui-radius-floating: 12px;
+  --ui-type-title: 18px;
+  --ui-type-content: 16px;
+  --ui-type-body: 14px;
+  --ui-type-control: 13px;
+  --ui-type-meta: 12px;
+  --ui-type-small: 11px;
+  --ui-line-content: 24px;
+  --ui-line-body: 21px;
+  --ui-surface-app: #f3f4f6;
+  --ui-surface-subtle: #e8ecf2;
+  --ui-pressed: #daddE6;
+  --ui-surface-nav: #f3f4f6;
+  --ui-surface-canvas: #edeff2;
+  --ui-surface-card: #fff;
+  --ui-surface-floating: #fff;
+  --ui-text-primary: #262932;
+  --ui-text-secondary: #59616e;
+  --ui-text-muted: #68717e;
+  --ui-border-subtle: #dfe2e8;
+  --ui-border-control: #7d879a;
+  --ui-hover: #e5e7ec;
+  --ui-nav-active: #e7e5f0;
+  --ui-nav-on-active: #514779;
+  --ui-action: #5d4bd2;
+  --ui-action-hover: #5040bc;
+  --ui-on-action: #fff;
+  --ui-focus: #6955da;
+  --ui-focus-halo: #6955da22;
+  --ui-grid-dot: #cdd2da;
+  --ui-shadow-card: 0 1px 2px #171d2910, 0 3px 10px #171d2906;
+  --ui-shadow-floating: 0 2px 5px #171d2910, 0 12px 32px #171d291c;
+}
+:root[data-theme="dark"] {
+  --ui-surface-app: #1b1e24;
+  --ui-surface-subtle: #22262e;
+  --ui-pressed: #383e49;
+  --ui-surface-nav: #1b1e24;
+  --ui-surface-canvas: #171a20;
+  --ui-surface-card: #282c34;
+  --ui-surface-floating: #30353e;
+  --ui-text-primary: #eef0f4;
+  --ui-text-secondary: #c0c5cf;
+  --ui-text-muted: #a5adbb;
+  --ui-border-subtle: #343943;
+  --ui-border-control: #77859d;
+  --ui-hover: #2c3039;
+  --ui-nav-active: #30303d;
+  --ui-nav-on-active: #d8d1f3;
+  --ui-action: #6954d8;
+  --ui-action-hover: #745ee6;
+  --ui-focus: #b6a7ff;
+  --ui-focus-halo: #b6a7ff24;
+  --ui-grid-dot: #2a303a;
+  --ui-shadow-card: 0 1px 3px #0002, 0 4px 12px #00000014;
+  --ui-shadow-floating: 0 2px 6px #0003, 0 14px 36px #0004;
+}

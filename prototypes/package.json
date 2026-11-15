@@ -1,0 +1,8 @@
+{
+  "name": "arasn-design-exploration",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": { "dev": "vite --host 127.0.0.1 --port 5174", "build": "tsc -p tsconfig.json && vite build", "preview": "vite preview --host 127.0.0.1 --port 5174" },
+  "dependencies": { "motion": "14.9.0", "react": "file:../node_modules/react", "react-dom": "file:../node_modules/react-dom", "lucide-react": "file:../node_modules/lucide-react", "@base-ui/react": "file:../node_modules/@base-ui/react" }
+}

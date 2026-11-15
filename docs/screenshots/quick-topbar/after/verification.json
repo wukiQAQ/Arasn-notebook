@@ -1,0 +1,514 @@
+[
+  {
+    "scale": 1,
+    "native": {
+      "caption": true,
+      "captionHit": 2,
+      "title": "Arasn",
+      "movable": true,
+      "closable": true,
+      "dpi": 96
+    },
+    "windows": [
+      {
+        "dpr": 1,
+        "width": 620,
+        "height": 700,
+        "header": {
+          "x": 24,
+          "y": 0,
+          "width": 572,
+          "height": 56,
+          "right": 596,
+          "bottom": 56
+        },
+        "content": {
+          "x": 24,
+          "y": 56,
+          "width": 572,
+          "height": 531,
+          "right": 596,
+          "bottom": 587
+        },
+        "footer": {
+          "x": 24,
+          "y": 647,
+          "width": 572,
+          "height": 41,
+          "right": 596,
+          "bottom": 688
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 353,
+            "y": 12,
+            "width": 65,
+            "height": 32,
+            "right": 418,
+            "bottom": 44
+          },
+          {
+            "x": 422,
+            "y": 12,
+            "width": 89,
+            "height": 32,
+            "right": 511,
+            "bottom": 44
+          },
+          {
+            "x": 519,
+            "y": 12,
+            "width": 77,
+            "height": 32,
+            "right": 596,
+            "bottom": 44
+          }
+        ]
+      },
+      {
+        "dpr": 1,
+        "width": 500,
+        "height": 540,
+        "header": {
+          "x": 16,
+          "y": 0,
+          "width": 468,
+          "height": 48,
+          "right": 484,
+          "bottom": 48
+        },
+        "content": {
+          "x": 16,
+          "y": 48,
+          "width": 468,
+          "height": 391,
+          "right": 484,
+          "bottom": 439
+        },
+        "footer": {
+          "x": 16,
+          "y": 487,
+          "width": 468,
+          "height": 41,
+          "right": 484,
+          "bottom": 528
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 241,
+            "y": 8,
+            "width": 65,
+            "height": 32,
+            "right": 306,
+            "bottom": 40
+          },
+          {
+            "x": 310,
+            "y": 8,
+            "width": 89,
+            "height": 32,
+            "right": 399,
+            "bottom": 40
+          },
+          {
+            "x": 407,
+            "y": 8,
+            "width": 77,
+            "height": 32,
+            "right": 484,
+            "bottom": 40
+          }
+        ]
+      }
+    ],
+    "nativeDrag": {
+      "blocked": "test window is not OS foreground"
+    },
+    "nativeShortcut": {
+      "passed": true,
+      "shortcut": "Control+Alt+F23",
+      "via": "Win32 SendInput from dedicated foreground test window"
+    },
+    "closeHidesAndRevealRestores": true
+  },
+  {
+    "scale": 1.25,
+    "native": {
+      "caption": true,
+      "captionHit": 2,
+      "title": "Arasn",
+      "movable": true,
+      "closable": true,
+      "dpi": 96
+    },
+    "windows": [
+      {
+        "dpr": 1.25,
+        "width": 620,
+        "height": 702,
+        "header": {
+          "x": 24,
+          "y": 0,
+          "width": 572,
+          "height": 56,
+          "right": 596,
+          "bottom": 56
+        },
+        "content": {
+          "x": 24,
+          "y": 56,
+          "width": 572,
+          "height": 532.7999877929688,
+          "right": 596,
+          "bottom": 588.7999877929688
+        },
+        "footer": {
+          "x": 24,
+          "y": 648.7999877929688,
+          "width": 572,
+          "height": 40.79999923706055,
+          "right": 596,
+          "bottom": 689.5999870300293
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 354.20001220703125,
+            "y": 12,
+            "width": 64.5999984741211,
+            "height": 32,
+            "right": 418.80001068115234,
+            "bottom": 44
+          },
+          {
+            "x": 422.8000183105469,
+            "y": 12,
+            "width": 88.5999984741211,
+            "height": 32,
+            "right": 511.40001678466797,
+            "bottom": 44
+          },
+          {
+            "x": 519.4000244140625,
+            "y": 12,
+            "width": 76.5999984741211,
+            "height": 32,
+            "right": 596.0000228881836,
+            "bottom": 44
+          }
+        ]
+      },
+      {
+        "dpr": 1.25,
+        "width": 500,
+        "height": 542,
+        "header": {
+          "x": 16,
+          "y": 0,
+          "width": 468,
+          "height": 48,
+          "right": 484,
+          "bottom": 48
+        },
+        "content": {
+          "x": 16,
+          "y": 48,
+          "width": 468,
+          "height": 392.8000183105469,
+          "right": 484,
+          "bottom": 440.8000183105469
+        },
+        "footer": {
+          "x": 16,
+          "y": 488.8000183105469,
+          "width": 468,
+          "height": 40.79999923706055,
+          "right": 484,
+          "bottom": 529.6000175476074
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 242.1999969482422,
+            "y": 8,
+            "width": 64.5999984741211,
+            "height": 32,
+            "right": 306.7999954223633,
+            "bottom": 40
+          },
+          {
+            "x": 310.8000183105469,
+            "y": 8,
+            "width": 88.5999984741211,
+            "height": 32,
+            "right": 399.40001678466797,
+            "bottom": 40
+          },
+          {
+            "x": 407.3999938964844,
+            "y": 8,
+            "width": 76.5999984741211,
+            "height": 32,
+            "right": 483.99999237060547,
+            "bottom": 40
+          }
+        ]
+      }
+    ],
+    "closeHidesAndRevealRestores": true
+  },
+  {
+    "scale": 1.5,
+    "native": {
+      "caption": true,
+      "captionHit": 2,
+      "title": "Arasn",
+      "movable": true,
+      "closable": true,
+      "dpi": 96
+    },
+    "windows": [
+      {
+        "dpr": 1.5,
+        "width": 620,
+        "height": 700,
+        "header": {
+          "x": 24,
+          "y": 0,
+          "width": 572,
+          "height": 56,
+          "right": 596,
+          "bottom": 56
+        },
+        "content": {
+          "x": 24,
+          "y": 56,
+          "width": 572,
+          "height": 531.3333740234375,
+          "right": 596,
+          "bottom": 587.3333740234375
+        },
+        "footer": {
+          "x": 24,
+          "y": 647.3333740234375,
+          "width": 572,
+          "height": 40.66666793823242,
+          "right": 596,
+          "bottom": 688.0000419616699
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 355,
+            "y": 12,
+            "width": 64.33333587646484,
+            "height": 32,
+            "right": 419.33333587646484,
+            "bottom": 44
+          },
+          {
+            "x": 423.3333435058594,
+            "y": 12,
+            "width": 88.33333587646484,
+            "height": 32,
+            "right": 511.6666793823242,
+            "bottom": 44
+          },
+          {
+            "x": 519.6666870117188,
+            "y": 12,
+            "width": 76.33333587646484,
+            "height": 32,
+            "right": 596.0000228881836,
+            "bottom": 44
+          }
+        ]
+      },
+      {
+        "dpr": 1.5,
+        "width": 500,
+        "height": 540,
+        "header": {
+          "x": 16,
+          "y": 0,
+          "width": 468,
+          "height": 48,
+          "right": 484,
+          "bottom": 48
+        },
+        "content": {
+          "x": 16,
+          "y": 48,
+          "width": 468,
+          "height": 391.3333435058594,
+          "right": 484,
+          "bottom": 439.3333435058594
+        },
+        "footer": {
+          "x": 16,
+          "y": 487.3333435058594,
+          "width": 468,
+          "height": 40.66666793823242,
+          "right": 484,
+          "bottom": 528.0000114440918
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 243,
+            "y": 8,
+            "width": 64.33333587646484,
+            "height": 32,
+            "right": 307.33333587646484,
+            "bottom": 40
+          },
+          {
+            "x": 311.3333435058594,
+            "y": 8,
+            "width": 88.33333587646484,
+            "height": 32,
+            "right": 399.6666793823242,
+            "bottom": 40
+          },
+          {
+            "x": 407.66668701171875,
+            "y": 8,
+            "width": 76.33333587646484,
+            "height": 32,
+            "right": 484.0000228881836,
+            "bottom": 40
+          }
+        ]
+      }
+    ],
+    "closeHidesAndRevealRestores": true
+  },
+  {
+    "scale": 2,
+    "native": {
+      "caption": true,
+      "captionHit": 2,
+      "title": "Arasn",
+      "movable": true,
+      "closable": true,
+      "dpi": 96
+    },
+    "windows": [
+      {
+        "dpr": 2,
+        "width": 620,
+        "height": 701,
+        "header": {
+          "x": 24,
+          "y": 0,
+          "width": 572,
+          "height": 56,
+          "right": 596,
+          "bottom": 56
+        },
+        "content": {
+          "x": 24,
+          "y": 56,
+          "width": 572,
+          "height": 532,
+          "right": 596,
+          "bottom": 588
+        },
+        "footer": {
+          "x": 24,
+          "y": 648,
+          "width": 572,
+          "height": 41,
+          "right": 596,
+          "bottom": 689
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 353,
+            "y": 12,
+            "width": 65,
+            "height": 32,
+            "right": 418,
+            "bottom": 44
+          },
+          {
+            "x": 422,
+            "y": 12,
+            "width": 89,
+            "height": 32,
+            "right": 511,
+            "bottom": 44
+          },
+          {
+            "x": 519,
+            "y": 12,
+            "width": 77,
+            "height": 32,
+            "right": 596,
+            "bottom": 44
+          }
+        ]
+      },
+      {
+        "dpr": 2,
+        "width": 500,
+        "height": 541,
+        "header": {
+          "x": 16,
+          "y": 0,
+          "width": 468,
+          "height": 48,
+          "right": 484,
+          "bottom": 48
+        },
+        "content": {
+          "x": 16,
+          "y": 48,
+          "width": 468,
+          "height": 392,
+          "right": 484,
+          "bottom": 440
+        },
+        "footer": {
+          "x": 16,
+          "y": 488,
+          "width": 468,
+          "height": 41,
+          "right": 484,
+          "bottom": 529
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 241,
+            "y": 8,
+            "width": 65,
+            "height": 32,
+            "right": 306,
+            "bottom": 40
+          },
+          {
+            "x": 310,
+            "y": 8,
+            "width": 89,
+            "height": 32,
+            "right": 399,
+            "bottom": 40
+          },
+          {
+            "x": 407,
+            "y": 8,
+            "width": 77,
+            "height": 32,
+            "right": 484,
+            "bottom": 40
+          }
+        ]
+      }
+    ],
+    "closeHidesAndRevealRestores": true
+  }
+]

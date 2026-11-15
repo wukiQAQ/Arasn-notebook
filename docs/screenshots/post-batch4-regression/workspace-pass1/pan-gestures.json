@@ -1,0 +1,49 @@
+[
+  {
+    "screenDelta": {
+      "x": 60,
+      "y": 35
+    },
+    "before": {
+      "x": 220,
+      "y": 50,
+      "zoom": 1,
+      "roomId": "4e8e6abc-5903-4de1-b3a4-9ffd65f8e1ee"
+    },
+    "after": {
+      "x": 160,
+      "y": 15,
+      "zoom": 1,
+      "roomId": "4e8e6abc-5903-4de1-b3a4-9ffd65f8e1ee"
+    },
+    "events": [
+      {
+        "type": "pointerdown",
+        "id": 1,
+        "x": 268,
+        "y": 198,
+        "buttons": 1
+      },
+      {
+        "type": "pointerup",
+        "id": 1,
+        "x": 328,
+        "y": 233,
+        "buttons": 0
+      },
+      {
+        "type": "lostpointercapture",
+        "id": 1,
+        "x": 328,
+        "y": 233,
+        "buttons": 0
+      }
+    ],
+    "request": {
+      "x": 268,
+      "y": 198,
+      "dx": 60,
+      "dy": 35
+    }
+  }
+]

@@ -1,0 +1,89 @@
+/* Expanded navigation. Scoped tokens leave the workbench palette untouched. */
+:root .sidebar.lagoon-rail {
+  --sidebar-bg: #f7f8fa;
+  --sidebar-text: #555d6b;
+  --sidebar-label: #737b89;
+  --sidebar-line: #e4e7ed;
+  --sidebar-hover: #eceef3;
+  --sidebar-selected: #5945ed;
+  --sidebar-on-selected: #fff;
+  width: 208px;
+  min-width: 208px;
+  padding: 28px 16px 16px;
+  align-items: stretch;
+  gap: 36px;
+  background: var(--sidebar-bg);
+  border-inline-end: 1px solid var(--sidebar-line);
+  overflow-y: auto;
+}
+[data-theme="dark"] .sidebar.lagoon-rail {
+  --sidebar-bg: #20232b;
+  --sidebar-text: #bac0ce;
+  --sidebar-label: #949dad;
+  --sidebar-line: #343944;
+  --sidebar-hover: #2d323e;
+  --sidebar-selected: #6652f0;
+}
+:root .lagoon-rail .brand { padding: 0 10px; flex-shrink: 0; }
+:root .lagoon-rail .xigra-brand { display: flex; align-items: center; gap: 10px; }
+:root .lagoon-rail .xigra-brand-mark { width: 32px; height: 32px; }
+:root .lagoon-rail .xigra-wordmark { font-size: 20px; font-weight: 650; letter-spacing: -.5px; }
+:root .lagoon-rail nav { display: flex; flex-direction: column; width: 100%; gap: 28px; }
+:root .lagoon-rail .sidebar-group { display: flex; flex-direction: column; gap: 6px; }
+:root .lagoon-rail .sidebar-collaboration { border-top: 1px solid var(--sidebar-line); padding-top: 22px; }
+:root .lagoon-rail .sidebar-group-title { padding: 0 12px 6px; color: var(--sidebar-label); font-size: 12px; line-height: 18px; }
+:root .lagoon-rail .space {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex: none;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 12px;
+  gap: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sidebar-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: start;
+  box-shadow: none;
+}
+:root .lagoon-rail .space svg { width: 20px; height: 20px; flex-shrink: 0; transform: none; color: inherit; }
+:root .lagoon-rail .space:hover:not(:disabled) { background: var(--sidebar-hover); color: var(--ink); }
+:root .lagoon-rail .space.active,
+:root .lagoon-rail .space.active:hover {
+  background: var(--sidebar-selected);
+  color: var(--sidebar-on-selected);
+  box-shadow: none;
+}
+:root .lagoon-rail .space:focus-visible { outline: 2px solid var(--sidebar-selected); outline-offset: 3px; }
+:root .lagoon-rail .space:disabled { opacity: .45; cursor: default; }
+:root .lagoon-rail .sidebar-bottom { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--sidebar-line); }
+:root .lagoon-rail .sidebar-bottom .space { min-height: 44px; font-weight: 400; }
+:root .lagoon-rail .sidebar-bottom .space span { font-size: 14px; }
+:root .lagoon-rail .device-inbox-count { margin-inline-start: auto; background: var(--sidebar-selected); color: #fff; border-radius: 5px; }
+@media (min-width: 640px) and (max-width: 1000px) {
+  :root .sidebar.lagoon-rail { width: 184px; min-width: 184px; padding-inline: 12px; }
+}
+/* Keep the existing phone navigation; no automatic desktop collapse this round. */
+@media (max-width: 639px) {
+  :root .sidebar.lagoon-rail { width: 100%; min-width: 0; min-height: 62px; height: 62px; padding: 4px 0; gap: 4px; overflow: visible; flex-direction: row; border-inline-end: 0; border-top: 1px solid var(--sidebar-line); }
+  :root .lagoon-rail .brand, :root .lagoon-rail .sidebar-group-title { display: none; }
+  :root .lagoon-rail nav { flex: 1; min-width: 0; flex-direction: row; gap: 3px; }
+  :root .lagoon-rail .sidebar-primary { flex: 4; min-width: 0; flex-direction: row; gap: 3px; }
+  :root .lagoon-rail .sidebar-collaboration { flex: 1; min-width: 0; padding: 0 0 0 3px; border-top: 0; border-inline-start: 1px solid var(--sidebar-line); }
+  :root .lagoon-rail nav .space { flex: 1; min-width: 0; width: 100%; min-height: 48px; padding: 4px 1px; gap: 4px; flex-direction: column; justify-content: center; font-size: 10px; line-height: 14px; }
+  :root .lagoon-rail .space svg { width: 18px; height: 18px; }
+  :root .lagoon-rail .sidebar-bottom { flex: none; margin: 0; padding: 0; border: 0; }
+  :root .lagoon-rail .sidebar-bottom .space { width: 36px; min-height: 48px; padding: 0; justify-content: center; }
+  :root .lagoon-rail .device-inbox-count { position: absolute; inset: 0 0 auto auto; font-size: 9px; line-height: 12px; padding: 0 3px; }
+  :root .lagoon-rail .space { position: relative; }
+}
+@media (forced-colors: active) {
+  :root .lagoon-rail .space.active { outline: 2px solid Highlight; outline-offset: -2px; }
+}

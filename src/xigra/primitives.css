@@ -1,0 +1,190 @@
+/* Shared component roles for the compact panel, workbench and portaled dialogs. */
+.app-shell.xigra-compact { min-height: 0; }
+
+.xigra-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xigra-space-2);
+  color: var(--ink);
+}
+.xigra-brand-mark {
+  display: block;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+.quick-header .xigra-wordmark {
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--xigra-type-body);
+  line-height: var(--xigra-line-body);
+  font-weight: var(--xigra-weight-emphasis);
+  margin: 0;
+  min-width: 0;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.xigra-window-actions { flex-shrink: 0; gap: var(--xigra-space-1); }
+.topbar.xigra-workbench-bar {
+  height: 72px;
+  min-height: 72px;
+  padding-block: var(--xigra-space-2);
+}
+
+.xigra-workbench-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--xigra-space-2);
+  color: var(--ink);
+  font-size: var(--xigra-type-body);
+  font-weight: var(--xigra-weight-emphasis);
+  margin: 0;
+  min-width: 0;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.xigra-workbench-title small {
+  color: var(--muted);
+  font-size: var(--xigra-type-meta);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.xigra-view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xigra-space-2);
+  min-height: var(--xigra-hit-target);
+  padding: 0 11px;
+  border: 1px solid var(--xigra-control-border);
+  border-radius: var(--xigra-radius-control);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--xigra-type-control);
+  font-weight: var(--xigra-weight-emphasis);
+  white-space: nowrap;
+}
+.xigra-view-switch:hover { background: var(--xigra-hover); }
+
+:is(button, select, input, textarea, a, [tabindex]):focus-visible {
+  outline: var(--xigra-focus-width) solid var(--xigra-focus);
+  outline-offset: 2px;
+}
+.setting-toggle input, .file-select input { accent-color: var(--xigra-focus); }
+
+.app-shell .button, .modal .button, .file-station button,
+.header-actions .new-note, .header-actions .icon-button,
+.quick-header .xigra-icon-button, .tool, .lagoon-rail .space {
+  border-radius: var(--xigra-radius-control);
+}
+.quick-header .xigra-icon-button {
+  display: grid;
+  place-items: center;
+  width: var(--xigra-hit-target);
+  height: var(--xigra-hit-target);
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+}
+.app-shell .button, .modal .button, .file-station button {
+  border-color: var(--line);
+  font-weight: 500;
+}
+.header-actions .new-note,
+.app-shell .button.primary, .modal .button.primary,
+[data-theme="dark"] .app-shell .button.primary,
+[data-theme="dark"] .modal .button.primary,
+.file-station .file-primary {
+  background: var(--xigra-brand);
+  color: var(--xigra-on-brand);
+  border-color: var(--xigra-brand);
+  font-weight: var(--xigra-weight-emphasis);
+}
+.header-actions .new-note:hover:not(:disabled),
+.app-shell .button.primary:hover:not(:disabled), .modal .button.primary:hover:not(:disabled),
+.file-station .file-primary:hover:not(:disabled) { background: var(--xigra-brand-hover); }
+.file-station button:not(.file-primary):hover:not(:disabled),
+.quick-header .xigra-icon-button:hover:not(:disabled) { background: var(--xigra-hover); }
+
+.lagoon-rail .space.active, .file-views button[aria-pressed="true"],
+.command-results button[aria-selected="true"], .tool.selected, [data-theme="dark"] .tool.selected {
+  background: var(--xigra-selected);
+  color: var(--xigra-on-selected);
+}
+.file-views button[aria-pressed="true"] { border-color: var(--xigra-focus); }
+
+.workspace .note, .reader-note, .file-row, .file-confirm, .xigra-empty {
+  border-radius: var(--xigra-radius-panel);
+}
+.file-row { background: var(--rail); }
+.file-row button { border-color: transparent; background: transparent; }
+.file-list { display: grid; gap: var(--xigra-space-2); }
+.file-row strong { font-weight: var(--xigra-weight-emphasis); }
+.file-row small, .file-hint, .xigra-empty, .command-results small { font-size: var(--xigra-type-meta); }
+.xigra-empty {
+  margin: 0;
+  padding: 20px 16px;
+  border: 1px dashed var(--line);
+  background: var(--rail);
+  color: var(--muted);
+}
+.file-search input, .file-search select, .file-rename input, .share-link,
+.field-label input, .field-label select, [data-theme="dark"] .field-label input,
+[data-theme="dark"] .field-label select {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--xigra-control-border);
+  border-radius: var(--xigra-radius-control);
+}
+.file-search input::placeholder, .command-input input::placeholder { color: var(--muted); }
+.share-link input, .share-link button { color: var(--ink); }
+.share-link button:hover { background: var(--xigra-hover); }
+
+.modal, [data-theme="dark"] .modal, .command-popup, .lagoon-files {
+  border-radius: var(--xigra-radius-window);
+  box-shadow: var(--xigra-shadow-floating);
+}
+.desk-backdrop { background: var(--xigra-scrim); }
+.modal h2, .lagoon-drawer-title h2 { font-size: var(--xigra-type-title); font-weight: var(--xigra-weight-emphasis); }
+.modal-symbol, .command-escape, .command-glyph, .command-results button, .lagoon-drawer-title > button {
+  border-radius: var(--xigra-radius-control);
+}
+.command-input input:focus-visible { outline: none; }
+.command-input:focus-within { box-shadow: inset 0 -2px var(--xigra-focus); }
+.share-state, [data-theme="dark"] .share-state { background: var(--rail); border-radius: var(--xigra-radius-panel); }
+.modal.xigra-share { padding: 24px; }
+.xigra-share .modal-symbol { width: 36px; height: 36px; margin-bottom: 8px; }
+.xigra-share .modal-symbol svg { width: 19px; height: 19px; }
+.xigra-share .share-state { margin: 12px 0; gap: 8px; }
+.xigra-share-links { display: grid; gap: 6px; max-height: 164px; padding: 2px; overflow-y: auto; }
+.xigra-share-links .share-link { margin: 0; }
+.xigra-share-links .share-link input, .xigra-share-links .share-link button { padding: 8px 10px; }
+.xigra-share .privacy-note, .xigra-share .modal-tip { margin-top: 12px; }
+
+.xigra-status, .canvas-footer .xigra-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--xigra-radius-selection);
+  white-space: nowrap;
+  font-size: var(--xigra-type-meta);
+  line-height: var(--xigra-line-meta);
+}
+.xigra-status .dot { flex: 0 0 6px; width: 6px; height: 6px; background: currentColor; }
+.xigra-status, .xigra-notice { background: var(--rail); color: var(--muted); }
+:is(.xigra-status, .xigra-notice)[data-tone="saved"] { background: var(--xigra-success-bg); color: var(--xigra-success); }
+:is(.xigra-status, .xigra-notice)[data-tone="pending"],
+:is(.xigra-status, .xigra-notice)[data-tone="warning"] { background: var(--xigra-warning-bg); color: var(--xigra-warning); }
+:is(.xigra-status, .xigra-notice)[data-tone="error"] { background: var(--xigra-error-bg); color: var(--xigra-error); }
+.xigra-notice { border: 0; border-radius: var(--xigra-radius-control); padding: 8px 10px; }
+.xigra-notice button { color: inherit; }
+.privacy-note.xigra-notice { padding: 10px 12px; }
+
+@media (min-width: 820px) { .header-actions .xigra-status { display: inline-flex; } }
+@media (forced-colors: active) {
+  :is(button, select, input, textarea, a, [tabindex]):focus-visible { outline-color: Highlight; }
+  :is(.space.active, .file-views button[aria-pressed="true"], .command-results button[aria-selected="true"]) { outline: 1px solid Highlight; }
+}

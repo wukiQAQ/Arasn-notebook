@@ -1,0 +1,155 @@
+[
+  {
+    "name": "upgrade-1440",
+    "notice": {
+      "x": 228,
+      "y": 64,
+      "right": 1416,
+      "bottom": 98,
+      "width": 1188,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 1188,
+    "clientWidth": 1188
+  },
+  {
+    "name": "inspector-1440",
+    "notice": {
+      "x": 228,
+      "y": 64,
+      "right": 1416,
+      "bottom": 98,
+      "width": 1188,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 1188,
+    "clientWidth": 1188
+  },
+  {
+    "name": "files-1440",
+    "notice": {
+      "x": 228,
+      "y": 84,
+      "right": 1416,
+      "bottom": 118,
+      "width": 1188,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 72,
+    "scrollWidth": 1188,
+    "clientWidth": 1188
+  },
+  {
+    "name": "inspector-820",
+    "notice": {
+      "x": 80,
+      "y": 64,
+      "right": 804,
+      "bottom": 98,
+      "width": 724,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 724,
+    "clientWidth": 724
+  },
+  {
+    "name": "files-820",
+    "notice": {
+      "x": 80,
+      "y": 84,
+      "right": 804,
+      "bottom": 118,
+      "width": 724,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 72,
+    "scrollWidth": 724,
+    "clientWidth": 724
+  },
+  {
+    "name": "inspector-390",
+    "notice": {
+      "x": 80,
+      "y": 64,
+      "right": 688,
+      "bottom": 98,
+      "width": 608,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 608,
+    "clientWidth": 608
+  },
+  {
+    "name": "files-390",
+    "notice": {
+      "x": 80,
+      "y": 84,
+      "right": 688,
+      "bottom": 118,
+      "width": 608,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 72,
+    "scrollWidth": 608,
+    "clientWidth": 608
+  },
+  {
+    "name": "long-error-390",
+    "notice": {
+      "x": 80,
+      "y": 64,
+      "right": 688,
+      "bottom": 184,
+      "width": 608,
+      "height": 120
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 593,
+    "clientWidth": 593
+  },
+  {
+    "name": "dark-390",
+    "notice": {
+      "x": 80,
+      "y": 64,
+      "right": 688,
+      "bottom": 98,
+      "width": 608,
+      "height": 34
+    },
+    "overlaps": [],
+    "inMain": true,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 608,
+    "clientWidth": 608
+  }
+]

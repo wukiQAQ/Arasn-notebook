@@ -1,122 +1,151 @@
-const { _electron: electron, chromium, expect } = require("@playwright/test");
-const fs = require("node:fs");
+const { selectOption } = require("./helpers/select-option.cjs");
+const { _electron: electron, expect } = require("@playwright/test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
+const { StorageEngine } = require("../desktop/engines/storage-engine.cjs");
+
+const root = path.resolve(__dirname, "..");
+const output = process.env.ARASN_TEST_SCREENSHOTS || path.join(root, "docs/screenshots/xigra-view-switch");
 
 (async () => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "arasn-panel-"));
-  const env = { ...process.env, ARASN_DATA_DIR: directory, ARASN_SMOKE: "1" };
+  const data = await fs.mkdtemp(path.join(os.tmpdir(), "xigra-simple-"));
+  const env = { ...process.env, ARASN_DATA_DIR: data, ARASN_SMOKE: "1" };
   delete env.ELECTRON_RUN_AS_NODE;
-  let application, browser;
+  const launch = () => electron.launch({
+    ...(process.env.ARASN_TEST_EXE ? { executablePath: process.env.ARASN_TEST_EXE, args: [] } : { args: ["."] }),
+    cwd: root, env,
+  });
+  let app;
   try {
-    application = await electron.launch({
-      executablePath:
-        process.env.ARASN_TEST_EXE ||
-        path.resolve(
-          __dirname,
-          "../release/ArasnNotebook-win32-x64/ArasnNotebook.exe",
-        ),
-      args: [],
-      env,
-    });
-    const page = await application.firstWindow();
-    await expect(
-      page.getByRole("tab", { name: "打字", exact: true }),
-    ).toHaveAttribute("aria-selected", "true");
-    expect(
-      await application.evaluate(
-        ({ BrowserWindow }) =>
-          BrowserWindow.getAllWindows()[0].getBounds().width,
-      ),
-    ).toBe(520);
-    const input = page.getByRole("textbox", { name: "便笺文字" });
-    await expect(input).toBeEnabled();
-    await input.fill("小窗写下的信息，切换后还在。");
-    await page.getByLabel("文字颜色", { exact: true }).fill("#a23bc4");
-    await page.getByLabel("文字字号").selectOption("24");
-    await page.getByRole("button", { name: "文字加粗", exact: true }).click();
-    await expect(input).toHaveCSS("color", "rgb(162, 59, 196)");
-    await expect(input).toHaveCSS("font-size", "24px");
-    await expect(input).toHaveCSS("font-weight", "700");
-    await page.getByRole("tab", { name: "画图", exact: true }).click();
-    const rect = await page.getByTestId("quick-canvas").boundingBox();
-    await page.mouse.move(rect.x + 50, rect.y + 70);
-    await page.mouse.down();
-    await page.mouse.move(rect.x + 150, rect.y + 120, { steps: 10 });
-    await page.mouse.up();
-    await expect(page.getByTestId("quick-stroke")).toHaveCount(1);
-    await page.getByLabel("自定义画笔颜色").fill("#ed8a22");
-    await page.getByLabel("画笔粗细").selectOption("12");
-    for (const [i, shape] of [
-      "line",
-      "arrow",
-      "rect",
-      "ellipse",
-      "triangle",
-    ].entries()) {
-      await page.getByLabel("绘图工具").selectOption(shape);
-      await page.mouse.move(rect.x + 40 + i * 48, rect.y + 45);
-      await page.mouse.down();
-      await page.mouse.move(rect.x + 110 + i * 48, rect.y + 115, { steps: 8 });
-      await page.mouse.up();
-      await expect(page.getByTestId("quick-stroke")).toHaveCount(i + 2);
+    await fs.mkdir(output, { recursive: true });
+    await fs.writeFile(path.join(data, "settings.json"), JSON.stringify({ theme: "light", shortcut: "Control+Alt+F13" }));
+    const storage = new StorageEngine(data);
+    try {
+      await storage.call("init");
+      await storage.call("setSetting", { key: "window-bounds", value: { x: 50, y: 50, width: 400, height: 460 } });
+    } finally { await storage.close(); }
+
+    app = await launch();
+    let page = await app.firstWindow();
+    let win = await app.browserWindow(page);
+    await win.evaluate(window => { window.show(); window.focus(); });
+    const editor = () => page.locator(".quick-input");
+    const workbench = () => page.getByRole("button", { name: "打开工作区", exact: true });
+    const collapse = () => page.getByRole("button", { name: "切换到便签区", exact: true });
+    const sizes = () => win.evaluate(window => ({ outer: window.getSize(), content: window.getContentSize() }));
+    async function capture(file) {
+      let png;
+      await expect.poll(async () => {
+        const { content } = await sizes();
+        if (content.some(size => size === 0)) return false;
+        png = await page.screenshot({ scale: "css", animations: "disabled" });
+        return png.readUInt32BE(16) === content[0] && png.readUInt32BE(20) === content[1];
+      }).toBe(true);
+      await fs.writeFile(path.join(output, file), png);
     }
-    await page.getByRole("tab", { name: "打字", exact: true }).click();
-    await expect(input).toHaveValue("小窗写下的信息，切换后还在。");
-    await page.screenshot({ path: "docs/screenshots/quick-text.png" });
-    await page.getByRole("tab", { name: "画图", exact: true }).click();
-    await expect(page.getByTestId("quick-stroke")).toHaveCount(6);
-    await page.screenshot({ path: "docs/screenshots/quick-draw.png" });
-    await page.getByRole("button", { name: "传递 / 共享" }).click();
-    await page.getByRole("button", { name: "开启共享", exact: true }).click();
-    await expect(
-      page.getByRole("button", { name: "停止共享", exact: true }),
-    ).toBeEnabled();
-    const shared = await page.evaluate(() => window.desktop.info());
-    const link = new URL(shared.links[0]);
-    browser = await chromium.launch({ headless: true });
-    const peer = await browser.newPage();
-    await peer.goto(`http://127.0.0.1:${link.port}/${link.hash}`);
-    await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveValue(
-      "小窗写下的信息，切换后还在。",
-    );
-    await expect(peer.getByTestId("stroke")).toHaveCount(6);
-    await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveCSS(
-      "font-size",
-      "24px",
-    );
-    await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveCSS(
-      "font-weight",
-      "700",
-    );
-    await expect(peer.getByTestId("stroke").last()).toHaveAttribute(
-      "stroke",
-      "#ed8a22",
-    );
-    await peer
-      .getByRole("textbox", { name: "便笺文字" })
-      .fill("另一台客户端的回复");
-    await page.getByRole("button", { name: "关闭弹窗" }).click();
-    await page.getByRole("tab", { name: "打字", exact: true }).click();
-    await expect(input).toHaveValue("另一台客户端的回复", { timeout: 10000 });
-    await page.getByRole("button", { name: "展开完整页面" }).click();
-    await expect(page.getByTestId("stroke")).toHaveCount(6);
-    await expect(page.getByRole("textbox", { name: "便笺文字" })).toHaveValue(
-      "另一台客户端的回复",
-    );
-    await page.getByRole("button", { name: "收回小窗" }).click();
-    await expect(input).toHaveValue("另一台客户端的回复");
-    console.log(
-      "PASS: compact window, text/drawing switches, full-page consistency, two-client bidirectional sharing",
-    );
+    const defaults = await sizes();
+    assert.deepEqual(defaults.outer, [620, 700]);
+    const minimumRequest = await win.evaluate(window => window.getMinimumSize());
+    assert.deepEqual(minimumRequest, [500, 540]);
+    await expect(page.locator(".quick-header h1")).toHaveText("速记");
+    await expect(page.locator(".quick-header .xigra-brand")).toHaveCount(0);
+    await expect(editor()).toBeFocused();
+    await expect(page.locator(".xigra-save-state")).toHaveText("等待输入");
+    await expect(page.getByRole("tablist")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "设置与快捷键" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "添加文件", exact: true })).toBeVisible();
+    await capture("quick-light.png");
+
+    const first = "先记下临时想到的一句话。";
+    const second = "评审后整理文件，更新交接记录。\n明早核对交付清单。";
+    await editor().fill(first);
+    await expect(page.locator(".xigra-save-state")).toHaveText("已保存");
+    await page.getByRole("button", { name: "新建便笺", exact: true }).click();
+    await expect(editor()).toBeFocused();
+    await expect(editor()).toHaveValue("");
+    await editor().fill(second);
+    await expect(page.locator(".xigra-save-state")).toHaveText("已保存");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.evaluate(() => {
+      window.viewEntries = [];
+      document.addEventListener("animationstart", (event) => {
+        if (event.animationName === "xigra-view-enter") window.viewEntries.push(event.target.tagName);
+      });
+    });
+    await workbench().click();
+    await expect.poll(() => page.evaluate(() => window.viewEntries)).toContain("MAIN");
+    await expect(page.locator(".xigra-workbench-title")).toHaveText("速记");
+    await expect(page.locator(".topbar")).not.toContainText(/我的(办公|随手)页/);
+    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
+    await page.getByRole("button", { name: "工具属性", exact: true }).click();
+    await expect(page.locator(".free-properties")).toBeVisible();
+    await page.getByRole("button", { name: "关闭工具属性", exact: true }).click();
+    await expect(page.locator(".sidebar").getByRole("button", { name: "设备互传", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "文件", exact: true })).toBeVisible();
+    await expect(page.locator("textarea").filter({ hasText: first })).toHaveCount(1);
+    await capture("workbench-light.png");
+    await page.locator(".sidebar").getByRole("button", { name: "设置与快捷键" }).click();
+    await selectOption(page, "外观主题", "dark");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "设置", exact: true })).toBeHidden();
+    await collapse().click();
+    await expect(editor()).toHaveValue(second);
+    await expect.poll(() => page.evaluate(() => window.viewEntries)).toContain("SECTION");
+    assert.deepEqual((await sizes()).outer, [620, 700]);
+
+    await workbench().click();
+    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
+    await page.locator("textarea").filter({ hasText: first }).focus();
+    await collapse().press("Enter");
+    await expect(editor()).toBeFocused();
+    await expect(editor()).toHaveValue(first);
+    await workbench().click();
+    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
+    await page.locator("textarea").filter({ hasText: second }).focus();
+    await collapse().click();
+    await expect(editor()).toHaveValue(second);
+
+    await win.evaluate((window, size) => window.setSize(...size), minimumRequest);
+    const minimum = await sizes();
+    await page.waitForFunction(([w, h]) => innerWidth === w && innerHeight === h, minimum.content);
+    // Windows can round the physical minimum slightly above Electron's DIP request.
+    assert.ok(minimum.outer.every((size, i) => size >= minimumRequest[i] && size <= minimumRequest[i] + 2), JSON.stringify(minimum));
+    const layout = await page.evaluate(() => ({
+      noOverflow: document.documentElement.scrollWidth <= innerWidth,
+      noteHeight: document.querySelector(".quick-input").getBoundingClientRect().height,
+      footerFits: document.querySelector(".quick-footer").getBoundingClientRect().bottom <= innerHeight,
+    }));
+    assert.ok(layout.noOverflow && layout.footerFits && layout.noteHeight >= 250, JSON.stringify(layout));
+    await page.locator(".toast").waitFor({ state: "hidden" });
+    await capture("quick-dark-min.png");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.keyboard.press("Control+k");
+    await expect(page.getByRole("combobox", { name: "搜索命令", exact: true })).toBeVisible();
+    await expect(page.locator(".app-shell > main")).toHaveCSS("animation-name", "none");
+    await page.keyboard.press("Escape");
+    await expect(collapse()).toBeVisible();
+    await collapse().click();
+    await expect(page.locator(".xigra-shell")).toHaveCSS("animation-name", "none");
+    assert.deepEqual((await sizes()).outer, minimum.outer);
+    await app.close();
+
+    app = await launch();
+    page = await app.firstWindow();
+    win = await app.browserWindow(page);
+    assert.deepEqual((await sizes()).outer, minimum.outer);
+    await expect(editor()).toHaveValue("");
+    await page.getByRole("region", { name: "最近便笺", exact: true }).getByRole("button", { name: "评审后整理文件，更新交接记录。", exact: true }).click();
+    await expect(editor()).toHaveValue(second);
+    await fs.writeFile(path.join(output, "checks.json"), JSON.stringify({ defaults, minimum, layout, selectedNoteFollowsSwitch: true, oldBoundsMigrated: true, resizeAndNoteSurvivedRestart: true }, null, 2));
+    console.log("PASS: both view transitions, reduced motion, keyboard switching, note, focus and window size");
   } finally {
-    if (browser) await browser.close();
-    if (application) await application.close();
-    if (path.dirname(directory) !== os.tmpdir())
-      throw new Error("Unexpected cleanup path");
-    fs.rmSync(directory, { recursive: true, force: true });
+    if (app) await app.close();
+    const target = await fs.realpath(data);
+    if (path.dirname(target) === await fs.realpath(os.tmpdir()) && path.basename(target).startsWith("xigra-simple-")) {
+      await fs.rm(target, { recursive: true, force: true });
+    }
   }
-})().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,1749 @@
+{
+  "checks": [
+    {
+      "name": "settings-light",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "canvas-light-1440",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": 6.171949337931806,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "records-light-1440",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": 6.171949337931806,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "files-light-1440",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "relation-light-1440",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "relation-light-820",
+      "theme": "light",
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "relation-light-390",
+      "theme": "light",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "back-light",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(38, 41, 50)",
+          "rgb(38, 41, 50)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(93, 75, 210)",
+          "rgb(93, 75, 210)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(105, 85, 218)",
+          "rgb(105, 85, 218)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(231, 229, 240)",
+          "rgb(231, 229, 240)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 14.526368596204374
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 5.679489021172213
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 4.938929225531174
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 6.171949337931806
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 6.6727547880030915
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.6180679552001456
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 5.3674910476362205
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 6.393268683289835
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 7.514727211703154
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 6.50782481978003
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#f3f4f6"
+    },
+    {
+      "name": "settings-dark",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "canvas-dark-1440",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": 5.439914752504339,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "records-dark-1440",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": 5.439914752504339,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "files-dark-1440",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "relation-dark-1440",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "relation-dark-820",
+      "theme": "dark",
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "relation-dark-390",
+      "theme": "dark",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    },
+    {
+      "name": "back-dark",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "pairs": [
+        [
+          "xigra-text",
+          "ui-text-primary",
+          "rgb(238, 240, 244)",
+          "rgb(238, 240, 244)"
+        ],
+        [
+          "xigra-brand",
+          "ui-action",
+          "rgb(105, 84, 216)",
+          "rgb(105, 84, 216)"
+        ],
+        [
+          "xigra-on-brand",
+          "ui-on-action",
+          "rgb(255, 255, 255)",
+          "rgb(255, 255, 255)"
+        ],
+        [
+          "xigra-focus",
+          "ui-focus",
+          "rgb(182, 167, 255)",
+          "rgb(182, 167, 255)"
+        ],
+        [
+          "xigra-selected",
+          "ui-nav-active",
+          "rgb(48, 48, 61)",
+          "rgb(48, 48, 61)"
+        ],
+        [
+          "xigra-surface",
+          "ui-surface-card",
+          "rgb(40, 44, 52)",
+          "rgb(40, 44, 52)"
+        ]
+      ],
+      "contrast": [
+        {
+          "a": "ui-text-primary",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 12.269852805507854
+        },
+        {
+          "a": "ui-text-secondary",
+          "b": "ui-surface-app",
+          "min": 4.5,
+          "ratio": 9.642965894221549
+        },
+        {
+          "a": "ui-text-muted",
+          "b": "ui-surface-card",
+          "min": 4.5,
+          "ratio": 6.196235391037925
+        },
+        {
+          "a": "ui-on-action",
+          "b": "ui-action",
+          "min": 4.5,
+          "ratio": 5.439914752504339
+        },
+        {
+          "a": "ui-nav-on-active",
+          "b": "ui-nav-active",
+          "min": 4.5,
+          "ratio": 8.87103653172079
+        },
+        {
+          "a": "ui-border-control",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 3.7506353911132853
+        },
+        {
+          "a": "ui-focus",
+          "b": "ui-surface-card",
+          "min": 3,
+          "ratio": 6.639969228571327
+        },
+        {
+          "a": "xigra-success",
+          "b": "xigra-success-bg",
+          "min": 4.5,
+          "ratio": 8.607407613994305
+        },
+        {
+          "a": "xigra-warning",
+          "b": "xigra-warning-bg",
+          "min": 4.5,
+          "ratio": 8.234572817047438
+        },
+        {
+          "a": "xigra-error",
+          "b": "xigra-error-bg",
+          "min": 4.5,
+          "ratio": 8.508330805887416
+        }
+      ],
+      "primaryContrast": null,
+      "app": "#1b1e24"
+    }
+  ],
+  "errors": []
+}

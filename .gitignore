@@ -28,3 +28,7 @@ Thumbs.db
 *.db-wal
 *.sqlite
 *.sqlite3
+
+# Generated single-file Windows releases in the project root
+/Arasn-*-Portable.exe
+/Arasn-*-Setup.exe

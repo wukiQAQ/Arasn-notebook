@@ -1,0 +1,26 @@
+{
+  "report": [
+    {
+      "name": "desktop",
+      "viewport": 1440,
+      "document": 1440,
+      "toolbar": 1208,
+      "toolbarWidth": 1208
+    },
+    {
+      "name": "tablet",
+      "viewport": 820,
+      "document": 820,
+      "toolbar": 612,
+      "toolbarWidth": 612
+    },
+    {
+      "name": "mobile",
+      "viewport": 390,
+      "document": 390,
+      "toolbar": 390,
+      "toolbarWidth": 390
+    }
+  ],
+  "errors": []
+}

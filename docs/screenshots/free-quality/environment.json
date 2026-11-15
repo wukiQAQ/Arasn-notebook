@@ -1,0 +1,8 @@
+{
+  "platform": "win32",
+  "osRelease": "10.0.26200",
+  "cpuModel": "AMD Ryzen 9 8940HX with Radeon Graphics        ",
+  "logicalCPUs": 32,
+  "testHarnessNode": "24.14.0",
+  "electronPackage": "45.2.1"
+}

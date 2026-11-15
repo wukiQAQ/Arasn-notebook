@@ -1,0 +1,59 @@
+/* Batch 1 reuses the current semantic palette; global token changes belong to batch 2. */
+.file-workspace { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; padding-bottom: 16px; }
+.file-workspace-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 4px 24px; }
+.file-workspace-heading h1 { margin: 0 0 8px; font-size: 26px; line-height: 1.3; }
+.file-workspace-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+.file-workspace .file-station { max-width: none; width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 20px; gap: 16px; }
+.file-layout { margin-inline-start: auto; display: inline-flex; gap: 4px; }
+.file-station .file-layout button { width: 36px; padding: 0; }
+.file-batch { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 12px; border-radius: 7px; background: var(--desk); }
+.file-batch > span, .file-safety-note { color: var(--muted); font-size: 12px; }
+.file-safety-note { margin: 0; line-height: 1.7; }
+.file-station .file-list { align-content: start; }
+.file-station .file-row { min-height: 72px; padding: 12px; border: 1px solid var(--line); }
+.file-station .file-row-actions { display: flex; gap: 6px; }
+.file-station .file-list-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.file-station .file-list-grid .file-row { grid-template-columns: auto minmax(0, 1fr); align-content: start; gap: 12px; }
+.file-station .file-list-grid .file-media { grid-row: 1; grid-column: 1 / -1; width: 100%; height: 112px; }
+.file-station .file-list-grid .file-select { grid-row: 2; }
+.file-station .file-list-grid .file-meta { grid-row: 2; }
+.file-station .file-list-grid .file-row-actions { grid-column: 1 / -1; flex-wrap: wrap; }
+.file-picker { position: fixed; z-index: 70; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; gap: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: var(--xigra-shadow-floating); }
+.file-picker header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.file-picker h2 { margin: 0 0 8px; font-size: 20px; }
+.file-picker header p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.file-picker button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--surface); }
+.file-picker button:hover:not(:disabled) { background: var(--xigra-hover); }
+.file-picker-controls, .file-picker footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.file-picker-controls > input { flex: 1; min-width: 120px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--desk); color: var(--ink); }
+.file-picker-list { min-height: 90px; overflow: auto; display: grid; gap: 4px; }
+.file-picker-list label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; border-radius: 7px; background: var(--desk); }
+.file-picker-list label > span { overflow-wrap: anywhere; flex: 1; min-width: 0; font-size: 14px; }
+.file-picker-list small { color: var(--muted); }
+.file-picker .file-primary { margin-inline-start: auto; color: var(--xigra-on-brand); background: var(--xigra-brand); border-color: var(--xigra-brand); }
+.file-picker .file-primary:hover:not(:disabled) { background: var(--xigra-brand-hover); }
+.file-picker :focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 2px; }
+.file-picker button:disabled { opacity: .45; cursor: default; }
+.record-attachments { max-height: 180px; overflow: auto; padding: 8px 20px; display: grid; gap: 6px; border-top: 1px solid var(--line); }
+.record-attachments > div { display: flex; align-items: center; gap: 8px; }
+.record-attachments > div > span:not(.file-media) { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+.record-attachments .file-media { display: grid; place-items: center; width: 36px; height: 36px; flex: none; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--desk); color: var(--muted); }
+@media (max-width: 1000px) {
+  .file-station .file-row-actions { flex-wrap: wrap; }
+  .file-station .file-row { grid-template-columns: auto 40px minmax(0, 1fr); }
+  .file-station .file-row-actions { grid-column: 2 / -1; }
+}
+@media (max-width: 639px) {
+  .file-workspace-heading { padding: 8px 2px 16px; align-items: start; }
+  .file-workspace-heading h1 { font-size: 22px; }
+  .file-workspace-heading p { font-size: 12px; max-width: 220px; line-height: 1.6; }
+  .file-workspace-heading > button { flex-shrink: 0; font-size: 12px; }
+  .file-workspace .file-station { padding: 12px; gap: 12px; }
+  .file-workspace .file-station button { font-size: 12px; }
+  .file-station .file-actions { gap: 5px; }
+  .file-station .file-actions > button { padding-inline: 8px; }
+  .file-station .file-layout { gap: 2px; }
+  .file-station .file-layout button { width: 30px; }
+  .file-station .file-list-grid { grid-template-columns: minmax(0, 1fr); }
+  .file-picker { padding: 16px; }
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "scale": 1,
+    "native": {
+      "caption": true,
+      "captionHit": 2,
+      "title": "Arasn",
+      "movable": true,
+      "closable": true,
+      "dpi": 96
+    },
+    "windows": [
+      {
+        "dpr": 1,
+        "width": 620,
+        "height": 700,
+        "header": {
+          "x": 24,
+          "y": 0,
+          "width": 572,
+          "height": 58,
+          "right": 596,
+          "bottom": 58
+        },
+        "content": {
+          "x": 24,
+          "y": 106,
+          "width": 572,
+          "height": 481,
+          "right": 596,
+          "bottom": 587
+        },
+        "footer": {
+          "x": 24,
+          "y": 647,
+          "width": 572,
+          "height": 41,
+          "right": 596,
+          "bottom": 688
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 434,
+            "y": 9,
+            "width": 118,
+            "height": 40,
+            "right": 552,
+            "bottom": 49
+          },
+          {
+            "x": 556,
+            "y": 9,
+            "width": 40,
+            "height": 40,
+            "right": 596,
+            "bottom": 49
+          }
+        ]
+      },
+      {
+        "dpr": 1,
+        "width": 500,
+        "height": 540,
+        "header": {
+          "x": 16,
+          "y": 0,
+          "width": 468,
+          "height": 48,
+          "right": 484,
+          "bottom": 48
+        },
+        "content": {
+          "x": 16,
+          "y": 88,
+          "width": 468,
+          "height": 351,
+          "right": 484,
+          "bottom": 439
+        },
+        "footer": {
+          "x": 16,
+          "y": 487,
+          "width": 468,
+          "height": 41,
+          "right": 484,
+          "bottom": 528
+        },
+        "overflow": false,
+        "buttons": [
+          {
+            "x": 322,
+            "y": 4,
+            "width": 118,
+            "height": 40,
+            "right": 440,
+            "bottom": 44
+          },
+          {
+            "x": 444,
+            "y": 4,
+            "width": 40,
+            "height": 40,
+            "right": 484,
+            "bottom": 44
+          }
+        ]
+      }
+    ],
+    "closeHidesAndRevealRestores": false
+  }
+]

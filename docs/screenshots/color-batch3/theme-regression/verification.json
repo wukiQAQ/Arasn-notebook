@@ -1,0 +1,148 @@
+{
+  "checks": [
+    {
+      "name": "appearance-dark-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "appearance-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "appearance-light-820",
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "appearance-light-390",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "before-pages-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "page": "我的随手页",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-6",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "page": "便笺列表",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-8",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "page": "文件",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-10",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "page": "打开关系画布",
+      "theme": "light"
+    },
+    {
+      "name": "page-light-12",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "appearance-dark-390",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "relation-dark-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": [
+        {
+          "tag": "DIV",
+          "class": "topology-world",
+          "right": 1770,
+          "visibility": "visible"
+        }
+      ]
+    },
+    {
+      "page": "我的随手页",
+      "theme": "dark"
+    },
+    {
+      "page": "便笺列表",
+      "theme": "dark"
+    },
+    {
+      "page": "文件",
+      "theme": "dark"
+    },
+    {
+      "page": "打开关系画布",
+      "theme": "dark"
+    },
+    {
+      "name": "workspace-dark-390",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    },
+    {
+      "name": "compact-dark-500",
+      "width": 500,
+      "height": 540,
+      "overflow": false,
+      "popupFits": true,
+      "overflowElements": []
+    }
+  ],
+  "errors": []
+}

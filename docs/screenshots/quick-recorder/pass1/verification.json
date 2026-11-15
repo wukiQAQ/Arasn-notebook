@@ -1,0 +1,58 @@
+{
+  "layouts": [
+    {
+      "width": 620,
+      "height": 700,
+      "overflow": false,
+      "footerBottom": 688,
+      "bodyHeight": 459.203125,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "width": 620,
+      "height": 700,
+      "overflow": false,
+      "footerBottom": 688,
+      "bodyHeight": 411.203125,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "width": 500,
+      "height": 540,
+      "overflow": false,
+      "footerBottom": 528,
+      "bodyHeight": 270,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "footerBottom": 688,
+      "bodyHeight": 373.203125,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "footerBottom": 888,
+      "bodyHeight": 611.203125,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "footerBottom": 638,
+      "bodyHeight": 361.203125,
+      "createBackground": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "errors": [],
+  "focusAndCaret": true,
+  "titleSearch": true,
+  "fileImport": true,
+  "canvas": true,
+  "restart": true
+}

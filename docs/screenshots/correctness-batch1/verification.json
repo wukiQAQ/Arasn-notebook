@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-15",
+  "scope": [
+    "4",
+    "8"
+  ],
+  "build": {
+    "command": "npm run build",
+    "exit": 0
+  },
+  "unit": {
+    "command": "npm test",
+    "exit": 0,
+    "passed": 76,
+    "environment": "outside sandbox"
+  },
+  "desktop": [
+    {
+      "command": "node tests/correctness-batch1-desktop.cjs",
+      "exit": 0,
+      "checks": [
+        "last paragraph real pixels",
+        "1/2/4 exact PNG sizes",
+        "1200x800 original vs <=160px thumbnail",
+        "all/viewport",
+        "render DPR 1/1.5/2",
+        "1440/820/390 dark and maximized light",
+        "read failure alert",
+        "no source mutation",
+        "cancel/undo/redo",
+        "lock persistence restart"
+      ]
+    },
+    {
+      "command": "node tests/free-content-desktop.cjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/topology-desktop.cjs",
+      "exit": 0
+    }
+  ],
+  "limits": [
+    "white content render, not pixel identical DOM capture",
+    "expanded complete note may cover adjacent objects",
+    "physical mixed DPI and system restart not tested",
+    "EXE not packaged"
+  ]
+}

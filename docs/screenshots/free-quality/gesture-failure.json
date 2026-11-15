@@ -1,0 +1,294 @@
+[
+  {
+    "type": "pointerdown",
+    "target": {},
+    "tag": "svg",
+    "x": 137,
+    "y": 205,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "选择与拖动",
+    "transform": "translate(19px, -25px) scale(0.8)"
+  },
+  {
+    "type": "blur",
+    "target": "space active",
+    "tag": "BUTTON",
+    "focused": true,
+    "tool": "选择与拖动",
+    "transform": "translate(19px, -25px) scale(0.8)"
+  },
+  {
+    "type": "focus",
+    "target": "tool ",
+    "tag": "BUTTON",
+    "focused": true,
+    "tool": "选择与拖动",
+    "transform": "translate(19px, -25px) scale(0.8)"
+  },
+  {
+    "type": "pointerup",
+    "target": {},
+    "tag": "svg",
+    "x": 137,
+    "y": 205,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "选择与拖动",
+    "transform": "translate(19px, -25px) scale(0.8)"
+  },
+  {
+    "type": "pointerdown",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1085.5,
+    "y": 304.5,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(19px, -25px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerup",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(59px, 0px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerdown",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1085.5,
+    "y": 304.5,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-633.5px, -125.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "gotpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1088.8333740234375,
+    "y": 306.5833435058594,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-633.5px, -125.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerup",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-593.5px, -100.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "lostpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-593.5px, -100.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerdown",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1085.5,
+    "y": 304.5,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-593.5px, -100.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "gotpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1088.8333740234375,
+    "y": 306.5833435058594,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-593.5px, -100.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerup",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-553.5px, -75.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "lostpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-553.5px, -75.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerdown",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1085.5,
+    "y": 304.5,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-553.5px, -75.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "gotpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1088.8333740234375,
+    "y": 306.5833435058594,
+    "id": 1,
+    "buttons": 1,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-553.5px, -75.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "lostpointercapture",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 461,
+    "y": 196,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-516.833px, -52.5833px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  },
+  {
+    "type": "pointerup",
+    "target": "paper-scroll",
+    "tag": "DIV",
+    "x": 1125.5,
+    "y": 329.5,
+    "id": 1,
+    "buttons": 0,
+    "focused": true,
+    "tool": "移动画布",
+    "transform": "translate(-553.5px, -75.5px) scale(0.8)",
+    "request": {
+      "x": 1085.5,
+      "y": 304.5,
+      "dx": 40,
+      "dy": 25
+    }
+  }
+]

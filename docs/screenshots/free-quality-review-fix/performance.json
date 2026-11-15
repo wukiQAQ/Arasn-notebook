@@ -1,0 +1,138 @@
+{
+  "scope": "Electron renderer rAF during verified complete Playwright/CDP pans; DOM visible/hasFocus, not Win32 foreground or physical input latency; short sample",
+  "metrics": [
+    {
+      "strokes": 300,
+      "pointsPerStroke": 64,
+      "samples": 94,
+      "p50Ms": 6.900000000001455,
+      "p95Ms": 7,
+      "maxMs": 7.100000000000364,
+      "longTasks": 0,
+      "dpr": 1,
+      "visible": "visible",
+      "focused": true,
+      "memory": [
+        {
+          "type": "Browser",
+          "workingSetKiB": 149576
+        },
+        {
+          "type": "GPU",
+          "workingSetKiB": 144084
+        },
+        {
+          "type": "Utility",
+          "workingSetKiB": 53316
+        },
+        {
+          "type": "Tab",
+          "workingSetKiB": 223572
+        }
+      ],
+      "panGesture": {
+        "screenDelta": {
+          "x": -420,
+          "y": 120
+        },
+        "before": {
+          "x": 200,
+          "y": 125,
+          "zoom": 0.8
+        },
+        "after": {
+          "x": 725,
+          "y": -25,
+          "zoom": 0.8
+        }
+      },
+      "drawing": {
+        "name": "pen",
+        "samples": 95,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7,
+        "maxMs": 7.100000000000364,
+        "longTasks": 0
+      },
+      "erasing": {
+        "name": "stroke eraser",
+        "samples": 99,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7.099999999998545,
+        "maxMs": 20.69999999999891,
+        "longTasks": 0
+      },
+      "focusCancel": {
+        "nativeBlurObserved": false,
+        "mode": "synthetic blur; native precondition unavailable"
+      },
+      "largeExport": {
+        "worldSpan": 1800000,
+        "width": 4000,
+        "height": 4000
+      }
+    },
+    {
+      "strokes": 1500,
+      "pointsPerStroke": 64,
+      "samples": 192,
+      "p50Ms": 6.900000000001455,
+      "p95Ms": 7,
+      "maxMs": 7.100000000000364,
+      "longTasks": 0,
+      "dpr": 1,
+      "visible": "visible",
+      "focused": true,
+      "memory": [
+        {
+          "type": "Browser",
+          "workingSetKiB": 203668
+        },
+        {
+          "type": "GPU",
+          "workingSetKiB": 138428
+        },
+        {
+          "type": "Utility",
+          "workingSetKiB": 53240
+        },
+        {
+          "type": "Tab",
+          "workingSetKiB": 363920
+        }
+      ],
+      "panGesture": {
+        "screenDelta": {
+          "x": -420,
+          "y": 120
+        },
+        "before": {
+          "x": 200,
+          "y": 125,
+          "zoom": 0.8
+        },
+        "after": {
+          "x": 725,
+          "y": -25,
+          "zoom": 0.8
+        }
+      },
+      "drawing": {
+        "name": "pen",
+        "samples": 196,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7,
+        "maxMs": 20.80000000000109,
+        "longTasks": 0
+      },
+      "erasing": {
+        "name": "stroke eraser",
+        "samples": 203,
+        "p50Ms": 7,
+        "p95Ms": 7,
+        "maxMs": 34.70000000000073,
+        "longTasks": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "defaultWindow": {
+    "outer": [
+      520,
+      640
+    ],
+    "content": [
+      504,
+      601
+    ]
+  },
+  "minimumWindow": {
+    "outer": [
+      400,
+      460
+    ],
+    "content": [
+      384,
+      421
+    ]
+  },
+  "screenshots": [
+    "400x460-light.png",
+    "480x560-light.png",
+    "400x460-dark.png",
+    "480x560-dark.png"
+  ],
+  "keyboardAndWindowLifecycle": true,
+  "errors": []
+}

@@ -1,0 +1,208 @@
+/* Graphite surfaces and interaction states, after legacy component styles. */
+/* Primary actions use their paired foreground in both themes, independent of paper color. */
+:root .header-actions .new-note,
+:root .button.primary {
+  color: var(--xigra-on-brand);
+  background: var(--xigra-brand);
+  border-color: var(--xigra-brand);
+}
+:root .header-actions .new-note:hover:not(:disabled),
+:root .button.primary:hover:not(:disabled) { background: var(--xigra-brand-hover); }
+:root .file-station :is(.file-query, .file-kind),
+:root .file-picker-controls > input,
+:root .topology-tools > input { border-color: var(--xigra-control-border); }
+.workbench-status {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-height: min(120px, 25dvh);
+  margin-bottom: 12px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+:root .topbar.xigra-workbench-bar {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+:root .sidebar.lagoon-rail {
+  background: var(--rail);
+  border-inline-end: 1px solid var(--line);
+}
+
+:root :is(.lagoon-rail .space.active, .xigra-record-list button[aria-current="true"]) {
+  color: var(--xigra-on-selected);
+  background: var(--tint);
+  box-shadow: inset 2px 0 var(--accent);
+}
+
+:root .xigra-record-filters {
+  align-self: start;
+  padding: 2px;
+  border-radius: var(--xigra-radius-control);
+  background: var(--desk);
+}
+
+:root .xigra-record-filters button[aria-pressed="true"] {
+  background: var(--tint);
+  color: var(--xigra-on-selected);
+}
+
+:root .xigra-record-workspace {
+  grid-template-columns: minmax(202px, 27%) minmax(0, 1fr);
+  gap: 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+:root :is(.xigra-record-index, .xigra-record-paper) {
+  border: 1px solid var(--line);
+  border-radius: var(--xigra-radius-panel);
+}
+
+:root .xigra-record-paper,
+:root .xigra-shell .quick-content {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: var(--graphite-lift);
+  overflow: hidden;
+}
+
+:root :is(.xigra-record-paper, .xigra-shell) .xigra-note-heading {
+  background: var(--surface);
+}
+
+:root .xigra-record-paper .xigra-note-heading { min-height: 58px; }
+:root .xigra-record-paper footer { background: var(--surface); }
+:root .xigra-compact .xigra-shell {
+  padding: 0 var(--xigra-space-6) var(--xigra-space-4);
+}
+:root .xigra-shell .quick-input { background: var(--surface); color: var(--ink); filter: none; }
+:root .xigra-shell .xigra-note-heading .xigra-quick-create:not(:disabled) {
+  color: var(--xigra-on-brand);
+  background: var(--xigra-brand);
+  font-weight: 600;
+}
+:root .xigra-shell .xigra-note-heading .xigra-quick-create:hover:not(:disabled) { background: var(--xigra-brand-hover); }
+
+:root .xigra-recent-records {
+  padding: 2px 6px;
+  border-radius: var(--xigra-radius-control);
+  background: var(--rail);
+}
+:root .xigra-record-list.compact button { border-color: transparent; }
+
+:root .graphite-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 12px;
+  min-height: 60px;
+  height: auto;
+  margin-block: 12px;
+  border: 0;
+  flex-shrink: 0;
+}
+
+:root .graphite-bento > button {
+  height: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--xigra-radius-panel);
+  background: var(--rail);
+}
+:root .graphite-bento > button + button { background: var(--desk); }
+:root .graphite-bento > button:hover { background: var(--xigra-hover); }
+:root .graphite-bento > button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:root .graphite-bento > button > svg { flex-shrink: 0; }
+:root .graphite-bento > button > svg:first-child { background: var(--surface); color: var(--muted); }
+
+:root :is(.modal, .lagoon-files, .lagoon-index, .command-popup, .xigra-record-menu) {
+  background: var(--graphite-l3);
+  border-color: var(--line);
+  box-shadow: var(--xigra-shadow-floating);
+}
+
+@supports (backdrop-filter: blur(8px)) {
+  :root :is(.command-popup, .xigra-record-menu) {
+    background: var(--graphite-glass);
+    backdrop-filter: blur(8px);
+  }
+}
+
+:root :is(.file-row, .xigra-lan-dialog li) { background: var(--surface); border: 1px solid var(--line); }
+:root .lagoon-files .file-station { background: transparent; }
+:root .file-row:has(.file-select input:checked) { background: var(--tint); border-color: var(--accent); }
+:root :is(.icon-button, .xigra-view-switch, .button, .xigra-quiet-button):active:not(:disabled) {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+:root :is(.button, .icon-button, .xigra-quiet-button, .xigra-view-switch, .new-note):disabled {
+  color: var(--xigra-disabled);
+  background: var(--rail);
+  border-color: var(--line);
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  :root .topbar.xigra-workbench-bar { height: 64px; min-height: 64px; margin-bottom: 8px; }
+  :root .xigra-record-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(128px, 35%) minmax(0, 1fr);
+    gap: 8px;
+  }
+  :root .graphite-bento { gap: 8px; min-height: 48px; margin-block: 8px; }
+  :root .graphite-bento > button > span { display: none; }
+}
+
+@media (max-width: 460px) {
+  :root .xigra-compact .xigra-shell { padding-inline: var(--xigra-space-4); }
+}
+
+@media (forced-colors: active) {
+  :root :is(.lagoon-rail .space.active, .xigra-record-list button[aria-current="true"], .xigra-record-filters button[aria-pressed="true"]) {
+    outline: 1px solid Highlight;
+    outline-offset: -1px;
+  }
+}
+.xigra-workspace-view[hidden] { display: none; }
+.xigra-canvas-frame { overflow: clip; }
+.workspace .paper-scroll { scroll-padding-bottom: 96px; }
+.workspace .note {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: var(--xigra-radius-panel);
+  box-shadow: var(--graphite-lift);
+}
+.workspace .note.focused { z-index: 2; }
+.workspace .note-handle {
+  flex: none;
+  min-height: 34px;
+  padding: 0 8px 0 12px;
+  background: var(--xigra-subtle);
+  border-color: var(--xigra-border);
+}
+.workspace .note-handle button {
+  display: grid;
+  place-items: center;
+  border-radius: var(--xigra-radius-control);
+  transition: background-color var(--xigra-motion-control) ease-out;
+}
+.workspace .note-handle button:focus-visible { outline-offset: -2px; }
+.workspace .note-handle button:hover { background: var(--xigra-hover); color: var(--ink); }
+.workspace .note textarea { flex: 1; min-height: 0; padding: 10px 12px; line-height: 1.5; }
+.xigra-status {
+  transition: color var(--xigra-motion-control) ease-out, background-color var(--xigra-motion-control) ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .xigra-workspace-view:not([hidden]) { animation: xigra-workspace-enter var(--xigra-motion-panel) var(--xigra-ease); }
+  @keyframes xigra-workspace-enter {
+    from { opacity: .78; }
+    to { opacity: 1; }
+  }
+  .workspace .note[data-new] { animation: xigra-workspace-enter var(--xigra-motion-overlay) ease-out; }
+}

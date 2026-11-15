@@ -1,0 +1,29 @@
+[
+  {
+    "concept": "afterglow",
+    "escape": true,
+    "focused": {
+      "tag": "BUTTON",
+      "label": null,
+      "outline": "rgb(228, 181, 138) solid 2px"
+    }
+  },
+  {
+    "concept": "cove",
+    "escape": true,
+    "focused": {
+      "tag": "BUTTON",
+      "label": null,
+      "outline": "rgb(80, 114, 89) solid 2px"
+    }
+  },
+  {
+    "concept": "mellow",
+    "escape": true,
+    "focused": {
+      "tag": "BUTTON",
+      "label": null,
+      "outline": "rgb(124, 89, 116) solid 2px"
+    }
+  }
+]

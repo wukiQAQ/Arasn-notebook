@@ -1,0 +1,35 @@
+{
+  "shots": {
+    "light-workbench-960x680": [
+      960,
+      680
+    ],
+    "light-quick-480x560": [
+      480,
+      560
+    ],
+    "light-quick-400x460": [
+      400,
+      460
+    ],
+    "dark-workbench-960x680": [
+      960,
+      680
+    ],
+    "dark-quick-480x560": [
+      480,
+      560
+    ],
+    "dark-quick-400x460": [
+      400,
+      460
+    ]
+  },
+  "coldBuffer": true,
+  "zeroEmptyRecords": true,
+  "bodySearch": true,
+  "selectionPreserved": true,
+  "crossEdit": true,
+  "delete": true,
+  "recentAfterRestart": true
+}

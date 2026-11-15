@@ -1,0 +1,43 @@
+[
+  {
+    "test": "tests/free-canvas-desktop.cjs",
+    "exitCode": 0,
+    "seconds": 5.66
+  },
+  {
+    "test": "tests/drawing-tools-desktop.cjs",
+    "exitCode": 1,
+    "seconds": 12.68
+  },
+  {
+    "test": "tests/drawing-tools-desktop.cjs",
+    "exitCode": 0,
+    "seconds": 26.02
+  },
+  {
+    "test": "tests/free-content-desktop.cjs",
+    "exitCode": 0,
+    "seconds": 20.0
+  },
+  {
+    "test": "tests/relation-canvas-desktop.cjs",
+    "exitCode": 0,
+    "seconds": 20.75
+  },
+  {
+    "test": "tests/core-desktop.cjs",
+    "exitCode": 0,
+    "seconds": 77.13
+  },
+  {
+    "test": "tests/window-policy-desktop.cjs",
+    "exitCode": 1,
+    "seconds": 0.94
+  },
+  {
+    "test": "tests/window-policy-desktop.cjs",
+    "exitCode": 1,
+    "seconds": 6.0,
+    "condition": "wait for native always-on-top state"
+  }
+]

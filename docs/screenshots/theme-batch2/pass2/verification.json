@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "name": "appearance-dark-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-820",
+      "width": 820,
+      "height": 650,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "appearance-light-390",
+      "width": 390,
+      "height": 700,
+      "overflow": false,
+      "popupFits": true
+    },
+    {
+      "name": "before-pages-light-1440",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "popupFits": true
+    }
+  ],
+  "errors": []
+}

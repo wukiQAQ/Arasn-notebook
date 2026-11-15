@@ -1,0 +1,96 @@
+[
+  {
+    "screenDelta": {
+      "x": 60,
+      "y": 35
+    },
+    "before": {
+      "x": 220,
+      "y": 50,
+      "zoom": 1,
+      "roomId": "264762cf-2082-4c22-9241-0c7061726617"
+    },
+    "after": {
+      "x": 160,
+      "y": 15,
+      "zoom": 1,
+      "roomId": "264762cf-2082-4c22-9241-0c7061726617"
+    },
+    "events": [
+      {
+        "type": "pointerdown",
+        "id": 1,
+        "x": 268,
+        "y": 198,
+        "buttons": 1
+      },
+      {
+        "type": "pointerup",
+        "id": 1,
+        "x": 328,
+        "y": 233,
+        "buttons": 0
+      },
+      {
+        "type": "lostpointercapture",
+        "id": 1,
+        "x": 328,
+        "y": 233,
+        "buttons": 0
+      }
+    ],
+    "request": {
+      "x": 268,
+      "y": 198,
+      "dx": 60,
+      "dy": 35
+    }
+  },
+  {
+    "screenDelta": {
+      "x": 30,
+      "y": 20
+    },
+    "before": {
+      "x": 255,
+      "y": 50,
+      "zoom": 1,
+      "roomId": "264762cf-2082-4c22-9241-0c7061726617"
+    },
+    "after": {
+      "x": 225,
+      "y": 30,
+      "zoom": 1,
+      "roomId": "264762cf-2082-4c22-9241-0c7061726617"
+    },
+    "events": [
+      {
+        "type": "pointerdown",
+        "id": 1,
+        "x": 268,
+        "y": 198,
+        "buttons": 1
+      },
+      {
+        "type": "pointerup",
+        "id": 1,
+        "x": 298,
+        "y": 218,
+        "buttons": 0
+      },
+      {
+        "type": "lostpointercapture",
+        "id": 1,
+        "x": 298,
+        "y": 218,
+        "buttons": 0
+      }
+    ],
+    "request": {
+      "x": 268,
+      "y": 198,
+      "dx": 30,
+      "dy": 20
+    }
+  }
+]

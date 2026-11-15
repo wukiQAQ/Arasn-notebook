@@ -1,0 +1,91 @@
+{
+  "source": "Real Electron window with an isolated SQLite workspace",
+  "screenshots": [
+    {
+      "file": "400x460-light.png",
+      "theme": "light",
+      "outer": [
+        416,
+        499
+      ],
+      "content": [
+        400,
+        460
+      ],
+      "scrollWidth": 400,
+      "header": true,
+      "footer": true,
+      "bottom": true,
+      "contrast": {
+        "editor": 12.58,
+        "brand": 6.13,
+        "status": 7.42
+      }
+    },
+    {
+      "file": "480x560-light.png",
+      "theme": "light",
+      "outer": [
+        496,
+        599
+      ],
+      "content": [
+        480,
+        560
+      ],
+      "scrollWidth": 480,
+      "header": true,
+      "footer": true,
+      "bottom": true,
+      "contrast": {
+        "editor": 12.58,
+        "brand": 6.13,
+        "status": 7.42
+      }
+    },
+    {
+      "file": "400x460-dark.png",
+      "theme": "dark",
+      "outer": [
+        416,
+        499
+      ],
+      "content": [
+        400,
+        460
+      ],
+      "scrollWidth": 400,
+      "header": true,
+      "footer": true,
+      "bottom": true,
+      "contrast": {
+        "editor": 5.71,
+        "brand": 8.85,
+        "status": 7.75
+      }
+    },
+    {
+      "file": "480x560-dark.png",
+      "theme": "dark",
+      "outer": [
+        496,
+        599
+      ],
+      "content": [
+        480,
+        560
+      ],
+      "scrollWidth": 480,
+      "header": true,
+      "footer": true,
+      "bottom": true,
+      "contrast": {
+        "editor": 5.71,
+        "brand": 8.85,
+        "status": 7.75
+      }
+    }
+  ],
+  "keyboardAndReducedMotion": true,
+  "errors": []
+}

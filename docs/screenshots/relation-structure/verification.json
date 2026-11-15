@@ -1,0 +1,16 @@
+{
+  "pairs": 7,
+  "sameFixture": true,
+  "sameViewports": true,
+  "sameZoom": true,
+  "minimumLabelContrast": 5.10767979121944,
+  "overviewWidths": [
+    2
+  ],
+  "arrowShapes": [
+    "M 2 2 L 8 5 L 2 8"
+  ],
+  "labelHeights": [
+    "24px"
+  ]
+}

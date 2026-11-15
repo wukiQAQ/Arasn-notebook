@@ -1,0 +1,49 @@
+{
+  "scope": "No input injection; only isolated window focus requests and Win32 handle/foreground reads",
+  "setForegroundResult": 0,
+  "states": [
+    {
+      "stage": "initial",
+      "nativeValid": true,
+      "ownHwnd": "2754328",
+      "ownRoot": "2754328",
+      "foreground": "135146",
+      "foregroundRoot": "135146",
+      "ownPid": 37452,
+      "foregroundPid": 28968,
+      "electronPid": 37452,
+      "focused": false,
+      "visible": false,
+      "top": true
+    },
+    {
+      "stage": "electron-focus",
+      "nativeValid": true,
+      "ownHwnd": "2754328",
+      "ownRoot": "2754328",
+      "foreground": "135146",
+      "foregroundRoot": "135146",
+      "ownPid": 37452,
+      "foregroundPid": 28968,
+      "electronPid": 37452,
+      "focused": true,
+      "visible": true,
+      "top": true
+    },
+    {
+      "stage": "win32-focus",
+      "nativeValid": true,
+      "ownHwnd": "2754328",
+      "ownRoot": "2754328",
+      "foreground": "135146",
+      "foregroundRoot": "135146",
+      "ownPid": 37452,
+      "foregroundPid": 28968,
+      "electronPid": 37452,
+      "focused": true,
+      "visible": true,
+      "top": true
+    }
+  ],
+  "rendererFocused": true
+}

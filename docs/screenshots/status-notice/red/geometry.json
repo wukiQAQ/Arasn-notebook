@@ -1,0 +1,21 @@
+[
+  {
+    "name": "upgrade-1440",
+    "notice": {
+      "x": 614,
+      "y": 840,
+      "right": 826,
+      "bottom": 872,
+      "width": 212,
+      "height": 32
+    },
+    "overlaps": [
+      ".topology-surface"
+    ],
+    "inMain": false,
+    "overflow": false,
+    "headerBottom": 64,
+    "scrollWidth": 212,
+    "clientWidth": 212
+  }
+]

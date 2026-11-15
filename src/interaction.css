@@ -1,0 +1,47 @@
+@font-face {
+  font-family: 'Arasn Manrope';
+  src: url('./assets/Manrope-Variable.ttf') format('truetype');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+.proximity-brand { display:inline-flex; font-family:'Arasn Manrope','Segoe UI',sans-serif; font-size:inherit; line-height:1.3; letter-spacing:0; cursor:default; }
+.brand .proximity-letter,.quick-header .proximity-letter {
+  display:inline-block; padding:0; margin:0; background:none; color:inherit;
+  border-radius:0; font:inherit; font-variation-settings:'wght' var(--letter-weight,540);
+  transition:font-variation-settings 160ms ease-out; text-align:center;
+}
+.brand>div { min-width:0; }
+.brand svg,.quick-header svg,button svg { stroke-width:1.65; }
+.command-action { display:flex; align-items:center; gap:12px; min-width:0; }
+.command-glyph { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1px solid var(--line); border-radius:5px; color:var(--muted); flex-shrink:0; }
+.command-results button { align-items:center; padding:8px 12px; }
+.command-results button small { margin-left:auto; }
+.command-return { opacity:0; color:var(--accent); flex-shrink:0; }
+.command-results button[aria-selected='true'] .command-glyph { color:var(--accent); border-color:var(--accent); }
+.command-results button[aria-selected='true'] .command-return { opacity:1; }
+.quick-tabs { position:relative; isolation:isolate; }
+.quick-tabs button { position:relative; z-index:1; }
+.quick-tabs .mode-indicator { position:absolute; top:var(--active-tab-top); left:var(--active-tab-left); width:var(--active-tab-width); height:var(--active-tab-height); background:var(--surface); border:1px solid var(--line); border-radius:4px; z-index:0; transition:left 160ms ease-out,top 160ms ease-out,width 160ms ease-out,height 160ms ease-out; }
+.quick-panel .quick-tabs button[aria-selected='true'] { background:transparent; box-shadow:none; }
+.new-note,.index-item,.command-trigger { position:relative; }
+.index-item::after { content:''; width:4px; height:4px; border-radius:50%; background:var(--accent); margin-left:auto; opacity:0; flex-shrink:0; }
+.index-item.active::after { opacity:1; }
+@media(hover:none),(pointer:coarse) {
+  .quick-tabs .mode-indicator { transition:none; }
+}
+@media(hover:hover) and (pointer:fine) {
+  .tool svg,.icon-button svg,.new-note svg,.index-item svg,.button svg,.space svg { transition:transform 160ms ease-out,color 160ms ease-out; transform-origin:center; }
+  .tool:hover:not(:disabled) svg { transform:translateY(-1px); color:var(--accent); }
+  .tool[aria-label='自由绘图']:hover svg { transform:translateY(-1px) rotate(-10deg); }
+  .icon-button[aria-label='设置与快捷键']:hover svg { transform:rotate(24deg); }
+  .button:hover:not(:disabled) svg:first-child { transform:translateY(-1px); }
+  .new-note:hover:not(:disabled) svg { transform:rotate(90deg); }
+  .index-item:hover svg,.space:hover svg { transform:translateX(2px); color:var(--accent); }
+  .command-trigger:hover { border-color:var(--accent); }
+  .tool:hover:not(:disabled),.icon-button:hover:not(:disabled) { background:var(--tint); }
+  .index-item:hover { color:var(--ink); background:color-mix(in srgb,var(--tint) 65%,var(--rail)); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .proximity-letter,.mode-indicator,button,button svg { transition:none!important; animation:none!important; }
+}

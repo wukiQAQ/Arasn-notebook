@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "errors": [],
+  "preset": {
+    "opacity": 1,
+    "smoothing": 0.6,
+    "lineCap": "square",
+    "brush": "dash",
+    "color": "#758dbc",
+    "width": 4,
+    "name": "我的虚线"
+  },
+  "scope": "isolated Electron/CDP, not physical input"
+}

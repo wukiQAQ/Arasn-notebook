@@ -1,0 +1,86 @@
+/* Shared selection feedback: fixed metrics in every state. */
+:root { --ui-selection-motion: 180ms ease-out; }
+:root .lagoon-rail .space, :root .lagoon-rail .space.active,
+:root .file-station .file-views button, :root .file-station .file-views button[aria-pressed="true"],
+:root .xigra-record-filters button, :root .record-pane-switch button { font-weight: 500; }
+:root :is(.lagoon-rail .space, .xigra-record-list button, .xigra-record-filters button, .record-pane-switch button, .file-station button, .file-row, .xigra-record-search) {
+  transition: background-color var(--ui-selection-motion), color var(--ui-selection-motion), border-color var(--ui-selection-motion), box-shadow var(--ui-selection-motion);
+}
+:root :is(.xigra-record-filters, .record-pane-switch) button { border: 1px solid transparent; }
+:root :is(.xigra-record-filters, .record-pane-switch) button:hover:not(:disabled) { background: var(--ui-hover); color: var(--ink); }
+:root :is(.xigra-record-list, .xigra-record-filters, .record-pane-switch, .file-station) button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+:root :is(.lagoon-rail .space, .xigra-record-list button, .xigra-record-filters button, .record-pane-switch button, .file-station button):active:not(:disabled) { box-shadow: inset 0 0 0 1px var(--ui-focus); }
+:root .xigra-record-workspace { grid-template-columns: clamp(260px, 26%, 320px) minmax(0, 1fr); gap: 0; border-color: var(--ui-border-subtle); background: var(--ui-surface-card); border-radius: 10px; }
+:root .xigra-record-index { padding: 20px 12px 12px; gap: 12px; background: var(--ui-surface-nav); border-color: var(--ui-border-subtle); }
+:root .record-index-heading { padding: 0 8px 4px; }
+:root .xigra-record-list:not(.compact) { gap: 6px; }
+:root .xigra-record-list:not(.compact) button { position: relative; min-height: 82px; padding: 14px 16px; gap: 8px; border: 1px solid transparent; border-radius: 7px; }
+:root .xigra-record-list:not(.compact) strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+:root .xigra-record-list:not(.compact) small { font-size: 12px; line-height: 18px; color: var(--ui-text-muted); }
+:root .xigra-record-list button[aria-current="true"], :root .xigra-record-list button[aria-current="true"]:hover { background: var(--ui-nav-active); color: var(--ui-nav-on-active); border-color: color-mix(in srgb, var(--ui-focus) 25%, transparent); box-shadow: inset 2px 0 var(--ui-focus); }
+:root .xigra-record-list button:hover:not(:disabled):not([aria-current]) { background: var(--ui-hover); }
+:root .xigra-record-scroll { scrollbar-width: thin; scrollbar-color: var(--ui-border-control) transparent; scrollbar-gutter: stable; overscroll-behavior: contain; }
+:root .xigra-record-paper { border-radius: 0; background: var(--ui-surface-card); }
+:root .xigra-record-paper .xigra-note-heading { flex-shrink: 0; min-height: 80px; padding: 16px 24px; gap: 12px; background: var(--ui-surface-card); }
+:root .xigra-record-paper .xigra-record-editor { max-width: 860px; padding: 32px clamp(24px, 4vw, 56px); color: var(--ui-text-primary); caret-color: var(--ui-focus); scrollbar-width: thin; }
+:root .xigra-record-paper .xigra-record-editor:focus-visible { outline: none; box-shadow: inset 0 2px color-mix(in srgb, var(--ui-focus) 45%, transparent); }
+:root .xigra-record-paper footer { flex-shrink: 0; min-height: 42px; background: var(--ui-surface-card); border-color: var(--ui-border-subtle); }
+.record-pane-switch { display: none; }
+.record-compact-action { display: none !important; }
+.file-station { container: file-station / inline-size; }
+:root .file-station .file-compact-more { display: none; }
+.file-row-compact-action { display: flex; }
+:root .file-station .file-row:has(input:checked) { background: var(--ui-nav-active); border-color: var(--ui-focus); }
+:root .file-station .file-row:hover { border-color: var(--ui-border-control); }
+:root .file-workspace-heading { padding-block: 12px 16px; }
+:root .file-workspace-heading h1 { font-size: 22px; margin-bottom: 6px; }
+:root .file-workspace .file-station { gap: 12px; scrollbar-width: thin; scrollbar-color: var(--ui-border-control) transparent; }
+@media (max-width: 1200px) {
+  :root .xigra-record-workspace { grid-template-columns: 240px minmax(0, 1fr); }
+  :root .xigra-record-paper .xigra-note-heading { padding: 14px 20px; }
+  :root .xigra-record-paper .xigra-note-actions > :is(.record-files, .record-canvas) { display: none; }
+  .record-compact-action { display: flex !important; }
+}
+@media (min-width: 640px) and (max-width: 1000px) {
+  :root .sidebar.lagoon-rail { width: 68px; min-width: 68px; padding: 24px 10px 12px; }
+  :root .lagoon-rail .brand { padding: 0 8px; }
+  :root .lagoon-rail :is(.xigra-wordmark, .sidebar-group-title, .space > span) { display: none; }
+  :root .lagoon-rail .space { justify-content: center; padding: 0; }
+}
+@media (max-width: 900px) {
+  :root .xigra-record-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .record-pane-switch { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--ui-border-subtle); background: var(--ui-surface-nav); }
+  .record-pane-switch button { min-height: 36px; padding: 6px 14px; border-radius: 7px; background: transparent; color: var(--muted); }
+  .record-pane-switch button[aria-pressed="true"] { background: var(--ui-nav-active); color: var(--ui-nav-on-active); border-color: var(--ui-border-control); }
+  :root .xigra-record-workspace[data-pane="editor"] .xigra-record-index,
+  :root .xigra-record-workspace[data-pane="list"] .xigra-record-paper { display: none; }
+  :root .xigra-record-index { border: 0; padding: 16px; }
+  :root .record-index-heading { display: flex; }
+  :root .xigra-record-index .xigra-record-scroll { display: block; }
+  :root .xigra-record-paper .xigra-record-editor { padding: 24px; }
+}
+@container file-station (max-width: 880px) {
+  :root .file-station .file-secondary-action { display: none; }
+  :root .file-station .file-compact-more { display: inline-flex; }
+  :root .file-station .file-row-secondary { display: none; }
+  :root .file-station .file-row { grid-template-columns: auto 40px minmax(0, 1fr) auto; gap: 10px; }
+  :root .file-station .file-row-actions { grid-column: auto; flex-wrap: nowrap; }
+  :root .file-station .file-list-grid .file-row { grid-template-columns: auto minmax(0, 1fr); }
+  :root .file-station .file-list-grid .file-row-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 1200px) { .file-row-compact-action { display: flex; } }
+@container file-station (max-width: 540px) {
+  :root .file-station .file-search { display: grid; grid-template-columns: minmax(0, 1fr); }
+  :root .file-station .file-query { width: 100%; }
+  :root .file-station .file-row { grid-template-columns: auto 36px minmax(0, 1fr); }
+  :root .file-station .file-row-actions { grid-column: 2 / -1; justify-content: flex-end; }
+  :root .file-station .file-batch { gap: 8px; }
+}
+@media (max-width: 639px) {
+  :root .xigra-record-paper .xigra-note-heading { min-height: 64px; padding: 12px 16px; }
+  :root .xigra-record-paper .xigra-record-editor { padding: 20px 16px; }
+  :root .xigra-record-paper footer { flex-wrap: wrap; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --ui-selection-motion: 0ms linear; }
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+  <title>Arasn Edge Feedback</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+    body { transition: opacity 100ms ease-out; }
+    [data-fading] body { opacity: 0; }
+    #indicator { position: absolute; inset: 0 0 auto; height: 4px; }
+    [data-region^="bottom"] #indicator { top: auto; bottom: 0; }
+    [data-vertical] #indicator { inset: 0 auto 0 0; width: 4px; height: auto; }
+    [data-region="right"] #indicator { left: auto; right: 0; }
+    #track { position: absolute; inset: 0; border-radius: 4px; background: var(--edge-color); opacity: .35; }
+    #fill { position: absolute; inset: 0; border-radius: 4px; background: var(--edge-color); }
+    [data-running] #fill { animation: dwell var(--edge-duration) linear both; transform-origin: left; }
+    [data-vertical][data-running] #fill { animation-name: dwell-vertical; transform-origin: top; }
+    @keyframes dwell { from { transform: scaleX(.12); opacity: .45; } to { transform: scaleX(1); opacity: .92; } }
+    @keyframes dwell-vertical { from { transform: scaleY(.12); opacity: .45; } to { transform: scaleY(1); opacity: .92; } }
+    @media (prefers-reduced-motion: reduce) {
+      body { transition: none; }
+      [data-running] #fill { animation: none; opacity: .74; }
+    }
+  </style>
+</head>
+<body><div id="indicator"><div id="track"></div><div id="fill"></div></div></body>
+</html>

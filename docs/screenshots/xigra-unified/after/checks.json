@@ -1,0 +1,798 @@
+{
+  "light-quick-480x560": {
+    "viewport": [
+      480,
+      560
+    ],
+    "samples": {
+      "editor": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px 0px 12px 12px",
+        "size": "16px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "rgb(35, 115, 86) 2px 0px 0px 0px inset",
+        "ratio": 15.05
+      },
+      "title": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      },
+      "workbench": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(243, 246, 245)",
+        "border": "rgb(115, 138, 127)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 13.84
+      },
+      "saved": {
+        "color": "rgb(33, 86, 64)",
+        "background": "rgb(228, 243, 235)",
+        "border": "rgb(33, 86, 64)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.42
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-quick-400x460": {
+    "viewport": [
+      400,
+      460
+    ],
+    "samples": {
+      "editor": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px 0px 12px 12px",
+        "size": "16px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "rgb(35, 115, 86) 2px 0px 0px 0px inset",
+        "ratio": 15.05
+      },
+      "title": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      },
+      "workbench": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(243, 246, 245)",
+        "border": "rgb(115, 138, 127)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 13.84
+      },
+      "saved": {
+        "color": "rgb(33, 86, 64)",
+        "background": "rgb(228, 243, 235)",
+        "border": "rgb(33, 86, 64)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.42
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-workbench-960x680": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "nav": {
+        "color": "rgb(24, 68, 56)",
+        "background": "rgb(223, 239, 232)",
+        "border": "rgb(24, 68, 56)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.18
+      },
+      "title": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(243, 246, 245)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "24px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 13.84
+      },
+      "primary": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(24, 68, 56)",
+        "border": "rgb(24, 68, 56)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 10.92
+      },
+      "note": {
+        "color": "rgb(38, 52, 73)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(38, 52, 73)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.58
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-files": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "item": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(234, 240, 237)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 13.04
+      },
+      "meta": {
+        "color": "rgb(76, 98, 88)",
+        "background": "rgb(234, 240, 237)",
+        "border": "rgb(76, 98, 88)",
+        "radius": "0px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 5.69
+      },
+      "field": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(115, 138, 127)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      },
+      "primary": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(24, 68, 56)",
+        "border": "rgb(24, 68, 56)",
+        "radius": "8px",
+        "size": "13px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 10.92
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-files-empty": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "empty": {
+        "color": "rgb(76, 98, 88)",
+        "background": "rgb(234, 240, 237)",
+        "border": "rgb(211, 223, 217)",
+        "radius": "12px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 5.69
+      },
+      "field": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(115, 138, 127)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-share-idle": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "state": {
+        "color": "rgb(76, 98, 88)",
+        "background": "rgb(234, 240, 237)",
+        "border": "rgb(76, 98, 88)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 5.69
+      },
+      "primary": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(24, 68, 56)",
+        "border": "rgb(24, 68, 56)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 10.92
+      },
+      "notice": {
+        "color": "rgb(97, 71, 15)",
+        "background": "rgb(246, 240, 223)",
+        "border": "rgb(97, 71, 15)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.63
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "light-share-active": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "state": {
+        "color": "rgb(33, 86, 64)",
+        "background": "rgb(228, 243, 235)",
+        "border": "rgb(33, 86, 64)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.42
+      },
+      "stop": {
+        "color": "rgb(248, 248, 248)",
+        "background": "rgb(31, 74, 62)",
+        "border": "rgb(211, 223, 217)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "500",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.38
+      },
+      "notice": {
+        "color": "rgb(97, 71, 15)",
+        "background": "rgb(246, 240, 223)",
+        "border": "rgb(97, 71, 15)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.63
+      },
+      "link": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "11px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      },
+      "copy": {
+        "color": "rgb(29, 41, 36)",
+        "background": "rgb(255, 255, 255)",
+        "border": "rgb(29, 41, 36)",
+        "radius": "0px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 15.05
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 5.74,
+      "focusOnWindow": 5.28,
+      "controlOnSurface": 3.7,
+      "controlOnWindow": 3.41
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-quick-480x560": {
+    "viewport": [
+      480,
+      560
+    ],
+    "samples": {
+      "editor": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px 0px 12px 12px",
+        "size": "16px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "rgb(169, 220, 200) 2px 0px 0px 0px inset",
+        "ratio": 12.11
+      },
+      "title": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      },
+      "workbench": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(28, 36, 33)",
+        "border": "rgb(120, 148, 136)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 14.05
+      },
+      "saved": {
+        "color": "rgb(174, 222, 201)",
+        "background": "rgb(38, 62, 51)",
+        "border": "rgb(174, 222, 201)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.75
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-quick-400x460": {
+    "viewport": [
+      400,
+      460
+    ],
+    "samples": {
+      "editor": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px 0px 12px 12px",
+        "size": "16px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "rgb(169, 220, 200) 2px 0px 0px 0px inset",
+        "ratio": 12.11
+      },
+      "title": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      },
+      "workbench": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(28, 36, 33)",
+        "border": "rgb(120, 148, 136)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 14.05
+      },
+      "saved": {
+        "color": "rgb(174, 222, 201)",
+        "background": "rgb(38, 62, 51)",
+        "border": "rgb(174, 222, 201)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.75
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-workbench-960x680": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "nav": {
+        "color": "rgb(210, 240, 227)",
+        "background": "rgb(52, 77, 65)",
+        "border": "rgb(210, 240, 227)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.58
+      },
+      "title": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(28, 36, 33)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "24px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 14.05
+      },
+      "primary": {
+        "color": "rgb(20, 42, 33)",
+        "background": "rgb(169, 220, 200)",
+        "border": "rgb(169, 220, 200)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.95
+      },
+      "note": {
+        "color": "color(srgb 0.612549 0.653333 0.676863)",
+        "background": "rgb(37, 48, 43)",
+        "border": "color(srgb 0.612549 0.653333 0.676863)",
+        "radius": "0px",
+        "size": "18px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 5.56
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-files": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "item": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(43, 55, 49)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "14px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 10.98
+      },
+      "meta": {
+        "color": "rgb(176, 197, 186)",
+        "background": "rgb(43, 55, 49)",
+        "border": "rgb(176, 197, 186)",
+        "radius": "0px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 6.82
+      },
+      "field": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(120, 148, 136)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      },
+      "primary": {
+        "color": "rgb(20, 42, 33)",
+        "background": "rgb(169, 220, 200)",
+        "border": "rgb(169, 220, 200)",
+        "radius": "8px",
+        "size": "13px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.95
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-files-empty": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "empty": {
+        "color": "rgb(176, 197, 186)",
+        "background": "rgb(43, 55, 49)",
+        "border": "rgb(69, 87, 78)",
+        "radius": "12px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 6.82
+      },
+      "field": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(120, 148, 136)",
+        "radius": "8px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-share-idle": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "state": {
+        "color": "rgb(176, 197, 186)",
+        "background": "rgb(43, 55, 49)",
+        "border": "rgb(176, 197, 186)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 6.82
+      },
+      "primary": {
+        "color": "rgb(20, 42, 33)",
+        "background": "rgb(169, 220, 200)",
+        "border": "rgb(169, 220, 200)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "600",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.95
+      },
+      "notice": {
+        "color": "rgb(244, 214, 146)",
+        "background": "rgb(66, 54, 31)",
+        "border": "rgb(59, 70, 86)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 8.36
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  },
+  "dark-share-active": {
+    "viewport": [
+      960,
+      680
+    ],
+    "samples": {
+      "state": {
+        "color": "rgb(174, 222, 201)",
+        "background": "rgb(38, 62, 51)",
+        "border": "rgb(174, 222, 201)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 7.75
+      },
+      "stop": {
+        "color": "rgb(20, 42, 33)",
+        "background": "rgb(169, 220, 200)",
+        "border": "rgb(69, 87, 78)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "500",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 9.95
+      },
+      "notice": {
+        "color": "rgb(244, 214, 146)",
+        "background": "rgb(66, 54, 31)",
+        "border": "rgb(59, 70, 86)",
+        "radius": "8px",
+        "size": "12px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 8.36
+      },
+      "link": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "11px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      },
+      "copy": {
+        "color": "rgb(235, 243, 239)",
+        "background": "rgb(37, 48, 43)",
+        "border": "rgb(235, 243, 239)",
+        "radius": "0px",
+        "size": "14px",
+        "weight": "400",
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "shadow": "none",
+        "ratio": 12.11
+      }
+    },
+    "nonText": {
+      "focusOnSurface": 8.96,
+      "focusOnWindow": 10.39,
+      "controlOnSurface": 4.16,
+      "controlOnWindow": 4.83
+    },
+    "clipped": [],
+    "horizontalOverflow": false
+  }
+}

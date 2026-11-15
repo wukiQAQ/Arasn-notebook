@@ -1,0 +1,19 @@
+{
+  "probe": {
+    "direct": false,
+    "standalone": false,
+    "windows": [
+      {
+        "id": 1,
+        "title": "Arasn",
+        "top": false,
+        "visible": true,
+        "focused": true
+      }
+    ]
+  },
+  "info": {
+    "expanded": false,
+    "pin": true
+  }
+}

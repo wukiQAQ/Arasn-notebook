@@ -1,443 +1,183 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowUpRight,
-  Copy,
-  Minus,
-  Network,
-  Pencil,
-  Plus,
-  Settings2,
-  Trash2,
-  Type,
-  Undo2,
-} from "lucide-react";
-import { BoardClient, DesktopInfo, StrokeValue, TextValue, uid } from "./board";
-import { SHAPES, Shape, shapePoints } from "./drawing";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Icon, Plus, Search, RelationCanvasIcon } from "./LagoonIcons";
+import { Maximize2 } from "lucide-react";
+import type { BoardClient, DesktopInfo, ImportResult } from "./board";
+import { SaveRecoveryActions, SaveStatus } from "./xigra/visuals";
+import { RecordEditor } from "./xigra/records/RecordEditor";
+import { RecordList } from "./xigra/records/RecordList";
+import type { RecordSession } from "./xigra/records/session";
+import "./xigra/shell.css";
 
-const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
-export function QuickPanel({
-  client,
-  info,
-  expand,
-  settings,
-  share,
-  undo,
-  strokeCommit,
-  copy,
-}: {
+export function QuickPanel({ client, info, session, search, expand, hide, copy, incoming, onCanvas, onViewCanvas }: {
   client: BoardClient;
   info: DesktopInfo | null;
+  session: RecordSession;
+  search(): void;
   expand(): void;
-  settings(): void;
-  share(): void;
-  undo(): void;
-  strokeCommit(id: string, value: StrokeValue | null): void;
+  hide(): void;
   copy(text: string): void;
+  onCanvas?(id: string): Promise<{ nodeId: string; existing: boolean }>;
+  onViewCanvas?(id: string): void;
+  incoming?: { count: number; open(): void };
 }) {
-  const [mode, setMode] = useState<"text" | "draw">("text");
-  const [selected, setSelected] = useState("");
-  const [color, setColor] = useState(COLORS[0]);
-  const [textColor, setTextColor] = useState(COLORS[0]);
-  const [fontSize, setFontSize] = useState(18);
-  const [bold, setBold] = useState(false);
-  const [width, setWidth] = useState(7);
-  const [shape, setShape] = useState<Shape>("free");
-  const [erase, setErase] = useState(false);
-  const [ink, setInk] = useState<StrokeValue | null>(null);
-  const activeStroke = useRef<StrokeValue | null>(null);
-  const anchor = useRef<number[]>([]);
-  const input = useRef<HTMLTextAreaElement>(null);
-  const svg = useRef<SVGSVGElement>(null);
-  const items = Object.entries(client.view());
-  const notes = items.filter(([, item]) => item.value?.type === "text");
-  const strokes = items.filter(([, item]) => item.value?.type === "stroke");
-  const activeId = notes.some(([id]) => id === selected)
-    ? selected
-    : notes.at(-1)?.[0];
-  const active = activeId
-    ? (client.view()[activeId]?.value as TextValue)
-    : null;
-  const focus = () =>
-    mode === "text" ? input.current?.focus() : svg.current?.focus();
-  useEffect(() => {
-    focus();
-    return window.desktop?.onFocus(focus);
-  }, [mode]);
-  useEffect(() => {
-    if (client.ready && mode === "text") input.current?.focus();
-  }, [client.ready]);
-  function newNote() {
-    if (!client.ready) return;
-    const id = uid();
-    client.edit(id, {
-      type: "text",
-      text: "",
-      x: 100 + (notes.length % 4) * 330,
-      y: 100 + (Math.floor(notes.length / 4) % 4) * 190,
-      color: textColor,
-      fontSize,
-      bold,
-    });
-    setSelected(id);
-    input.current?.focus();
+  const titleInput = useRef<HTMLInputElement>(null);
+  const titleCarets = useRef(new Map<string, { start: number; end: number }>());
+  const [titleComposition, setTitleComposition] = useState<string | null>(null);
+  const restoreTitleCaret = titleCarets.current.get(session.id);
+  useLayoutEffect(() => {
+    const caret = restoreTitleCaret;
+    if (caret && titleInput.current) {
+      titleCarets.current.set(session.id, caret);
+      titleInput.current.focus({ preventScroll: true });
+      titleInput.current.setSelectionRange(caret.start, caret.end);
+    }
+  }, [session.focusVersion]);
+  const [dragging, setDragging] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const addingRef = useRef(false);
+  const [canvasResult, setCanvasResult] = useState<{ id: string; message: string }>();
+  const [canvasError, setCanvasError] = useState("");
+
+  async function addToCanvas() {
+    if (!onCanvas || addingRef.current || session.composing || !session.id) return;
+    const id = session.id;
+    addingRef.current = true; setAdding(true); setCanvasError(""); setCanvasResult(undefined);
+    try {
+      const result = await onCanvas(id);
+      setCanvasResult({ id, message: result.existing ? "已在关系画布中" : "已加入关系画布" });
+    } catch (error) { setCanvasError(error instanceof Error ? error.message : String(error)); }
+    finally { addingRef.current = false; setAdding(false); }
   }
-  function formatText(patch: Partial<TextValue>) {
-    if (patch.color) setTextColor(patch.color);
-    if (patch.fontSize) setFontSize(patch.fontSize);
-    if (patch.bold !== undefined) setBold(patch.bold);
-    if (activeId && active) client.edit(activeId, { ...active, ...patch });
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+  const [importError, setImportError] = useState(false);
+  const dragDepth = useRef(0);
+  const importPending = useRef(false);
+  const files = window.desktop?.files;
+  useEffect(() => files?.progress(({ bytes, total }) => {
+    if (importPending.current && total > 0) {
+      setImportMessage(`正在存入文件 · ${Math.min(100, Math.round(bytes / total * 100))}%`);
+    }
+  }), [files]);
+
+  async function importFiles(run: () => Promise<ImportResult[]>) {
+    if (importPending.current) return;
+    importPending.current = true;
+    setImporting(true);
+    setImportError(false);
+    setImportMessage("正在存入文件…");
+    try {
+      const results = await run();
+      const failures = results.filter(result => !result.ok);
+      const count = results.length - failures.length;
+      setImportError(failures.length > 0);
+      if (failures.length) {
+        setImportMessage(`已存入 ${count} 个，${failures.length} 个失败。${failures[0].error || "请在工作站查看。"}`);
+      } else {
+        setImportMessage(count ? `已存入 ${count} 个文件` : "");
+      }
+    } catch (error) {
+      setImportError(true);
+      setImportMessage(error instanceof Error ? error.message : "文件存入失败，请重试。");
+    } finally {
+      importPending.current = false;
+      setImporting(false);
+    }
   }
-  const point = (event: React.PointerEvent<SVGSVGElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return [
-      Math.max(
-        0,
-        Math.min(1600, ((event.clientX - rect.left) * 1600) / rect.width),
-      ),
-      Math.max(
-        0,
-        Math.min(1000, ((event.clientY - rect.top) * 1000) / rect.height),
-      ),
-    ];
-  };
-  function finish() {
-    if (activeStroke.current) strokeCommit(uid(), activeStroke.current);
-    activeStroke.current = null;
-    setInk(null);
-  }
-  const path = (value: StrokeValue) =>
-    value.points.map((p, i) => `${i ? "L" : "M"}${p[0]} ${p[1]}`).join(" ") +
-    (value.points.length === 1 ? " l .1 .1" : "");
+
+  const saveError = Boolean(client.error || client.conflicts.length);
   return (
-    <section className="quick-panel" aria-label="快捷面板">
-      <header className="quick-header">
-        <strong>
-          <span>A</span> Arasn
-        </strong>
-        <div>
-          <button
-            className="icon-button"
-            aria-label="设置与快捷键"
-            title="设置"
-            onClick={settings}
-          >
-            <Settings2 size={17} />
-          </button>
-          <button
-            className="icon-button"
-            aria-label="展开完整页面"
-            title="展开完整页面"
-            onClick={expand}
-          >
-            <ArrowUpRight size={18} />
-          </button>
-          <button
-            className="icon-button"
-            aria-label="隐藏到托盘"
-            onClick={() => window.desktop?.hide()}
-          >
-            <Minus size={18} />
-          </button>
+    <section
+      className="quick-panel xigra-shell"
+      aria-label="快捷面板"
+      onDragEnter={event => {
+        if (!files || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        dragDepth.current++;
+        setDragging(true);
+      }}
+      onDragOver={event => {
+        if (!files || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = importing ? "none" : "copy";
+      }}
+      onDragLeave={() => {
+        dragDepth.current = Math.max(0, dragDepth.current - 1);
+        if (!dragDepth.current) setDragging(false);
+      }}
+      onDrop={event => {
+        if (!files || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        dragDepth.current = 0;
+        setDragging(false);
+        const dropped = Array.from(event.dataTransfer.files);
+        if (dropped.length) void importFiles(() => files.drop(dropped));
+      }}
+      onPasteCapture={event => {
+        if (!files || !event.clipboardData.files.length) return;
+        event.preventDefault();
+        void importFiles(async () => (await files.paste()).results || []);
+      }}
+    >
+      <header className="quick-header xigra-note-heading quick-recorder-heading">
+        <h1>速记</h1>
+        <div className="xigra-note-actions" role="group" aria-label="速记操作">
+          {incoming && <button className="xigra-quiet-button" aria-label={`待接收便签，${incoming.count} 条`} disabled={session.composing} onClick={incoming.open}>收件 {incoming.count}</button>}
+          <button className="xigra-quiet-button quick-search-action" disabled={session.composing} onClick={search} aria-label="搜索便签" title="搜索便签"><Search size={16} aria-hidden="true" /><span>搜索</span></button>
+          <button className="xigra-quiet-button xigra-quick-create" disabled={session.composing || session.volatile} onClick={() => { titleCarets.current.delete(""); session.open(""); }}><Plus size={16} aria-hidden="true" />新建便笺</button>
+          <button className="xigra-quiet-button quick-expand-action" disabled={session.composing} onClick={expand} aria-label="打开工作区" title="打开工作区"><Maximize2 size={16} aria-hidden="true" /><span>工作区</span></button>
         </div>
       </header>
-      <div className="quick-tabs" role="tablist" aria-label="编辑模式">
-        <button
-          role="tab"
-          aria-selected={mode === "text"}
-          onClick={() => setMode("text")}
-        >
-          <Type size={17} /> 打字
-        </button>
-        <button
-          role="tab"
-          aria-selected={mode === "draw"}
-          onClick={() => setMode("draw")}
-        >
-          <Pencil size={17} /> 画图
-        </button>
-      </div>
-      {client.error && (
-        <div className="quick-notice" role="status">
-          {client.error}
-          {client.conflicts.length > 0 && (
-            <button onClick={() => client.recover()}>恢复本机改动</button>
-          )}
+      {(saveError || info?.sharing || (info && !info.shortcutOk)) && (
+        <div className="xigra-shell-notices">
+          {saveError && <div className="quick-notice xigra-notice" data-tone="error" role="status">{client.error} <SaveRecoveryActions client={client} copy={copy} text={session.text} /></div>}
+          {info?.sharing && <div className="quick-notice xigra-notice" data-tone="saved">白板共享中，此处的便笺也会同步。</div>}
+          {info && !info.shortcutOk && <div className="quick-notice xigra-notice" data-tone="warning">快捷键被占用，可在工作站的设置中更换。</div>}
         </div>
       )}
-      {info && !info.shortcutOk && (
-        <div className="quick-notice">快捷键被占用，请到设置更换。</div>
-      )}
-      <div className="quick-content">
-        {mode === "text" ? (
-          <>
-            <div className="quick-tools">
-              <select
-                aria-label="当前便笺"
-                value={activeId || ""}
-                onChange={(e) => setSelected(e.target.value)}
-              >
-                {!notes.length && <option value="">新的便笺</option>}
-                {notes.map(([id, item], i) => (
-                  <option key={id} value={id}>
-                    {(item.value as TextValue).text
-                      .split("\n")[0]
-                      .slice(0, 20) || `便笺 ${i + 1}`}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="icon-button"
-                aria-label="写一张便笺"
-                title="新便笺"
-                disabled={!client.ready}
-                onClick={newNote}
-              >
-                <Plus size={18} />
-              </button>
-              <button
-                className="icon-button"
-                aria-label="复制文字"
-                title="复制文字"
-                disabled={!active?.text}
-                onClick={() => copy(active?.text || "")}
-              >
-                <Copy size={16} />
-              </button>
-            </div>
-            <div className="quick-tools format-tools">
-              <label>
-                文字颜色{" "}
-                <input
-                  type="color"
-                  aria-label="文字颜色"
-                  value={active?.color || textColor}
-                  onChange={(e) => formatText({ color: e.target.value })}
-                />
-              </label>
-              <select
-                aria-label="文字字号"
-                value={active ? active.fontSize || 18 : fontSize}
-                onChange={(e) =>
-                  formatText({ fontSize: Number(e.target.value) })
-                }
-              >
-                <option value={14}>小字</option>
-                <option value={18}>标准</option>
-                <option value={24}>大字</option>
-                <option value={32}>标题</option>
-              </select>
-              <button
-                className={`tool ${(active ? active.bold : bold) ? "selected" : ""}`}
-                aria-label="文字加粗"
-                aria-pressed={!!(active ? active.bold : bold)}
-                onClick={() =>
-                  formatText({ bold: !(active ? active.bold : bold) })
-                }
-              >
-                <strong>B</strong>
-              </button>
-            </div>
-            <textarea
-              ref={input}
-              className="quick-input"
-              aria-label="便笺文字"
-              disabled={!client.ready}
-              maxLength={10000}
-              value={active?.text || ""}
-              style={{
-                color: active?.color || textColor,
-                fontSize: active ? active.fontSize || 18 : fontSize,
-                fontWeight: (active ? active.bold : bold) ? 700 : 400,
-              }}
-              placeholder="直接打字，随手记下…"
-              onChange={(e) => {
-                const id = activeId || uid();
-                client.edit(
-                  id,
-                  active
-                    ? { ...active, text: e.target.value }
-                    : {
-                        type: "text",
-                        text: e.target.value,
-                        x: 100,
-                        y: 100,
-                        color: textColor,
-                        fontSize,
-                        bold,
-                      },
-                );
-                setSelected(id);
-              }}
-            />
-          </>
-        ) : (
-          <>
-            <div className="quick-tools">
-              <div className="colors">
-                {COLORS.map((c, i) => (
-                  <button
-                    key={c}
-                    aria-label={["墨色", "松绿", "朱红", "靛蓝"][i]}
-                    aria-pressed={color === c}
-                    className={`color ${color === c ? "chosen" : ""}`}
-                    style={{ background: c }}
-                    onClick={() => {
-                      setColor(c);
-                      setErase(false);
-                    }}
-                  />
-                ))}
-              </div>
-              <input
-                type="color"
-                aria-label="自定义画笔颜色"
-                value={color}
-                onChange={(e) => {
-                  setColor(e.target.value);
-                  setErase(false);
-                }}
-              />
-              <span className="toolbar-spacer" />
-              <button
-                className={`tool ${erase ? "selected" : ""}`}
-                aria-label="删除笔迹"
-                aria-pressed={erase}
-                onClick={() => setErase(!erase)}
-              >
-                <Trash2 size={17} />
-              </button>
-              <button className="tool" aria-label="撤销上次操作" onClick={undo}>
-                <Undo2 size={18} />
-              </button>
-            </div>
-            <div className="quick-tools shape-tools">
-              <select
-                aria-label="绘图工具"
-                value={shape}
-                onChange={(e) => {
-                  setShape(e.target.value as Shape);
-                  setErase(false);
-                }}
-              >
-                {SHAPES.map(([id, label]) => (
-                  <option key={id} value={id}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="画笔粗细"
-                value={width}
-                onChange={(e) => setWidth(Number(e.target.value))}
-              >
-                <option value={2}>细笔</option>
-                <option value={4}>中笔</option>
-                <option value={7}>粗笔</option>
-                <option value={12}>加粗</option>
-              </select>
-            </div>
-            <div className="quick-drawing">
-              <svg
-                ref={svg}
-                tabIndex={0}
-                aria-label="小窗画布"
-                data-testid="quick-canvas"
-                viewBox="0 0 1600 1000"
-                onPointerDown={(e) => {
-                  if (erase || !client.ready || e.button !== 0) return;
-                  e.currentTarget.setPointerCapture(e.pointerId);
-                  anchor.current = point(e);
-                  activeStroke.current = {
-                    type: "stroke",
-                    color,
-                    width,
-                    points: [anchor.current],
-                  };
-                  setInk(activeStroke.current);
-                }}
-                onPointerMove={(e) => {
-                  if (
-                    !activeStroke.current ||
-                    activeStroke.current.points.length >= 3000
-                  )
-                    return;
-                  const p = point(e),
-                    last = activeStroke.current.points.at(-1)!;
-                  if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 3) return;
-                  activeStroke.current = {
-                    ...activeStroke.current,
-                    points:
-                      shape === "free"
-                        ? [...activeStroke.current.points, p]
-                        : shapePoints(shape, anchor.current, p),
-                  };
-                  setInk(activeStroke.current);
-                }}
-                onPointerUp={finish}
-                onPointerCancel={finish}
-              >
-                {strokes.map(([id, item]) => {
-                  const s = item.value as StrokeValue;
-                  return (
-                    <path
-                      key={id}
-                      data-testid="quick-stroke"
-                      d={path(s)}
-                      stroke={s.color}
-                      strokeWidth={s.width}
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      onPointerDown={(e) => {
-                        if (erase) {
-                          e.stopPropagation();
-                          strokeCommit(id, null);
-                        }
-                      }}
-                      style={{ pointerEvents: erase ? "stroke" : "none" }}
-                    />
-                  );
-                })}
-                {ink && (
-                  <path
-                    d={path(ink)}
-                    stroke={ink.color}
-                    strokeWidth={ink.width}
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                )}
-              </svg>
-              {!strokes.length && !ink && (
-                <div className="quick-draw-hint">按住鼠标，随手画一画</div>
-              )}
-            </div>
-            <p className="quick-hint">
-              {shape === "free" ? "按住鼠标绘画。" : "按住并拖动鼠标绘制图形。"}{" "}
-              切换模式不会清空。
-            </p>
-          </>
-        )}
+      <div className="quick-content" onFocusCapture={event => {
+        if (event.target instanceof HTMLTextAreaElement) titleCarets.current.delete(session.id);
+      }}>
+        <input ref={titleInput} className="quick-title" aria-label="便签标题" placeholder="标题（可选）" maxLength={200}
+          disabled={!client.ready} value={titleComposition ?? session.title}
+          onChange={event => titleComposition !== null ? setTitleComposition(event.target.value) : session.rename(event.target.value)}
+          onBlur={event => titleCarets.current.set(session.id, { start: event.target.selectionStart ?? 0, end: event.target.selectionEnd ?? 0 })}
+          onCompositionStart={event => { setTitleComposition(event.currentTarget.value); session.startComposition(session.text); }}
+          onCompositionEnd={event => {
+            const title = event.currentTarget.value;
+            setTitleComposition(null);
+            session.endComposition(session.text, session.selection() ?? { start: 0, end: 0, direction: "none" });
+            session.rename(title);
+          }}
+          onKeyDown={event => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault(); titleCarets.current.delete(session.id); session.focus();
+            }
+          }} />
+        <RecordEditor session={session} />
       </div>
+      <div className="quick-support">
+      {session.recent.length > 0 && <section className="xigra-recent-records" aria-label="最近便笺">
+        <button type="button" className="xigra-recent-label" onClick={search} disabled={session.composing}>最近</button>
+        <RecordList rows={session.recent.slice(0, 6)} current={session.id} onSelect={session.open} disabled={session.composing || session.volatile} compact />
+      </section>}
       <footer className="quick-footer">
-        <div className="save-state">
-          <i className="dot" />
-          {client.status}
+        <div className="quick-state-group">
+          <SaveStatus client={client} recordId={session.id} empty={!session.record} volatile={session.volatile} />
+          <span className="quick-input-state">{session.composing ? "正在输入…" : `${session.text.length} / 10000 字`}</span>
         </div>
-        <button
-          className={`button ${info?.sharing ? "primary" : ""}`}
-          onClick={share}
-        >
-          <Network size={15} />
-          {info?.sharing ? "共享中" : "传递 / 共享"}
-        </button>
+        <div className="quick-canvas-actions">
+          {files && <button className="xigra-quiet-button quick-file-action" disabled={importing || session.composing} onClick={() => void importFiles(() => files.choose())} title="也可以把文件拖到面板">
+            <Icon name="tray" size={16} aria-hidden="true" />添加文件
+          </button>}
+          {onCanvas && <button className="xigra-quiet-button" disabled={adding || session.composing || !session.id || !session.text.trim()} onClick={() => void addToCanvas()}><RelationCanvasIcon size={16}/>{adding ? "保存并加入中…" : "加入关系画布"}</button>}
+        </div>
+        {canvasResult?.id === session.id && <div className="quick-canvas-result" role="status"><span>{canvasResult.message}</span><button className="xigra-quiet-button" onClick={() => onViewCanvas?.(canvasResult.id)}>查看节点</button></div>}
+        {canvasError && <div className="quick-canvas-result" role="alert">{canvasError}</div>}
+        {importMessage && <div className="xigra-import-message xigra-notice" data-tone={importError ? "error" : importing ? "pending" : "saved"} role="status">{importMessage}</div>}
       </footer>
-      <div className="quick-bottom">
-        {info?.sharing
-          ? "同一共享页内，文字与图画会自动传递。"
-          : "当前仅本机保存，开启局域网共享即可传递。"}
       </div>
+      {dragging && <div className="xigra-drop-overlay" aria-hidden="true"><Icon name="tray" size={32} />{importing ? "正在存入上一批文件" : "松手存入文件"}</div>}
     </section>
   );
 }

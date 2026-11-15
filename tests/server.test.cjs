@@ -19,6 +19,39 @@ const operation = (value, id = randomUUID(), expected = 0) => ({
   value,
 });
 
+test("topology retains legacy text positions and keeps local nodes out of shared reads and writes", async (t) => {
+  const store = createStore();
+  const layout = { x: -420, y: 2100, width: 280, height: 140, kind: "question", status: "done" };
+  const legacy = operation({ ...text("问题"), topology: layout });
+  const node = operation({ type: "node", text: "本地节点", topology: layout });
+  store.apply(legacy);
+  store.apply(node);
+  assert.deepEqual(store.snapshot().items[node.id].value, node.value);
+  assert.throws(() => store.apply(operation({ ...node.value, topology: { ...layout, x: Infinity } })), { status: 400 });
+  const shared = await startServer({ store, token: "topology-test", legacyOnly: true });
+  t.after(() => shared.close());
+  const request = (endpoint, body) => fetch(`http://127.0.0.1:${shared.port}/api/${endpoint}`, {
+    method: body ? "POST" : "GET",
+    headers: { Authorization: "Bearer topology-test", "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const snapshot = await (await request("board")).json();
+  assert.deepEqual(snapshot.items, { [legacy.id]: { version: 1, value: text("问题") } });
+  assert.equal((await request("ops", operation(null, node.id, 1))).status, 403);
+  assert.equal((await request("ops", operation(node.value))).status, 403);
+  assert.equal((await request("ops", operation({ ...text("改布局"), topology: layout }, legacy.id, 1))).status, 403);
+  const edit = operation(text("共享正文"), legacy.id, 1);
+  for (let retry = 0; retry < 2; retry++) {
+    const response = await request("ops", edit);
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).items[legacy.id], { version: 2, value: text("共享正文") });
+  }
+  assert.deepEqual(store.snapshot().items[legacy.id].value, { ...text("共享正文"), topology: layout });
+  store.apply(operation(null, node.id, 1));
+  assert.equal((await request("ops", operation(null, node.id, 2))).status, 403);
+  assert.equal(Object.hasOwn((await (await request("board")).json()).items, node.id), false);
+});
+
 test("custom colors and text formatting survive normalization, invalid styles are rejected", () => {
   const store = createStore();
   const op = operation({
@@ -212,4 +245,19 @@ test("HTTP requires bearer credential and same origin; serves only UI files", as
   } finally {
     await service.close();
   }
+});
+
+
+test("optional note titles survive validation without rewriting legacy bodies", () => {
+  const store = createStore();
+  const body = "旧标题\n原始正文";
+  const legacy = operation(text(body));
+  store.apply(legacy);
+  assert.equal(store.snapshot().items[legacy.id].value.text, body);
+  assert.equal(store.snapshot().items[legacy.id].value.title, undefined);
+  const named = operation({ ...text(body), title: "独立标题" });
+  store.apply(named);
+  assert.equal(store.snapshot().items[named.id].value.title, "独立标题");
+  assert.equal(store.snapshot().items[named.id].value.text, body);
+  for (const title of [42, "x".repeat(201), "a\nb"]) assert.throws(() => store.apply(operation({ ...text(body), title })), { status: 400 });
 });

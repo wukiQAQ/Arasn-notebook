@@ -1,0 +1,253 @@
+[
+  {
+    "type": "pointerdown",
+    "x": 541.5,
+    "y": 28,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "quick-input"
+  },
+  {
+    "type": "pointerup",
+    "x": 541.5,
+    "y": 28,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "xigra-quiet-button quick-expand-action"
+  },
+  {
+    "type": "pointerdown",
+    "x": 104,
+    "y": 118,
+    "buttons": 1,
+    "target": "space "
+  },
+  {
+    "type": "blur",
+    "target": "xigra-record-editor"
+  },
+  {
+    "type": "pointerup",
+    "x": 104,
+    "y": 118,
+    "buttons": 0,
+    "target": "space "
+  },
+  {
+    "type": "pointerdown",
+    "x": 1288,
+    "y": 832,
+    "buttons": 1,
+    "target": "free-zoom"
+  },
+  {
+    "type": "blur",
+    "target": "space active"
+  },
+  {
+    "type": "pointerup",
+    "x": 1288,
+    "y": 832,
+    "buttons": 0,
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerdown",
+    "x": 293,
+    "y": 184,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerup",
+    "x": 293,
+    "y": 184,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 1118.5,
+    "y": 197,
+    "buttons": 1,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 1018.5,
+    "y": 237,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "lostpointercapture",
+    "x": 1018.5,
+    "y": 237,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerdown",
+    "x": 1288,
+    "y": 832,
+    "buttons": 1,
+    "target": "free-zoom"
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 1288,
+    "y": 832,
+    "buttons": 0,
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerdown",
+    "x": 293,
+    "y": 184,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerup",
+    "x": 293,
+    "y": 184,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 1118.5,
+    "y": 197,
+    "buttons": 1,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerup",
+    "x": 1208.5,
+    "y": 237,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "lostpointercapture",
+    "x": 1208.5,
+    "y": 237,
+    "buttons": 0,
+    "target": "paper-scroll"
+  },
+  {
+    "type": "pointerdown",
+    "x": 1288,
+    "y": 832,
+    "buttons": 1,
+    "target": "free-zoom"
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 1288,
+    "y": 832,
+    "buttons": 0,
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerdown",
+    "x": 293,
+    "y": 184,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "free-zoom"
+  },
+  {
+    "type": "pointerup",
+    "x": 293,
+    "y": 184,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "pointerdown",
+    "x": 845,
+    "y": 485,
+    "buttons": 1,
+    "target": "spatial-note-label"
+  },
+  {
+    "type": "pointerup",
+    "x": 905,
+    "y": 505,
+    "buttons": 0,
+    "target": "note-handle"
+  },
+  {
+    "type": "lostpointercapture",
+    "x": 905,
+    "y": 505,
+    "buttons": 0,
+    "target": "note-handle"
+  },
+  {
+    "type": "pointerdown",
+    "x": 269.75,
+    "y": 476,
+    "buttons": 1,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": "tool selected"
+  },
+  {
+    "type": "pointerup",
+    "x": 269.75,
+    "y": 476,
+    "buttons": 0,
+    "target": {}
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  },
+  {
+    "type": "pointerdown",
+    "x": 293,
+    "y": 408,
+    "buttons": 1,
+    "target": ""
+  },
+  {
+    "type": "pointerup",
+    "x": 293,
+    "y": 408,
+    "buttons": 0,
+    "target": ""
+  },
+  {
+    "type": "blur",
+    "target": "tool"
+  }
+]

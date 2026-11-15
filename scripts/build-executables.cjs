@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
+const root=path.resolve(__dirname,'..'),cache=path.join(root,'.runtime','electron-builder-cache'),temp=path.join(root,'.runtime','build-tmp');
+for(const directory of [cache,temp]) fs.mkdirSync(directory,{recursive:true});
+const appDir=path.join(root,'.runtime','installer-app');fs.mkdirSync(appDir,{recursive:true});
+for(const directory of ['dist','desktop']) fs.cpSync(path.join(root,directory),path.join(appDir,directory),{recursive:true});
+require('./stage-windows-shortcut.cjs')(appDir);
+const original=require('../package.json');fs.writeFileSync(path.join(appDir,'package.json'),JSON.stringify({name:original.name,version:original.version,description:original.description,main:original.main},null,2));
+const env={...process.env,ELECTRON_BUILDER_CACHE:cache,TEMP:temp,TMP:temp};
+const cli=path.join(path.dirname(require.resolve('electron-builder/package.json')),'cli.js');
+const result=spawnSync(process.execPath,[cli,'--config','electron-builder.cjs','--win','portable','nsis','--x64'],{cwd:root,env,stdio:'inherit'});
+if(result.status!==0) process.exit(result.status||1);
+require('./publish-executables.cjs');

@@ -1,0 +1,43 @@
+.modal.xigra-lan-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: var(--xigra-space-6);
+}
+
+.xigra-lan-dialog h2 { margin: 0 40px 8px 0; }
+.xigra-lan-dialog h3 { margin: 0 0 8px; font-size: var(--xigra-type-control); }
+.xigra-lan-dialog p, .xigra-lan-dialog small { color: var(--muted); }
+.xigra-lan-dialog .xigra-notice { color: var(--xigra-error); }
+.xigra-lan-sections, .xigra-lan-fields, .xigra-lan-invite { display: grid; gap: var(--xigra-space-3); }
+.xigra-lan-sections > * { border-top: 1px solid var(--line); padding-top: var(--xigra-space-3); }
+.xigra-lan-row { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--xigra-space-2); }
+.xigra-lan-decisions { justify-content: flex-end; margin-top: var(--xigra-space-2); }
+.xigra-lan-fields label { display: grid; gap: 4px; }
+.xigra-lan-dialog select, .xigra-lan-dialog input, .xigra-lan-dialog textarea { max-width: 100%; font-size: inherit; }
+.xigra-lan-dialog ul { display: grid; gap: var(--xigra-space-2); margin: 0; padding: 0; list-style: none; }
+.xigra-lan-dialog li { background: var(--rail); border-radius: var(--xigra-radius-control); padding: var(--xigra-space-3); overflow-wrap: anywhere; }
+.xigra-lan-dialog li > :is(strong, small, span) { display: block; margin-block: 3px; }
+.xigra-lan-dialog summary { cursor: pointer; font-weight: 600; }
+.xigra-lan-dialog output { display: block; font-family: monospace; overflow-wrap: anywhere; user-select: text; }
+.xigra-lan-invite { margin-block: 12px; }
+.xigra-lan-title { overflow-wrap: anywhere; }
+.network-picker { display: grid; gap: 6px; min-width: 0; width: 100%; text-align: left; }
+.network-picker > .field-label { margin: 0; }
+.network-picker .app-select { width: 100%; min-width: 0; }
+:root .network-picker .app-select:disabled { opacity: 1; color: var(--muted); background: var(--rail); }
+.network-picker small, .network-status { color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.network-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.network-status { width: 100%; margin: 4px 0; text-align: left; }
+.startup-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.startup-status .setting-hint { flex: 1 1 230px; margin: 0; }
+.startup-status [data-startup-status="blocked"], .startup-status [data-startup-status="error"] { color: var(--xigra-error); }
+.xigra-lan-dialog .xigra-notice[data-tone="warning"] { color: var(--ink); }
+.xigra-share .share-state { flex-wrap: wrap; }
+.xigra-share .share-state > .xigra-status-pill { margin-right: auto; }
+
+@media (min-width: 640px) and (max-height: 620px) {
+  .xigra-desktop .sidebar.lagoon-rail { gap: 16px; padding-block: 12px; }
+  .xigra-desktop .lagoon-rail nav { gap: 4px; }
+  .xigra-desktop .lagoon-rail .space { min-height: 46px; padding-block: 4px; gap: 3px; }
+}

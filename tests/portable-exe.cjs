@@ -1,0 +1,16 @@
+const {chromium,expect}=require('@playwright/test');const {spawn,spawnSync}=require('node:child_process');const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),net=require('node:net');
+(async()=>{
+ const root=await fs.mkdtemp(path.join(path.resolve('.runtime'),'arasn-single-exe-'));const server=net.createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const port=server.address().port;await new Promise(r=>server.close(r));
+ await fs.mkdir(path.join(root,'temp'),{recursive:true});
+ const env={...process.env,TEMP:path.join(root,'temp'),TMP:path.join(root,'temp'),ARASN_DATA_DIR:path.join(root,'data'),ARASN_SMOKE:'1'};delete env.ELECTRON_RUN_AS_NODE;
+ const child=spawn(path.resolve('Arasn-0.6.0-Portable.exe'),[`--remote-debugging-port=${port}`],{env,stdio:'ignore',windowsHide:true});let browser;
+ try{
+  let ready=false;for(let i=0;i<960;i++){try{const response=await fetch(`http://127.0.0.1:${port}/json/version`);if(response.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,250));}if(!ready)throw Error(`Portable launcher did not start a debuggable application (exit=${child.exitCode})`);
+  browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`);const context=browser.contexts()[0];const page=context.pages()[0] || await context.waitForEvent('page',{timeout:30000});await page.locator('.quick-panel textarea').waitFor();
+  await page.locator('.quick-panel textarea').fill('单文件启动验证');await page.waitForFunction(()=>document.body.textContent.includes('已保存'));
+  await page.getByRole('button',{name:'打开工作区',exact:true}).click();await page.getByRole('button',{name:'文件',exact:true}).click();await expect(page.getByRole('button',{name:'导入文件',exact:true})).toBeVisible();
+  await expect(page.getByRole('region',{name:'文件工作区',exact:true})).toBeVisible();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('.sidebar .space.active')).toHaveCount(1);await expect(page.locator('.sidebar [aria-label="文件"]')).toHaveAttribute('aria-current','page');
+  await fs.writeFile(path.resolve('release/distribution/portable-check.json'),JSON.stringify({singleExecutableLaunch:true,sqliteSave:true,fileStation:true,dataDirectory:root},null,2));console.log('PASS: actual single-file launcher, SQLite save, file station');
+  const session=await browser.newBrowserCDPSession();await session.send('Browser.close').catch(()=>{});
+ }finally{if(browser){const session=await browser.newBrowserCDPSession().catch(()=>null);if(session)await session.send('Browser.close').catch(()=>{});await browser.close().catch(()=>{});}if(child.exitCode===null)spawnSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});if(path.dirname(root)!==path.resolve('.runtime')||!path.basename(root).startsWith('arasn-single-exe-'))throw Error('Invalid temporary cleanup path');await fs.rm(root,{recursive:true,force:true,maxRetries:12,retryDelay:300});const reportPath=path.resolve('release/distribution/portable-check.json');const report=JSON.parse(await fs.readFile(reportPath,'utf8'));if(report.dataDirectory===root){report.temporaryDataRemoved=true;await fs.writeFile(reportPath,JSON.stringify(report,null,2));}}
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,0 +1,66 @@
+:root { --kind-note: #5265b6; --kind-question: #a35562; --kind-idea: #8d690e; --kind-task: #357660; --kind-file: #397b8b; }
+:root[data-theme="dark"] { --kind-note: #a5b8ff; --kind-question: #e8a1af; --kind-idea: #dfc275; --kind-task: #8fc8ab; --kind-file: #8ac6d2; }
+:root .xigra-record-workspace { grid-template-columns: minmax(220px, 25%) minmax(0, 1fr); gap: 16px; }
+.record-index-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 2px 8px; }
+.record-index-heading h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.record-index-heading > span { color: var(--muted); font-size: 12px; }
+:root .xigra-record-index { padding: 16px 12px; gap: 12px; background: var(--rail); }
+:root .xigra-record-index > .app-select { width: 100%; flex-shrink: 0; background: transparent; }
+:root .xigra-record-scroll { flex: 1; }
+:root .xigra-record-list:not(.compact) button { min-height: 70px; gap: 6px; padding: 12px; border-radius: 7px; }
+:root .xigra-record-paper { border-radius: 8px; }
+:root .xigra-record-paper .xigra-note-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 88px; padding: 16px 24px; border-bottom: 1px solid var(--line); }
+.record-document-heading { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.record-document-heading > div { display: grid; gap: 3px; }
+:root .record-document-heading h2 { font-size: 16px; color: var(--ink); }
+.record-document-heading span { font-size: 12px; }
+:root .xigra-record-paper .xigra-note-actions { flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+:root .xigra-record-paper .record-files { display: inline-flex; align-items: center; gap: 6px; }
+:root .xigra-record-paper .record-canvas { background: var(--tint); color: var(--xigra-on-selected); }
+:root .xigra-record-paper .xigra-record-editor { width: 100%; max-width: 820px; margin-inline: auto; padding: 32px 40px; font-size: 16px; line-height: 1.9; border-radius: 0; background: transparent; }
+:root .xigra-record-paper footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; padding: 10px 24px; font-size: 12px; color: var(--muted); background: var(--rail); }
+/* A summary node keeps existing world geometry and its connection ports. */
+:root .topology-surface .topology-node { padding: 12px 15px; border-radius: 7px; background: var(--surface); border-color: var(--line); }
+.topology-node[data-kind="note"] { --node-kind-color: var(--kind-note); }
+.topology-node[data-kind="question"] { --node-kind-color: var(--kind-question); }
+.topology-node[data-kind="idea"] { --node-kind-color: var(--kind-idea); }
+.topology-node[data-kind="task"] { --node-kind-color: var(--kind-task); }
+.topology-node[data-kind="file"] { --node-kind-color: var(--kind-file); }
+:root .topology-node .topology-node-meta { margin: 0 0 7px; font-size: 11px; }
+:root .topology-node .topology-node-meta > span:first-child { color: var(--node-kind-color); }
+:root .topology-node > strong { font-size: 15px; line-height: 22px; margin-bottom: 4px; }
+:root .topology-node .topology-node-summary { font-size: 12px; line-height: 18px; -webkit-line-clamp: 2; }
+:root .topology-node-footer { margin-top: auto; padding-top: 7px; font-size: 10px; border-top: 1px solid var(--line); }
+.node-sync { display: inline-flex; align-items: center; gap: 4px; }
+.node-sync::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.node-sync[data-tone="saved"] { color: var(--xigra-success); }
+.node-sync[data-tone="error"] { color: var(--xigra-error); }
+/* Free-page notes are paper objects, independent of relation-node anchors. */
+:root .workspace .note.spatial-note { display: flex; flex-direction: column; border-radius: 3px 3px 16px 3px; border: 1px solid var(--line); border-inline-start: 3px solid var(--note-ink); background: var(--surface); box-shadow: 0 5px 12px #00000012; }
+:root .workspace .spatial-note .note-handle { display: flex; align-items: center; gap: 7px; min-height: 32px; height: 32px; padding: 0 5px 0 8px; background: color-mix(in srgb, var(--note-ink) 8%, var(--surface)); border-bottom: 1px solid var(--line); cursor: grab; }
+:root .workspace .spatial-note .note-handle:active { cursor: grabbing; }
+.spatial-note-label { flex: 1; font-size: 11px; color: var(--muted); user-select: none; }
+:root .workspace .spatial-note .note-handle > div { display: flex; gap: 2px; }
+:root .workspace .spatial-note .note-handle button { width: 27px; height: 27px; }
+:root .workspace .spatial-note textarea { flex: 1; width: 100%; min-height: 0; padding: 12px 14px; line-height: 1.6; resize: none; }
+:root .workspace .spatial-note::after { content: ''; position: absolute; right: 0; bottom: 0; width: 13px; height: 13px; background: var(--rail); clip-path: polygon(100% 0, 0 100%, 100% 100%); pointer-events: none; }
+:root .workspace .spatial-note.focused { border-color: var(--xigra-brand); outline: 1px solid var(--xigra-brand); outline-offset: 2px; }
+@media(max-width: 1000px) { :root .xigra-record-workspace { grid-template-columns: 220px minmax(0, 1fr); gap: 10px; } :root .xigra-record-paper .xigra-note-heading { padding: 14px 16px; } :root .xigra-record-paper .xigra-record-editor { padding: 24px; } }
+@media(max-width: 640px) {
+  :root .lagoon-rail .topology-rail-entry { display: flex; }
+  :root .lagoon-rail nav { flex: 1; min-width: 0; gap: 2px; }
+  :root .lagoon-rail nav .space { flex: 1; min-width: 0; width: auto; }
+  :root .lagoon-rail .sidebar-bottom { flex: none; gap: 2px; }
+  :root .lagoon-rail .sidebar-bottom .space { width: 36px; }
+  :root .xigra-record-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(200px, 33%) minmax(0, 1fr); gap: 10px; }
+  :root .xigra-record-index { display: flex; padding: 10px; gap: 7px; }
+  .record-index-heading { display: none; }
+  :root .xigra-record-index .xigra-record-filters { flex-shrink: 0; }
+  :root .xigra-record-list:not(.compact) button { min-height: 54px; padding: 8px 10px; }
+  :root .xigra-record-paper .xigra-note-heading { min-height: auto; padding: 12px; gap: 10px; }
+  :root .record-document-heading > svg, .record-document-heading span { display: none; }
+  :root .xigra-record-paper .xigra-note-actions { gap: 4px; }
+  :root .xigra-record-paper .record-files { font-size: 12px; }
+  :root .xigra-record-paper .xigra-record-editor { padding: 20px 16px; }
+  :root .xigra-record-paper footer { padding-inline: 12px; }
+}

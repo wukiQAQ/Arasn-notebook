@@ -1,0 +1,106 @@
+{
+  "scope": "Electron renderer rAF during Playwright/CDP input; DOM visible/hasFocus true. Separate Win32 foreground guard failed. Short sampled completed run, not physical input latency or long-run stability.",
+  "metrics": [
+    {
+      "strokes": 300,
+      "pointsPerStroke": 64,
+      "samples": 92,
+      "p50Ms": 6.900000000001455,
+      "p95Ms": 7.099999999998545,
+      "maxMs": 7.100000000000364,
+      "longTasks": 0,
+      "dpr": 1,
+      "visible": "visible",
+      "focused": true,
+      "memory": [
+        {
+          "type": "Browser",
+          "workingSetKiB": 147996
+        },
+        {
+          "type": "GPU",
+          "workingSetKiB": 146276
+        },
+        {
+          "type": "Utility",
+          "workingSetKiB": 53008
+        },
+        {
+          "type": "Tab",
+          "workingSetKiB": 258648
+        }
+      ],
+      "drawing": {
+        "name": "pen",
+        "samples": 95,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7.099999999998545,
+        "maxMs": 7.100000000000364,
+        "longTasks": 0
+      },
+      "erasing": {
+        "name": "stroke eraser",
+        "samples": 99,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7.100000000000364,
+        "maxMs": 20.69999999999891,
+        "longTasks": 0
+      },
+      "focusCancel": {
+        "nativeBlurObserved": false,
+        "mode": "synthetic blur; native precondition unavailable"
+      },
+      "largeExport": {
+        "worldSpan": 1800000,
+        "width": 4000,
+        "height": 4000
+      }
+    },
+    {
+      "strokes": 1500,
+      "pointsPerStroke": 64,
+      "samples": 190,
+      "p50Ms": 6.900000000001455,
+      "p95Ms": 7,
+      "maxMs": 7.200000000000728,
+      "longTasks": 0,
+      "dpr": 1,
+      "visible": "visible",
+      "focused": true,
+      "memory": [
+        {
+          "type": "Browser",
+          "workingSetKiB": 204552
+        },
+        {
+          "type": "GPU",
+          "workingSetKiB": 141204
+        },
+        {
+          "type": "Utility",
+          "workingSetKiB": 53776
+        },
+        {
+          "type": "Tab",
+          "workingSetKiB": 392268
+        }
+      ],
+      "drawing": {
+        "name": "pen",
+        "samples": 197,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7.100000000000364,
+        "maxMs": 27.799999999999272,
+        "longTasks": 0
+      },
+      "erasing": {
+        "name": "stroke eraser",
+        "samples": 214,
+        "p50Ms": 6.900000000001455,
+        "p95Ms": 7.099999999998545,
+        "maxMs": 27.700000000000728,
+        "longTasks": 0
+      }
+    }
+  ]
+}

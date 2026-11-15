@@ -1,0 +1,122 @@
+const { chromium } = require('../node_modules/@playwright/test');
+const http = require('node:http'), fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
+const root = path.resolve(__dirname, 'dist'), output = path.resolve(__dirname, 'review/screenshots');
+fs.mkdirSync(output, { recursive: true });
+const server = http.createServer((request, response) => {
+  const name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  const file = path.resolve(root, '.' + (name === '/' ? '/index.html' : name));
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { response.writeHead(404); response.end(); return; }
+  response.setHeader('Content-Type', ({ '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.ttf': 'font/ttf' })[path.extname(file)] || 'application/octet-stream');
+  fs.createReadStream(file).pipe(response);
+});
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let browser;
+  try { browser = await chromium.launch(); } catch (error) { server.close(); throw error; }
+  const report = [], errors = [], apiRequests = [];
+  try {
+    for (const direction of ['A', 'B', 'C']) {
+      const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+      const page = await context.newPage();
+      page.on('pageerror', error => errors.push(`${direction}: ${error.message}`));
+      page.on('console', message => { if (message.type() === 'error') errors.push(`${direction}: ${message.text()}`); });
+      page.on('request', request => { if (request.url().includes('/api/')) apiRequests.push(request.url()); });
+      await page.goto(`${base}/?direction=${direction}`);
+      await page.waitForFunction(() => document.querySelectorAll('.note').length === 2);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(350);
+      await page.screenshot({ path: path.join(output, `${direction}-workspace.png`) });
+      assert.equal(await page.locator('.note.selected').count(), 1);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await page.keyboard.press('Control+k');
+      await page.getByRole('combobox', { name: '搜索原型命令' }).waitFor();
+      await page.waitForTimeout(200);
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await page.getByRole('option').nth(1).getAttribute('aria-selected'), 'true');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(output, `${direction}-command.png`) });
+      await page.getByRole('combobox', { name: '搜索原型命令' }).fill('新建');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(() => document.querySelectorAll('.note').length === 3);
+      await page.getByRole('button', { name: '删除新的想法', exact: true }).click();
+      await page.waitForFunction(() => document.querySelectorAll('.note').length === 2);
+      const grip = page.locator('[data-note="capture"] .note-grip');
+      const note = page.locator('[data-note="capture"]');
+      const before = await note.boundingBox(), handle = await grip.boundingBox();
+      await page.mouse.move(handle.x + 35, handle.y + 14); await page.mouse.down();
+      await page.mouse.move(handle.x + 107, handle.y + 46, { steps: 10 }); await page.mouse.up();
+      const after = await note.boundingBox();
+      assert.ok(Math.abs(after.x - before.x - 72) < 2, `${direction}: precise drag`);
+      await page.getByRole('button', { name: '放大画布', exact: true }).click();
+      const zoomed = await note.boundingBox();
+      assert.ok(zoomed.width > after.width, `${direction}: zoom`);
+      await grip.focus(); await page.keyboard.press('ArrowRight');
+      assert.ok((await note.boundingBox()).x > zoomed.x + 6, `${direction}: keyboard move`);
+      await page.getByRole('button', { name: '平移工具', exact: true }).click();
+      const canvas = await page.getByTestId('prototype-canvas').boundingBox();
+      const panBefore = await note.boundingBox();
+      await page.mouse.move(canvas.x + canvas.width * .7, canvas.y + canvas.height - 100); await page.mouse.down();
+      await page.mouse.move(canvas.x + canvas.width * .7 + 32, canvas.y + canvas.height - 84, { steps: 8 }); await page.mouse.up();
+      await page.waitForFunction(x => Math.abs(document.querySelector('[data-note="capture"]').getBoundingClientRect().x - x - 32) < 2, panBefore.x, { timeout: 2000 });
+      assert.ok(Math.abs((await note.boundingBox()).x - panBefore.x - 32) < 2, `${direction}: pan`);
+      await page.getByRole('button', { name: '重置画布视角' }).click();
+      await page.getByLabel('选择原型文件').setInputFiles([
+        { name: '真实导入.txt', mimeType: 'text/plain', buffer: Buffer.from('Arasn prototype file read test') },
+        { name: '真实图形.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120"><rect width="240" height="120" fill="#adc8b4"/><circle cx="120" cy="60" r="30" fill="#fff"/></svg>') },
+      ]);
+      await page.waitForFunction(() => document.querySelectorAll('.file-item').length === 4);
+      await page.getByRole('button', { name: /真实图形.svg/ }).click();
+      await page.locator('img[alt="真实图形.svg"]').waitFor();
+      await page.screenshot({ path: path.join(output, `${direction}-files.png`) });
+      await page.getByRole('textbox', { name: '搜索原型文件' }).fill('没有这个文件');
+      assert.equal(await page.locator('.file-item').count(), 0);
+      await page.getByRole('textbox', { name: '搜索原型文件' }).fill('');
+      await page.getByRole('button', { name: '画笔工具', exact: true }).click();
+      const drawArea = await page.getByTestId('prototype-canvas').boundingBox();
+      await page.mouse.move(drawArea.x + drawArea.width * .65, drawArea.y + drawArea.height - 130); await page.mouse.down();
+      await page.mouse.move(drawArea.x + drawArea.width * .65 + 60, drawArea.y + drawArea.height - 100, { steps: 5 }); await page.mouse.up();
+      await page.waitForFunction(() => document.querySelectorAll('.sketch-layer path:not(.demo-arrow)').length === 1);
+      const remembered = await page.locator('.world').getAttribute('style');
+      const index = ['A', 'B', 'C'].indexOf(direction);
+      await page.locator('.exploration-bar nav button').nth((index + 1) % 3).click();
+      await page.waitForTimeout(350);
+      assert.equal(await page.locator('.sketch-layer path:not(.demo-arrow)').count(), 1, 'drawing survives variant switch');
+      await page.locator('.exploration-bar nav button').nth(index).click();
+      await page.waitForTimeout(350);
+      assert.equal(await page.locator('.world').getAttribute('style'), remembered, 'view survives variant switch');
+      await page.keyboard.press('Control+k');
+      await page.getByRole('combobox').fill('不存在的命令');
+      await page.waitForFunction(() => document.querySelectorAll('[role=option]').length === 0);
+      await page.keyboard.press('Escape');
+      await page.getByRole('button', { name: '模拟收起工作台', exact: true }).click();
+      await page.getByRole('heading', { name: '工作台暂时收起' }).waitFor();
+      await page.getByRole('button', { name: /呼出工作台/ }).click();
+      await page.waitForFunction(() => document.querySelectorAll('.note').length === 2);
+      assert.equal(await page.locator('.sketch-layer path:not(.demo-arrow)').count(), 1, 'drawing survives hide');
+      assert.equal(await page.locator('.world').getAttribute('style'), remembered, 'view survives hide');
+      await page.setViewportSize({ width: 820, height: 1000 });
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: path.join(output, `${direction}-tablet.png`) });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await page.setViewportSize({ width: 390, height: 844 });
+      if (!await page.locator('.file-shelf').count()) await page.getByRole('button', { name: '展开文件中转站', exact: true }).click();
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: path.join(output, `${direction}-mobile-files.png`) });
+      await page.getByRole('button', { name: '展开文件中转站', exact: true }).click();
+      await page.waitForTimeout(350);
+      await page.locator('.prototype-toast').waitFor({ state: 'hidden' });
+      await page.screenshot({ path: path.join(output, `${direction}-mobile.png`) });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${direction}: mobile width`);
+      report.push({ direction, notes: true, commands: true, preciseDrag: true, keyboardMove: true, zoom: true, pan: true, realFileReadAndImagePreview: true, search: true, hidePreservesContent: true, drawingAndViewSurviveSwitch: true, emptyCommandSearch: true, tablet: true, mobile: true });
+      await context.close();
+    }
+    const reduced = await browser.newContext({ viewport: { width: 820, height: 1000 }, reducedMotion: 'reduce', deviceScaleFactor: 1.5 });
+    const page = await reduced.newPage(); await page.goto(`${base}/?direction=B`); await page.waitForFunction(() => document.querySelectorAll('.note').length === 2);
+    await page.screenshot({ path: path.join(output, 'B-reduced-hidpi.png') });
+    await reduced.close();
+    assert.deepEqual(errors, []); assert.deepEqual(apiRequests, []);
+    fs.writeFileSync(path.join(output, '../checks.json'), JSON.stringify({ report, errors, apiRequests }, null, 2));
+    console.log(JSON.stringify({ output, variants: report.length, errors, apiRequests }));
+  } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
+})().catch(error => { console.error(error); process.exitCode = 1; });
