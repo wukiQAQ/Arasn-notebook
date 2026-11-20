@@ -46,47 +46,49 @@ const { randomUUID } = require("node:crypto");
     expect(native.windows).toBe(1);
     expect(native.registered).toBe(info.shortcutOk);
     expect(info.shortcutOk).toBe(true);
-    const shared = await page.evaluate(() => window.desktop.share(true));
-    expect(shared.sharing).toBe(true);
-    expect(shared.links.length).toBeGreaterThan(0);
-    const link = new URL(shared.links[0]);
+    const openWorkspace = async page => {
+      await page.getByRole("button", { name: "我的随手页", exact: true }).click();
+      await page.getByRole("button", { name: "打开 默认工作页", exact: true }).click();
+    };
+    await openWorkspace(page);
+    const note = page.locator(".spatial-note").filter({ hasText: "桌面重启恢复测试" });
+    await expect(note).toBeVisible();
+    const shared = await page.evaluate(async () => {
+      const catalog = await window.desktop.canvas.catalog("list");
+      const entry = catalog.boards.find(x => x.type === "workspace");
+      const info = await window.desktop.info();
+      return window.desktop.canvas.share("start", { id: entry.id, host: info.networks[0].address, mode: "edit" });
+    });
+    const link = new URL(shared.link);
     const remote = link.origin;
     const headers = {
       Authorization: `Bearer ${link.hash.slice(1)}`,
       "Content-Type": "application/json",
     };
+    const view = await fetch(`${remote}/api/board`, { headers }).then(r => r.json());
+    expect(view.objects).toHaveLength(1);
+    const item = view.objects[0];
     const response = await fetch(`${remote}/api/ops`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        id: randomUUID(),
-        opId: randomUUID(),
-        expected: 0,
-        value: {
-          type: "text",
-          text: "来自局域网参与者",
-          color: "#39796b",
-          x: 460,
-          y: 200,
-        },
-      }),
+      body: JSON.stringify({ id: item.id, opId: randomUUID(), expected: item.version, x: item.x + 100, y: item.y }),
     });
     expect(response.status).toBe(200);
-    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
-    await expect(page.locator(".spatial-note").filter({ hasText: "来自局域网参与者" })).toBeVisible();
+    await expect(note).toHaveCSS("left", `${item.x + 100}px`);
     await page.evaluate(() => window.desktop.hide());
     await expect.poll(() => application.evaluate(({ BrowserWindow }) =>
-        BrowserWindow.getAllWindows()[0].isVisible(),
-      )).toBe(false);
-    await page.evaluate(() => window.desktop.share(false));
+      BrowserWindow.getAllWindows()[0].isVisible(),
+    )).toBe(false);
+    await page.evaluate(id => window.desktop.canvas.share("stop", { id }), shared.id);
     await expect(fetch(`${remote}/api/board`, { headers })).rejects.toThrow();
     await application.close();
     application = null;
     application = await launch();
     page = await application.firstWindow();
     await expect(page.getByRole("textbox", { name: "便笺文字" })).toHaveValue("桌面重启恢复测试");
-    await page.getByRole("button", { name: "我的随手页", exact: true }).click();
-    await expect(page.locator(".spatial-note")).toHaveCount(2);
+    await openWorkspace(page);
+    await expect(page.locator(".spatial-note")).toHaveCount(1);
+    await expect(page.locator(".spatial-note")).toHaveCSS("left", `${item.x + 100}px`);
     console.log(
       JSON.stringify({
         desktopLaunch: true,

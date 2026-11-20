@@ -2,7 +2,6 @@ import { Select } from '@base-ui/react/select';
 import { Check, ChevronDown } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import './controls.css';
-import { Button } from '../Button';
 
 export type SelectOption<T extends string> = { value: T; label: string; tone?: string };
 
@@ -12,7 +11,7 @@ export function AppSelect<T extends string>({ label, value, options, onValueChan
   const selected = options.find(option => option.value === value);
   const dot = (tone?: string) => tone ? <span className="app-type-dot" style={{ '--type-tone': tone } as CSSProperties} aria-hidden="true" /> : null;
   return <Select.Root value={value} items={options} disabled={disabled} modal={false} onValueChange={next => { if (next !== null) onValueChange(next); }}>
-    <Select.Trigger render={<Button />} className={`app-select ${className}`} aria-label={label} onKeyDown={event => event.stopPropagation()}>
+    <Select.Trigger className={`app-select ${className}`} aria-label={label} onKeyDown={event => event.stopPropagation()}>
       {dot(selected?.tone)}<Select.Value /><Select.Icon className="app-select-chevron"><ChevronDown size={15} /></Select.Icon>
     </Select.Trigger>
     <Select.Portal><Select.Positioner className={variant ? `app-select-position app-select-${variant}` : 'app-select-position'} align="start" sideOffset={6} alignItemWithTrigger={false}>

@@ -200,9 +200,9 @@ async function verify({ page, win, app, size, theme, button, shot, positions, re
   const node = page.locator('.topology-node[data-selected]');
   const nodeId = await node.getAttribute('data-topology-node');
   await button('放大画布').click();
-  const connect = button('创建连接');
-  await connect.click();
-  await expect(connect).toHaveAttribute('aria-pressed', 'true');
+  const connect = node.locator('[data-port=right]');
+  await connect.press('Enter');
+  await expect(page.locator('.relation-draft')).toHaveCount(1);
   const board = () => page.evaluate(async () => (await fetch('/api/board', { headers: {
     Authorization: `Bearer ${sessionStorage.getItem('arasn-token')}`,
   } })).json());
@@ -273,9 +273,9 @@ async function verify({ page, win, app, size, theme, button, shot, positions, re
     await captureNativeWindow(app, page, path.join(out, 'after-canvas-max-hidden-windows.png'));
   }
   await expect(node).toHaveAttribute('data-topology-node', nodeId);
-  await expect(connect).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.relation-draft')).toHaveCount(1);
   assert.deepEqual({ board: await board(), camera: await camera(), zoom: await button('复位视图').innerText() }, initial);
-  await connect.click();
+  await connect.press('Escape');
   const firstNode = page.locator(`[data-topology-node="${nodeId}"]`);
   const handle = await firstNode.locator('[data-drag-handle]').boundingBox();
   await page.mouse.move(handle.x + 40, handle.y + 10);
@@ -291,7 +291,7 @@ async function verify({ page, win, app, size, theme, button, shot, positions, re
   const secondId = await node.getAttribute('data-topology-node');
   await button('关闭详情').click();
   await firstNode.locator('[data-drag-handle]').click();
-  await connect.click();
+  await connect.press('Enter');
   await page.locator(`[data-topology-node="${secondId}"] [data-drag-handle]`).click();
   await expect.poll(async () => Object.values((await board()).items).some(({ value }) =>
     value?.type === 'canvas-edge' && value.fromNodeId === nodeId && value.toNodeId === secondId)).toBe(true);

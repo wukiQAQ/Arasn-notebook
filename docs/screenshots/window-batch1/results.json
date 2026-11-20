@@ -1,0 +1,462 @@
+{
+  "platform": "win32",
+  "checks": [
+    "normal geometry, page, node identity, selected node, camera and independent quick text survive",
+    "maximized workspace restored; quick geometry separate; workspace never topmost",
+    "minimized/maximized switch; no opaque geometry event before renderer readiness",
+    "light share close: no settings frame; workspace selection retained",
+    "light share escape: no settings frame; workspace selection retained",
+    "light share back: no settings frame; workspace selection retained",
+    "light share switch: no settings frame; workspace selection retained",
+    "dark share close: no settings frame; workspace selection retained",
+    "dark share escape: no settings frame; workspace selection retained",
+    "dark share back: no settings frame; workspace selection retained",
+    "dark share switch: no settings frame; workspace selection retained",
+    "hidden native trigger action and second-instance restore",
+    "hide during an in-flight transition wins over readiness reveal"
+  ],
+  "captures": [
+    {
+      "name": "light-workspace-maximized",
+      "width": 2582,
+      "height": 1550
+    },
+    {
+      "name": "light-quick",
+      "width": 930,
+      "height": 1050
+    },
+    {
+      "name": "light-share",
+      "width": 2582,
+      "height": 1550
+    },
+    {
+      "name": "light-restored-workspace",
+      "width": 2582,
+      "height": 1550
+    },
+    {
+      "name": "dark-share",
+      "width": 2582,
+      "height": 1550
+    },
+    {
+      "name": "dark-restored-workspace",
+      "width": 2582,
+      "height": 1550
+    }
+  ],
+  "events": [
+    {
+      "event": "resize",
+      "visible": false,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "unmaximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "unmaximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "unmaximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "unmaximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "unmaximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": false
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": false
+    },
+    {
+      "event": "resize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "maximize",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "hide",
+      "visible": false,
+      "opacity": 0,
+      "maximized": true
+    },
+    {
+      "event": "show",
+      "visible": true,
+      "opacity": 1,
+      "maximized": true
+    }
+  ],
+  "errors": [],
+  "incidentalPrintableKeysBlocked": 0,
+  "nativeState": {
+    "bounds": {
+      "x": -7,
+      "y": -7,
+      "width": 1722,
+      "height": 1034
+    },
+    "normal": {
+      "x": 90,
+      "y": 70,
+      "width": 1080,
+      "height": 740
+    },
+    "maximized": true,
+    "minimized": false,
+    "visible": true,
+    "top": false
+  }
+}

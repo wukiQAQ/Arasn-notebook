@@ -1,0 +1,79 @@
+{
+  "checks": [
+    "region drag, 1/2/4 PNG dimensions, native clipboard, reselect/Esc, pen/wheel/undo isolation, board unchanged",
+    "native quick-note switch cancels capture and restores workspace without leaving inert state",
+    "viewport excludes UI; full includes distant object; padding, safe limit, lower multiplier retry",
+    "export retains red SVG shape, three distinct originals after cache eviction, and real text pixels",
+    "missing original fails explicitly; retry restores complete preview",
+    "dark theme, zoomed region uses correct world bounds",
+    "relation nodes and semantic curves/labels share full and region export; no graph edits",
+    "Windows 125% device scale is independent; save survives immediate preview close"
+  ],
+  "outputs": [
+    {
+      "name": "region-1x",
+      "width": 820,
+      "height": 330
+    },
+    {
+      "name": "region-2x",
+      "width": 1640,
+      "height": 660
+    },
+    {
+      "name": "region-4x",
+      "width": 3280,
+      "height": 1320
+    },
+    {
+      "name": "viewport-1x",
+      "width": 1186,
+      "height": 750
+    },
+    {
+      "name": "all-1x",
+      "width": 2008,
+      "height": 1008
+    },
+    {
+      "name": "all-padding-48",
+      "width": 2056,
+      "height": 1056
+    },
+    {
+      "name": "zoomed-viewport",
+      "width": 1186,
+      "height": 750
+    },
+    {
+      "name": "zoomed-region",
+      "width": 320,
+      "height": 200
+    },
+    {
+      "name": "relations-all",
+      "width": 2028,
+      "height": 998
+    },
+    {
+      "name": "relations-region",
+      "width": 350,
+      "height": 220
+    },
+    {
+      "name": "dpi125-viewport",
+      "width": 1186,
+      "height": 750
+    }
+  ],
+  "pixels": {
+    "red": 2516,
+    "green": 27832,
+    "yellow": 27832,
+    "blue": 25658,
+    "purple": 25660,
+    "ink": 4971,
+    "noteInk": 1773
+  },
+  "errors": []
+}

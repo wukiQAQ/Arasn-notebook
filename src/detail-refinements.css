@@ -32,23 +32,12 @@
 }
 :root .quick-panel .note-status-bar .save-state[data-tone="neutral"] { color:var(--muted); }
 :root .quick-panel .note-status-bar .save-state[data-tone="neutral"] .dot { display:none; }
-/* Dialog dismiss controls retain a generous target without a permanent frame. */
-:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button],
-:root body .modal button.modal-close {
-  min-width:44px; min-height:44px; width:44px; height:44px; padding:0;
-  border-color:transparent; background:transparent; box-shadow:none;
-}
-:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button]:hover,
-:root body .modal button.modal-close:hover { background:var(--secondary-button-hover-bg); border-color:transparent; }
-:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button]:active,
-:root body .modal button.modal-close:active { background:var(--secondary-button-pressed-bg); }
-:root body .modal button.modal-close:focus-visible { outline:1px solid var(--ui-focus); outline-offset:2px; }
 :root .xigra-record-search { border-color:color-mix(in srgb,var(--line) 55%,transparent); }
 :root .xigra-record-search:hover { border-color:var(--line); }
 :root .xigra-record-search:focus-within { border-color:var(--ui-focus); }
 :root .xigra-record-search input { border:0; box-shadow:none; }
 :root .xigra-record-workspace .xigra-record-filters button { border-color:transparent; }
-:root body .app-shell .xigra-record-workspace .xigra-record-filters button.arasn-button[data-ui-button][aria-pressed="true"] { color:var(--ui-action); background:var(--tint); border-color:color-mix(in srgb,var(--ui-action) 45%,transparent); }
+:root body .app-shell .xigra-record-workspace .xigra-record-filters button.arasn-button[data-ui-button][aria-pressed="true"] { color:var(--ui-nav-on-active); background:var(--tint); border-color:transparent; }
 :root .xigra-compact .xigra-shell .quick-content { border-color:color-mix(in srgb,var(--line) 65%,transparent); border-radius:14px; box-shadow:0 2px 12px #00000008; }
 :root .xigra-shell .quick-title { border-bottom:0; padding-top:18px; padding-bottom:8px; }
 :root .xigra-compact .xigra-shell .quick-header { min-height:60px; padding-block:8px; }
@@ -57,7 +46,7 @@
 :root .xigra-record-workspace .xigra-note-heading { padding:16px 20px 12px; border-bottom:0; gap:14px; }
 :root .xigra-record-workspace .xigra-record-index { border:0; padding-inline-start:0; background:transparent; }
 :root .xigra-record-workspace .record-index-heading { padding-inline-start:0; }
-:root .xigra-record-workspace .xigra-record-list button { border-radius:13px; border-color:color-mix(in srgb,var(--line) 65%,transparent); }
+:root .xigra-record-workspace .xigra-record-list button { border-radius:var(--ui-radius-content); border-color:transparent; }
 :root .free-workspace .note.spatial-note { border-radius:13px; border:1px solid var(--line); border-inline-start:2px solid var(--note-ink); box-shadow:var(--ui-shadow-card,0 2px 10px #0000000c); }
 :root .free-workspace .note.spatial-note::after { display:none; }
 :root .free-workspace .note.spatial-note:is(.focused,:focus-within) {
@@ -90,7 +79,7 @@
 :root body .app-shell .canvas-note-preview button.note-detail-button.arasn-button[data-ui-button] { height:26px; min-height:26px; }
 :root .modal.canvas-note-detail { border-radius:16px; border-color:color-mix(in srgb,var(--line) 65%,transparent); }
 .canvas-note-detail textarea { border-color:color-mix(in srgb,var(--line) 55%,transparent); border-radius:12px; }
-.attachment-popover { padding:16px; border-radius:16px; border-color:color-mix(in srgb,var(--line) 65%,transparent); box-shadow:0 6px 24px #0002; }
+.attachment-popover { padding:16px; border-radius:var(--ui-radius-floating); border-color:var(--ui-border-subtle); box-shadow:var(--ui-shadow-floating); }
 :root body .attachment-popover button.arasn-button[data-ui-button] { min-height:34px; height:auto; border-radius:10px; border-color:transparent; background:transparent; padding:6px 10px; font-size:13px; color:var(--ink); }
 :root body .attachment-popover button.arasn-button[data-ui-button]:hover { background:var(--secondary-button-hover-bg); }
 .attachment-popover .record-attachments { margin:8px 0 12px; padding:0; border:0; max-height:none; }

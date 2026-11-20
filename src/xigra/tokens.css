@@ -127,7 +127,14 @@
   --ui-space-4: 16px;
   --ui-space-6: 24px;
   --ui-control-height: 36px;
-  --ui-radius-control: 7px;
+  --ui-radius-control: 8px;
+  --ui-icon-hit: 36px;
+  --ui-icon-hit-compact: 32px;
+  --ui-icon-face: 28px;
+  --ui-motion-fast: 140ms;
+  --ui-motion-pressed: 100ms;
+  --ui-motion-overlay: 160ms;
+  --ui-motion-dialog: 190ms;
   --ui-radius-content: 10px;
   --ui-radius-floating: 12px;
   --ui-type-title: 18px;
@@ -150,6 +157,8 @@
   --ui-text-muted: #68717e;
   --ui-border-subtle: #dfe2e8;
   --ui-border-control: #7d879a;
+  --ui-border-field: #d1d5de;
+  --ui-surface-field: #f5f6f8;
   --ui-hover: #e5e7ec;
   --ui-nav-active: #e7e5f0;
   --ui-nav-on-active: #514779;
@@ -160,7 +169,8 @@
   --ui-focus-halo: #6955da22;
   --ui-grid-dot: #cdd2da;
   --ui-shadow-card: 0 1px 2px #171d2910, 0 3px 10px #171d2906;
-  --ui-shadow-floating: 0 2px 5px #171d2910, 0 12px 32px #171d291c;
+  --ui-shadow-floating: 0 2px 8px #171d2910, 0 8px 24px #171d291c;
+  --ui-shadow-modal: 0 4px 12px #171d2915, 0 18px 48px #171d2928;
 }
 :root[data-theme="dark"] {
   --ui-surface-app: #1b1e24;
@@ -175,6 +185,8 @@
   --ui-text-muted: #a5adbb;
   --ui-border-subtle: #343943;
   --ui-border-control: #77859d;
+  --ui-border-field: #4a515e;
+  --ui-surface-field: #252932;
   --ui-hover: #2c3039;
   --ui-nav-active: #30303d;
   --ui-nav-on-active: #d8d1f3;
@@ -184,5 +196,15 @@
   --ui-focus-halo: #b6a7ff24;
   --ui-grid-dot: #2a303a;
   --ui-shadow-card: 0 1px 3px #0002, 0 4px 12px #00000014;
-  --ui-shadow-floating: 0 2px 6px #0003, 0 14px 36px #0004;
+  --ui-shadow-floating: 0 2px 8px #0003, 0 10px 28px #0004;
+  --ui-shadow-modal: 0 4px 14px #0004, 0 18px 48px #0006;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ui-motion-fast: 0ms;
+    --ui-motion-pressed: 0ms;
+    --ui-motion-overlay: 0ms;
+    --ui-motion-dialog: 0ms;
+  }
 }

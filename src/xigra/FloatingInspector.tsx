@@ -1,3 +1,4 @@
+import { IconButton } from "../Button";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Pin, PinOff, X } from "lucide-react";
@@ -44,8 +45,8 @@ export function FloatingInspector({ host, anchor, title, closeLabel, onClose, ch
         const delta: Record<string, Point> = { ArrowLeft: { x: -16, y: 0 }, ArrowRight: { x: 16, y: 0 }, ArrowUp: { x: 0, y: -16 }, ArrowDown: { x: 0, y: 16 } };
         if (delta[event.key]) { event.preventDefault(); event.stopPropagation(); setManual(clamp({ x: position.x + delta[event.key].x, y: position.y + delta[event.key].y })); setPinned(true); }
       }}>{title}</h2>
-      <button className="icon-button" aria-label={pinned ? "取消固定浮窗位置" : "固定浮窗位置"} aria-pressed={pinned} onClick={() => { setPinned(!pinned); setManual(pinned ? undefined : position); }}>{pinned ? <PinOff size={16}/> : <Pin size={16}/>}</button>
-      <button className="icon-button" aria-label={closeLabel} onClick={onClose}><X size={18}/></button>
+      <IconButton hitArea="compact" aria-label={pinned ? "取消固定浮窗位置" : "固定浮窗位置"} aria-pressed={pinned} onClick={() => { setPinned(!pinned); setManual(pinned ? undefined : position); }}>{pinned ? <PinOff size={16}/> : <Pin size={16}/>}</IconButton>
+      <IconButton hitArea="compact" aria-label={closeLabel} onClick={onClose}><X size={18}/></IconButton>
     </header>
     <div className="topology-inspector-content">{children}</div>
   </aside>, host);

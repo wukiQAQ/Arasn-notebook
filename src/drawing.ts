@@ -76,8 +76,9 @@ export function strokeHit(points: number[][], a: number[], b: number[], radius: 
   return false;
 }
 export function transformStroke(points: number[][], from: ReturnType<typeof strokeBounds>, to: ReturnType<typeof strokeBounds>) {
-  return points.map(([x,y]) => [
+  return points.map(([x,y,...sample]) => [
     Math.max(-1e6,Math.min(1e6,to.x+(from.width ? (x-from.x)/from.width*to.width : from.height ? (y-from.y)/from.height*to.width : 0))),
     Math.max(-1e6,Math.min(1e6,to.y+(from.height ? (y-from.y)/from.height*to.height : from.width ? (x-from.x)/from.width*to.height : 0))),
+    ...sample,
   ]);
 }

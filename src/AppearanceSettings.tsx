@@ -68,9 +68,9 @@ function ColorControl({ label, value, fallback, onChange }: {
   }
   return <div className="appearance-color-control">
     <div className="appearance-color-fields">
-      <input type="color" aria-label={`选择${label}`} value={shown.toLowerCase()}
+      <input className="ui-field" type="color" aria-label={`选择${label}`} value={shown.toLowerCase()}
         onChange={event => { const color = event.target.value.toUpperCase(); setDraft(color); setInvalid(false); onChange(color); }}/>
-      <input className="appearance-hex" aria-label={`${label} HEX`} value={draft}
+      <input className="appearance-hex ui-field" aria-label={`${label} HEX`} value={draft}
         maxLength={7} spellCheck={false} autoComplete="off" aria-invalid={invalid || undefined} onBlur={commit}
         onChange={event => { setDraft(event.target.value); setInvalid(false); }}
         onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); commit(); } }}/>

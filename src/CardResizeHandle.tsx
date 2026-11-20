@@ -6,8 +6,9 @@ export function cardSize(width: number, height: number, limits = CARD_LIMITS) {
 }
 
 // Pointer deltas are screen pixels; only deliberate resizing writes world dimensions.
-export function CardResizeHandle({ width, height, zoom, limits, onPreview, onCommit, onCancel }: {
+export function CardResizeHandle({ width, height, zoom, limits, label = "调整便签卡片尺寸", onPreview, onCommit, onCancel }: {
   width: number; height: number; zoom: number;
+  label?: string;
   limits?: typeof CARD_LIMITS;
   onPreview(size: { width: number; height: number }): void;
   onCommit(size: { width: number; height: number }): void; onCancel(): void;
@@ -16,7 +17,7 @@ export function CardResizeHandle({ width, height, zoom, limits, onPreview, onCom
   const cancel = useRef(onCancel); cancel.current = onCancel;
   useEffect(() => { const reset = () => { if (gesture.current) { gesture.current = null; cancel.current(); } }; window.addEventListener('blur', reset); return () => window.removeEventListener('blur', reset); }, []);
   const size = (e: PointerEvent) => { const g = gesture.current!; return cardSize(g.width + (e.clientX - g.x) / g.zoom, g.height + (e.clientY - g.y) / g.zoom, limits); };
-  return <button className="card-resize-handle" aria-label="调整便签卡片尺寸" title="拖动调整尺寸；方向键微调" style={{ scale: 1 / zoom }}
+  return <button className="card-resize-handle" aria-label={label} title="拖动调整尺寸；方向键微调" style={{ scale: 1 / zoom }}
     onClick={e => e.stopPropagation()}
     onPointerDown={e => { e.stopPropagation(); if (e.button !== 0) return; e.preventDefault(); gesture.current = { pointer: e.pointerId, x: e.clientX, y: e.clientY, width, height, zoom }; e.currentTarget.setPointerCapture(e.pointerId); }}
     onPointerMove={e => { e.stopPropagation(); if (gesture.current?.pointer === e.pointerId) onPreview(size(e)); }}

@@ -10,11 +10,11 @@
   flex: none; width: auto; min-width: 0; padding-inline: 6px; font-size: 12px;
 }
 :root body .app-shell .window-navigation > button.quick-incoming.arasn-button[data-ui-button]:hover:not(:disabled) { background: var(--ui-hover); }
-:root body .app-shell .window-navigation :is(.window-navigation-controls,.window-navigation-actions) button.arasn-button[data-ui-button] { height: 36px; min-height: 36px; border-radius: 8px; }
+:root body .app-shell .window-navigation :is(.window-navigation-controls,.window-navigation-actions) button.arasn-button[data-ui-button] { height: 36px; min-height: 36px; border-radius: var(--ui-radius-control); }
 :root body .app-shell .window-navigation :is(.window-navigation-controls,.window-navigation-actions) button.arasn-button[data-ui-button]:not([data-ui-button="primary"]) { background: transparent; border-color: transparent; }
 :root body .app-shell .window-navigation :is(.window-navigation-controls,.window-navigation-actions) button.arasn-button.arasn-icon-button[data-ui-button] { width: 36px; min-width: 36px; padding: 0; }
 :root body .app-shell .window-navigation .window-navigation-controls button.arasn-button[data-ui-button="secondary"]:hover:not(:disabled) { background: var(--ui-hover); }
-:root body .app-shell .window-navigation .window-navigation-controls button.arasn-button[data-ui-button][aria-pressed="true"] { background: var(--ui-nav-active); border-color: var(--ui-focus); }
+:root body .app-shell .window-navigation .window-navigation-controls button.arasn-button[data-ui-button][aria-pressed="true"] { background: var(--ui-nav-active); border-color: transparent; color: var(--ui-nav-on-active); }
 .window-navigation button,.window-navigation .header-actions { -webkit-app-region: no-drag; }
 :root body .app-shell .window-navigation .window-navigation-actions button.arasn-button[data-ui-button="secondary"] { color: var(--ui-text-secondary); box-shadow: none; }
 :root body .app-shell .window-navigation .window-navigation-actions button.arasn-button[data-ui-button] svg { width: 18px; height: 18px; color: inherit; }
@@ -23,7 +23,7 @@
 :root body .app-shell .window-navigation .window-navigation-actions button.arasn-button[data-ui-button="secondary"]:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 1px; }
 @media(prefers-reduced-motion:reduce) { :root body .app-shell .window-navigation .window-navigation-actions button.arasn-button[data-ui-button], :root body .app-shell .window-navigation .window-navigation-actions button.arasn-button[data-ui-button] svg { transition: none; } }
 .window-navigation .window-page-title { -webkit-app-region: drag; }
-:root .free-workspace .toolbar,.relation-tool-panel { border-radius: 15px; background: var(--surface); box-shadow: 0 3px 14px #0002; }
+:root .free-workspace .toolbar,.relation-tool-panel { border-radius: var(--ui-radius-floating); background: var(--surface); box-shadow: var(--ui-shadow-card); }
 :root body .app-shell .window-navigation > button.arasn-button[data-ui-button] { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; background: transparent; border-color: transparent; }
 .window-context-actions { flex: none; max-width: 50%; }
 .window-context-actions .header-actions { display: flex; gap: 6px; align-items: center; }
@@ -31,7 +31,7 @@
 .window-actions-position { z-index: 160; }
 .adaptive-tooltip-position.window-tooltip-position { z-index: 21; }
 .window-tooltip-position .adaptive-tooltip { box-shadow: none; }
-.window-actions-popup { max-width: calc(100vw - 24px); padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 8px 28px #0003; }
+.window-actions-popup { max-width: calc(100vw - 24px); padding: 14px; border: 1px solid var(--line); border-radius: var(--ui-radius-floating); background: var(--ui-surface-floating); color: var(--ink); box-shadow: var(--ui-shadow-floating); }
 .window-actions-popup .header-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .window-actions-popup .mobile-settings,.window-actions-popup [aria-label="搜索与快捷操作"] { display: none; }
 .window-actions-popup button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border-radius: 10px; padding: 0 12px; border: 1px solid var(--line); background: var(--surface); color: inherit; cursor: pointer; }

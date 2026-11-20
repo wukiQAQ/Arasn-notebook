@@ -21,12 +21,13 @@ function TopBarActions({ search, commands, share }: {
     <ControlTooltip label="共享与设备" side="bottom" toolbar><Button iconOnly tooltip="" aria-label="全局共享" onClick={share}><Share2 size={18}/></Button></ControlTooltip>
   </div>;
 }
-export function WindowNavigationBar({ title, disabled, sidebar, sidebarMode, toggleCompact, hide, back, forward, canBack, canForward, search, commands, share, context, inboxAction }: {
+export function WindowNavigationBar({ title, disabled, sidebar, sidebarMode, toggleCompact, hide, back, forward, canBack, canForward, search, commands, share, context, inboxAction, canvasTitle }: {
   title: string; disabled: boolean; sidebar(): void; back(): void; forward(): void; canBack: boolean; canForward: boolean; search(): void; commands(): void; share(): void;
   sidebarMode: 'full' | 'compact' | 'hidden';
   toggleCompact(): void;
   hide(): void;
   context?: ReactNode;
+  canvasTitle?: ReactNode;
   inboxAction?: ReactNode;
 }) {
   const [width, setWidth] = useState(innerWidth);
@@ -60,7 +61,7 @@ export function WindowNavigationBar({ title, disabled, sidebar, sidebarMode, tog
       </ControlTooltip>}
       {!compactNavigation && historyActions}
     </div>
-    <h1 className="window-page-title"><span>{title}</span></h1>
+    <div className="window-page-context">{title && <h1 className="window-page-title"><span>{title}</span></h1>}{canvasTitle}</div>
     {inboxAction}
     {(wide ? <div className="window-context-actions">{context}</div> : <Popover.Root>
       <Popover.Trigger render={<Button iconOnly tooltip="页面操作" />} aria-label="页面操作"><MoreHorizontal size={18}/></Popover.Trigger>

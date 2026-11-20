@@ -15,10 +15,10 @@
 .attachment-file-copy strong { font-weight: 500; overflow-wrap: anywhere; }
 .attachment-file-copy small { display: block; font-size: 12px; color: var(--muted); line-height: 20px; margin-top: 2px; }
 .attachment-destinations, .attachment-popover footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.attachment-popover button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; gap: 6px; padding: 4px 10px; border: 1px solid var(--ui-border-control); border-radius: 8px; background: transparent; color: var(--ui-text-secondary); font: 500 13px/20px var(--ui-font); cursor: pointer; }
-.attachment-popover button:hover { background: var(--ui-hover); }
-.attachment-popover button:focus-visible { outline: 1px solid var(--ui-focus); outline-offset: 2px; }
-.attachment-popover button:disabled { opacity: .45; cursor: default; }
+.attachment-popover button:not(.arasn-icon-action,.arasn-button) { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; gap: 6px; padding: 4px 10px; border: 1px solid var(--ui-border-control); border-radius: 8px; background: transparent; color: var(--ui-text-secondary); font: 500 13px/20px var(--ui-font); cursor: pointer; }
+.attachment-popover button:not(.arasn-icon-action,.arasn-button):hover { background: var(--ui-hover); }
+.attachment-popover button:not(.arasn-icon-action,.arasn-button):focus-visible { outline: 1px solid var(--ui-focus); outline-offset: 2px; }
+.attachment-popover button:not(.arasn-icon-action,.arasn-button):disabled { opacity: .45; cursor: default; }
 .quick-attachment-popover {
   box-sizing: border-box; width: min(440px, calc(100vw - 40px));
   max-height: min(380px, max(0px, var(--available-height, 380px)));

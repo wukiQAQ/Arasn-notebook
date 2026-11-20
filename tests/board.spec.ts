@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 test("two clients share text and mouse drawing, recover offline edits and preserve conflicts", async ({
   browser,
 }) => {
@@ -11,12 +11,20 @@ test("two clients share text and mouse drawing, recover offline edits and preser
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(url);
   await peer.goto(url);
+  const note = (page: Page, index = 0) => page.locator(".spatial-note").nth(index);
+  const fillDetails = async (page: Page, text: string) => {
+    await page.getByRole("textbox", { name: "便签完整正文" }).fill(text);
+    await page.getByRole("button", { name: "关闭便签详情" }).click();
+  };
+  const editNote = async (page: Page, index: number, text: string) => {
+    await note(page, index).getByRole("button", { name: "查看完整便签" }).click();
+    await fillDetails(page, text);
+  };
+  const title = (page: Page, index = 0) => note(page, index).locator(".canvas-note-title");
   await page.getByRole("button", { name: "写一张便笺" }).click();
-  const note = page.getByRole("textbox", { name: "便笺文字" }).first();
-  await note.fill("周一例会\n确认本周交付与分工");
-  await expect(
-    peer.getByRole("textbox", { name: "便笺文字" }).first(),
-  ).toHaveValue("周一例会\n确认本周交付与分工", { timeout: 10000 });
+  await fillDetails(page, "周一例会\n确认本周交付与分工");
+  await expect(title(peer)).toHaveText("周一例会", { timeout: 10000 });
+  await expect(note(peer).locator(".canvas-note-summary")).toHaveText("确认本周交付与分工");
   await page.getByRole("button", { name: "自由绘图", exact: true }).click();
   const paper = await page.locator(".paper-scroll").boundingBox();
   await page.mouse.move(paper!.x + 380, paper!.y + 120);
@@ -26,40 +34,27 @@ test("two clients share text and mouse drawing, recover offline edits and preser
   await expect(peer.getByTestId("stroke")).toHaveCount(1, { timeout: 10000 });
   await page.getByRole("button", { name: "选择与拖动", exact: true }).click();
   await a.setOffline(true);
-  await note.fill("离线整理的会议重点");
+  await editNote(page, 0, "离线整理的会议重点");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("arasn-recovery"))).toContain("离线整理的会议重点");
   // Browser reload needs the host again; the outbox survives the page being recreated.
   await a.setOffline(false);
   await page.goto(url);
-  await expect(
-    peer.getByRole("textbox", { name: "便笺文字" }).first(),
-  ).toHaveValue("离线整理的会议重点", { timeout: 12000 });
+  await expect(title(peer)).toHaveText("离线整理的会议重点", { timeout: 12000 });
   await a.setOffline(true);
-  await page
-    .getByRole("textbox", { name: "便笺文字" })
-    .first()
-    .fill("本机冲突副本");
-  await peer
-    .getByRole("textbox", { name: "便笺文字" })
-    .first()
-    .fill("同事最新修改");
+  await editNote(page, 0, "本机冲突副本");
+  await editNote(peer, 0, "同事最新修改");
   await expect(peer.locator(".save-state")).toHaveText("已保存");
   await a.setOffline(false);
   await expect(
     page.getByRole("button", { name: /恢复 1 条本机改动/ }),
   ).toBeVisible({ timeout: 12000 });
-  await expect(
-    page.getByRole("textbox", { name: "便笺文字" }).first(),
-  ).toHaveValue("同事最新修改");
+  await expect(title(page)).toHaveText("同事最新修改");
   await page.getByRole("button", { name: /恢复 1 条本机改动/ }).click();
-  await expect(peer.getByRole("textbox", { name: "便笺文字" })).toHaveCount(2, {
+  await expect(peer.locator(".spatial-note")).toHaveCount(2, {
     timeout: 12000,
   });
   await page.getByRole("button", { name: "写一张便笺" }).click();
-  await page
-    .getByRole("textbox", { name: "便笺文字" })
-    .last()
-    .fill("随手记下，再一起完善。\n文字和草图都在这一页。");
+  await fillDetails(page, "随手记下，再一起完善。\n文字和草图都在这一页。");
   await expect(page.locator(".save-state")).toHaveText("已保存");
   const handle = page.locator(".note-handle").nth(1);
   const before = await handle.boundingBox();
@@ -70,14 +65,8 @@ test("two clients share text and mouse drawing, recover offline edits and preser
   await expect
     .poll(async () => (await handle.boundingBox())!.x)
     .toBeGreaterThan(before!.x + 150);
-  await page
-    .getByRole("textbox", { name: "便笺文字" })
-    .first()
-    .fill("周一例会 · 本周重点\n确认产品原型与交付时间");
-  await page
-    .getByRole("textbox", { name: "便笺文字" })
-    .nth(1)
-    .fill("待办清单\n□ 整理会议纪要\n□ 和同事确认方案");
+  await editNote(page, 0, "周一例会 · 本周重点\n确认产品原型与交付时间");
+  await editNote(page, 1, "待办清单\n□ 整理会议纪要\n□ 和同事确认方案");
   await page.getByRole("button", { name: "选择与拖动", exact: true }).click();
   const scroll = page.locator(".paper-scroll");
   const beforePan = await page.locator(".paper").evaluate(el => new DOMMatrix(getComputedStyle(el).transform).e);

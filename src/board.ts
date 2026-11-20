@@ -1,4 +1,5 @@
 import type { LanBridge } from "./xigra/LanNotesDialog";
+import type { FilePreviewData } from "./FilePreviewContent";
 import type { TriggerAction, TriggerBridge, TriggerConfig } from "./xigra/TriggerSettings";
 import type { TopologyLayout, TopologyViewport } from "./topology";
 import { centeredNodeLayout, enclosingBounds, vacantLayout } from "./topology.ts";
@@ -38,20 +39,25 @@ export type TextValue = {
 export type NodeValue = { type: "node"; text: string; title?: string; topology: TopologyLayout; freePlacement?: FreePlacement };
 export type ContentRef = { kind: "record" | "file"; id: string };
 export type CanvasNodeValue = { type: "canvas-node"; roomId: string; canvasId: string; contentRef: ContentRef; layout: TopologyLayout };
-export type CanvasEdgeValue = { type: "canvas-edge"; roomId: string; canvasId: string; fromNodeId: string; toNodeId: string; label: string; relationType?: "related" | "reference" | "dependency" | "resolves" | "source" | "attachment"; direction: "none" | "forward" | "both" };
+export type CanvasEdgeValue = { type: "canvas-edge"; roomId: string; canvasId: string; fromNodeId: string; toNodeId: string; fromPort?: import("./topology").PortSide; toPort?: import("./topology").PortSide; label: string; relationType?: "related" | "reference" | "dependency" | "resolves" | "source" | "attachment"; direction: "none" | "forward" | "both" };
 export type ContentLinkValue = { type: "content-link"; roomId: string; recordId: string; targetRef: ContentRef };
 export type StrokeValue = {
   type: "stroke";
+  canvasId?: string;
   color: string;
   width: number;
   opacity?: number;
   points: number[][];
   smoothing?: number;
   lineCap?: 'round'|'butt'|'square';
-  brush?: 'ink'|'marker'|'dash';
+  brush?: import('./brush').BrushKind;
+  inkVersion?: 1;
+  dashLength?: number;
+  dashGap?: number;
 };
-export type FreeFileValue = { type: "free-file"; roomId: string; contentRef: {kind:"file";id:string}; name: string; category: string; x:number; y:number; width:number; height:number; opacity?:number; localOnly:true };
-export type Value = FreeFileValue | TextValue | StrokeValue | NodeValue | CanvasNodeValue | CanvasEdgeValue | ContentLinkValue;
+export type FreeFileValue = { type: "free-file"; canvasId?: string; roomId: string; contentRef: {kind:"file";id:string}; name: string; category: string; x:number; y:number; width:number; height:number; opacity?:number; localOnly:true };
+export type FreeNoteValue = Omit<TextValue, "type" | "text" | "title" | "freePlacement" | "topology" | "localOnly"> & { type: "free-note"; canvasId: string; recordId: string };
+export type Value = FreeNoteValue | FreeFileValue | TextValue | StrokeValue | NodeValue | CanvasNodeValue | CanvasEdgeValue | ContentLinkValue;
 export type Item = { version: number; value: Value | null };
 export type Snapshot = {
   roomId: string;
@@ -103,6 +109,7 @@ export type DesktopInfo = {
   freeViewport?: TopologyViewport;
   topologyViewport?: TopologyViewport;
   canvasOptions?: import("./topology").CanvasOptions;
+  brushPreferences?: import('./brush').BrushPreset[];
   brushPresets?: import('./brush').BrushPreset[];
 };
 declare global {
@@ -111,13 +118,16 @@ declare global {
       readonly initialTheme: DesktopInfo["theme"];
       readonly initialAppearance: DesktopInfo["appearance"] | null;
       canvas: {
+        share(action: string, args?: Record<string, unknown>): Promise<import("./canvas-library-model").CanvasShare | null>;
+        catalog(action: string, args?: Record<string, unknown>): Promise<import("./canvas-library-model").Catalog | null>;
         migrate(options?: { dryRun?: boolean; roomId?: string; revision?: number }): Promise<CanvasMigrationResult>;
-        create(options: { roomId: string; recordId: string; nodeId: string; opId: string; layout: TopologyLayout; text?: string }): Promise<Snapshot>;
+        create(options: { roomId: string; canvasId?: string; recordId: string; nodeId: string; opId: string; layout: TopologyLayout; text?: string }): Promise<Snapshot>;
       };
       lan: LanBridge;
       files: {
         originalImage(id: string): Promise<string>;
         thumbnail(id: string): Promise<string | null>;
+        preview(id: string, mode?: "card" | "small" | "detail", page?: number): Promise<FilePreviewData | null>;
         list(
           options: Record<string, unknown>,
         ): Promise<{ rows: ManagedFile[]; total: number }>;
@@ -171,7 +181,7 @@ const RETRY_DELAY = 1500;
 const isReferenceValue = (value: Value | null) => Boolean(value && ["canvas-node", "canvas-edge", "content-link"].includes(value.type));
 
 function validRecovery(value: Recovery): boolean {
-  const isValue = (item: Value) => ["text", "stroke", "node", "canvas-node", "canvas-edge", "content-link"].includes(item?.type);
+  const isValue = (item: Value) => ["text", "stroke", "node", "canvas-node", "canvas-edge", "content-link", "free-note", "free-file"].includes(item?.type);
   const isOperation = (op: Operation) => op && typeof op.id === "string" &&
     typeof op.opId === "string" && Number.isSafeInteger(op.expected) && op.expected >= 0 &&
     (op.value === null || isValue(op.value));
@@ -413,8 +423,12 @@ export class BoardClient {
   }
 
   edit(id: string, value: Value | null) {
-    if (!this.ready || this.stopped) return;
-    this.enqueue(id, value);
+    this.editMany([{ id, value }]);
+  }
+
+  editMany(edits: { id: string; value: Value | null }[]) {
+    if (!edits.length || !this.ready || this.stopped) return;
+    for (const { id, value } of edits) this.enqueue(id, value);
     this.persist();
     this.changed();
     if (this.roomChanged) return;
@@ -454,6 +468,12 @@ export class BoardClient {
       throw new Error("有改动尚未保存，请先处理保存提示");
   }
 
+  async flushBeforeCanvasMigration() {
+    if (this.preserveRecovery) throw new Error("请先处理恢复副本，再迁移画布");
+    await this.flush();
+    await this.recoveryWrite;
+  }
+
   async clearPanel() {
     await this.flush();
     this.base = await window.desktop!.files.clearPanel();
@@ -470,19 +490,19 @@ export class BoardClient {
     return result;
   }
 
-  async createCanvasRecord(layout: TopologyLayout, text = "") {
+  async createCanvasRecord(layout: TopologyLayout, text = "", canvasId = this.base.roomId) {
     const roomId = this.base.roomId;
     const recordId = uid(), nodeId = uid(), opId = uid();
     await this.flush();
     if (this.base.roomId !== roomId) throw new Error("工作页已更换，请重试");
-    this.base = await window.desktop!.canvas.create({ roomId, recordId, nodeId, opId, layout, text });
+    this.base = await window.desktop!.canvas.create({ roomId, canvasId, recordId, nodeId, opId, layout, text });
     this.persist();
     this.changed();
     return nodeId;
   }
 
-  addRecordToCanvas(recordId: string, viewport?: TopologyViewport) {
-    const roomId = this.base.roomId, key = `${roomId}:${recordId}`;
+  addRecordToCanvas(recordId: string, viewport?: TopologyViewport, canvasId = this.base.roomId) {
+    const roomId = this.base.roomId, key = `${roomId}:${canvasId}:${recordId}`;
     const active = this.canvasAdds.get(key);
     if (active) return active;
     const add = async () => {
@@ -494,13 +514,13 @@ export class BoardClient {
       const items = this.view(), source = items[recordId]?.value;
       if ((source?.type !== "text" && source?.type !== "node") || (!source.text.trim() && !source.title?.trim())) throw new Error("请先保存一条有效记录");
       const found = Object.entries(items).find(([, item]) => item.value?.type === "canvas-node" && item.value.roomId === roomId &&
-        item.value.canvasId === roomId && item.value.contentRef.kind === "record" && item.value.contentRef.id === recordId);
+        item.value.canvasId === canvasId && item.value.contentRef.kind === "record" && item.value.contentRef.id === recordId);
       const nodeId = found?.[0] ?? uid();
       const bounds = enclosingBounds(Object.values(items).flatMap(item => item.value?.type === "canvas-node" &&
-        item.value.canvasId === roomId && !item.value.layout.hidden ? [item.value.layout] : []));
+        item.value.canvasId === canvasId && !item.value.layout.hidden ? [item.value.layout] : []));
       const center = viewport?.roomId === roomId ? viewport : { x: bounds ? bounds.x + bounds.width / 2 : 0, y: bounds ? bounds.y + bounds.height / 2 : 0 };
-      const value: CanvasNodeValue = found ? found[1].value as CanvasNodeValue : { type: "canvas-node", roomId, canvasId: roomId,
-        contentRef: { kind: "record", id: recordId }, layout: vacantLayout(centeredNodeLayout(center), items, roomId) };
+      const value: CanvasNodeValue = found ? found[1].value as CanvasNodeValue : { type: "canvas-node", roomId, canvasId,
+        contentRef: { kind: "record", id: recordId }, layout: vacantLayout(centeredNodeLayout(center), items, canvasId) };
       if (!found || value.layout.hidden) this.edit(nodeId, { ...value, layout: { ...value.layout, hidden: false } });
       await this.flush();
       const saved = this.base.items[nodeId]?.value;

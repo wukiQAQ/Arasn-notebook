@@ -1,0 +1,11 @@
+:root { font: 15px/1.5 system-ui, sans-serif; color-scheme: light dark; }
+body { max-width: 1140px; margin: auto; padding: 24px; }
+h1 { font-size: 25px; margin: 0; }
+p { margin: 4px 0 12px; }
+#canvas { display: block; width: 100%; height: min(60vh, 580px); background: Canvas; border: 1px solid GrayText; border-radius: 10px; }
+#cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 12px; margin-top: 18px; }
+article { padding: 13px; border: 1px solid GrayText; border-radius: 8px; overflow-wrap: anywhere; }
+article p { white-space: pre-wrap; }
+form { display: flex; flex-wrap: wrap; gap: 8px; }
+input { width: 5.5rem; }
+button { cursor: pointer; }

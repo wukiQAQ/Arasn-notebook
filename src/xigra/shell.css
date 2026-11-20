@@ -123,13 +123,13 @@
   .quick-file-action { margin-left: auto; }
 }
 .device-hub { width: min(560px, calc(100vw - 32px)); }
-.device-hub-actions { display: grid; gap: 12px; margin-top: 20px; }
-.device-hub-action { display: flex; align-items: center; gap: 14px; padding: 18px; width: 100%; border: 1px solid var(--xigra-border); border-radius: 10px; background: var(--xigra-surface); color: var(--xigra-text); text-align: left; }
+.device-hub-actions { display: grid; gap: 8px; margin-top: 16px; }
+:root body .modal .device-hub-action.arasn-button[data-ui-button] { justify-content: flex-start; gap: 14px; padding: 12px 14px; width: 100%; height: auto; min-height: 66px; color: var(--ui-text-primary); text-align: start; white-space: normal; }
 .device-hub-action > span { flex: 1; min-width: 0; display: grid; gap: 6px; }
 .device-hub-action strong { font-size: 15px; font-weight: 600; }
 .device-hub-action small { color: var(--xigra-muted); font-size: 12px; line-height: 1.6; }
-.device-hub-action:hover { background: var(--xigra-hover); border-color: var(--xigra-control-border); }
-.device-hub-action:focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 3px; }
+:root body .modal .device-hub-action.arasn-button[data-ui-button] > svg:first-child { width: 22px; height: 22px; }
+.device-hub-action > svg:last-child { opacity: .65; }
 .device-inbox-count { border-radius: 6px; background: var(--xigra-selected); color: var(--xigra-on-selected); padding: 1px 6px; font-size: 11px; }
 .device-hub-action .device-pending { color: var(--xigra-brand); }
 

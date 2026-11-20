@@ -32,6 +32,22 @@ class PanelEngine {
     }
     return result;
   }
+  async sharedCanvas(args) {
+    const result = await this.storage.call("sharedCanvas", args);
+    if (result.state && result.state.revision >= this.state.revision) {
+      this.state = result.state;
+      this.notify();
+    }
+    return result.view ?? result;
+  }
+  async catalog(action, args = {}) {
+    const result = await this.storage.call("canvasCatalog", { ...args, action });
+    if (result.state && result.state.revision >= this.state.revision) {
+      this.state = result.state;
+      this.notify();
+    }
+    return result.catalog;
+  }
   async createCanvasRecord(options) {
     this.state = await this.storage.call("canvasCreate", options);
     this.notify();

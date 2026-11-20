@@ -28,14 +28,15 @@ function validateTopology(value) {
       (value.hidden !== undefined && typeof value.hidden !== "boolean") ||
       (value.locked !== undefined && typeof value.locked !== "boolean") ||
       (value.autoSize !== undefined && typeof value.autoSize !== "boolean") ||
-      (value.color !== undefined && (typeof value.color !== "string" || !/^#[0-9a-f]{6}$/i.test(value.color))))
+      (value.color !== undefined && (typeof value.color !== "string" || !/^#[0-9a-f]{6}$/i.test(value.color))) ||
+      (value.customTypeId !== undefined && !idValid(value.customTypeId)))
     throw fail(400, "节点布局或状态无效");
-  const { x, y, width, height, kind, status, hidden, locked, autoSize, color } = value;
-  return { x, y, width, height, kind, status, ...(hidden ? { hidden } : {}), ...(locked !== undefined ? { locked } : {}), ...(autoSize !== undefined ? { autoSize } : {}), ...(color ? { color } : {}) };
+  const { x, y, width, height, kind, status, hidden, locked, autoSize, color, customTypeId } = value;
+  return { x, y, width, height, kind, status, ...(hidden ? { hidden } : {}), ...(locked !== undefined ? { locked } : {}), ...(autoSize !== undefined ? { autoSize } : {}), ...(color ? { color } : {}), ...(customTypeId ? { customTypeId } : {}) };
 }
 
 const REFERENCE_TYPES = ["canvas-node", "canvas-edge", "content-link"];
-const localTopologyItem = (item) => item?.value?.type === "node" || item?.value?.type === "free-file" ||
+const localTopologyItem = (item) => Boolean(item?.value?.canvasId) || item?.value?.type === "node" || item?.value?.type === "free-file" ||
   REFERENCE_TYPES.includes(item?.value?.type) || item?.value?.localOnly === true || item?.scope === "topology";
 
 function validateRef(ref) {
@@ -54,10 +55,18 @@ function legacySnapshot(snapshot) {
 }
 
 function validateValue(value) {
+  if (value?.canvasId !== undefined && !idValid(value.canvasId)) throw fail(400, "画布编号无效");
+  const canvasScope = value?.canvasId === undefined ? {} : { canvasId: value.canvasId };
+  if (value?.type === "free-note") {
+    if (!value.canvasId || !idValid(value.recordId)) throw fail(400, "便签引用无效");
+    const { x, y, color, width, height, opacity, bold, fontSize } = value;
+    const { type, text, ...style } = validateValue({ type: "text", text: "", x, y, color, width, height, opacity, bold, fontSize });
+    return { ...style, type: "free-note", recordId: value.recordId, canvasId: value.canvasId };
+  }
   if (value?.opacity !== undefined && (typeof value.opacity !== "number" || !Number.isFinite(value.opacity) || value.opacity < .1 || value.opacity > 1)) throw fail(400,"不透明度无效");
   if (value?.type === "free-file") {
     if (!idValid(value.roomId) || value.localOnly !== true || value.contentRef?.kind !== "file" || !idValid(value.contentRef.id) || typeof value.name !== "string" || value.name.length > 255 || typeof value.category !== "string" || value.category.length > 16 || !worldCoordinate(value.x) || !worldCoordinate(value.y) || !finite(value.width,1200) || value.width < 120 || !finite(value.height,1200) || value.height < 96) throw fail(400,"附件位置或引用无效");
-    return {type:"free-file",roomId:value.roomId,contentRef:validateRef(value.contentRef),name:value.name,category:value.category,x:value.x,y:value.y,width:value.width,height:value.height,localOnly:true,...(value.opacity!==undefined?{opacity:value.opacity}:{})};
+    return {...canvasScope,type:"free-file",roomId:value.roomId,contentRef:validateRef(value.contentRef),name:value.name,category:value.category,x:value.x,y:value.y,width:value.width,height:value.height,localOnly:true,...(value.opacity!==undefined?{opacity:value.opacity}:{})};
   }
   if (REFERENCE_TYPES.includes(value?.type)) {
     if (!idValid(value.roomId)) throw fail(400, "引用工作页无效");
@@ -73,8 +82,12 @@ function validateValue(value) {
       throw fail(400, "连接关系无效");
     if (value.relationType !== undefined && !["related", "reference", "dependency", "resolves", "source", "attachment"].includes(value.relationType))
       throw fail(400, "关系类型无效");
+    const { fromPort, toPort } = value;
+    const sides = ["top", "right", "bottom", "left"];
+    if ((fromPort !== undefined || toPort !== undefined) && (!sides.includes(fromPort) || !sides.includes(toPort)))
+      throw fail(400, "连接端点无效");
     return { ...base, fromNodeId: value.fromNodeId, toNodeId: value.toNodeId, label: value.label, direction: value.direction,
-      ...(value.relationType !== undefined ? { relationType: value.relationType } : {}) };
+      ...(value.relationType !== undefined ? { relationType: value.relationType } : {}), ...(fromPort ? { fromPort, toPort } : {}) };
   }
   if (["text", "node"].includes(value?.type) && value.title !== undefined &&
       (typeof value.title !== "string" || value.title.length > 200 || /[\r\n]/.test(value.title))) throw fail(400, "便签标题超出限制");
@@ -132,18 +145,20 @@ function validateValue(value) {
     };
   }
   if (value.type === "stroke") {
-    if ((value.brush !== undefined && !['ink','marker','dash'].includes(value.brush)) ||
+    if ([value.dashLength,value.dashGap].some(n=>n!==undefined&&(!Number.isFinite(n)||n<1||n>120)) ||
+        (value.inkVersion !== undefined && value.inkVersion !== 1) ||
+        (value.brush !== undefined && !['ink','pencil','marker','highlighter','calligraphy','dash'].includes(value.brush)) ||
         (value.lineCap !== undefined && !['round','butt','square'].includes(value.lineCap)) ||
         (value.smoothing !== undefined && (typeof value.smoothing !== 'number' || !Number.isFinite(value.smoothing) || value.smoothing < 0 || value.smoothing > 1))) throw fail(400,'笔刷参数无效');
     if (
-      ![2, 4, 7, 12].includes(value.width) ||
+      !(Number.isFinite(value.width) && value.width >= .5 && value.width <= 40 && Number.isInteger(value.width * 2)) ||
       !Array.isArray(value.points) ||
       value.points.length < 1 ||
       value.points.length > 3000 ||
       value.points.some(
         (p) =>
           !Array.isArray(p) ||
-          p.length !== 2 ||
+          (p.length !== 2 && !(value.inkVersion === 1 && p.length === 3 && Number.isFinite(p[2]) && p[2] >= 0 && p[2] <= 1)) ||
           !worldCoordinate(p[0]) ||
           !worldCoordinate(p[1]),
       )
@@ -151,9 +166,13 @@ function validateValue(value) {
       throw fail(400, "笔迹超出限制");
     return {
       type: "stroke",
+      ...canvasScope,
       color: value.color,
       width: value.width,
       points: value.points,
+      ...(value.inkVersion === 1 ? {inkVersion:1}:{}),
+      ...(value.dashLength !== undefined ? {dashLength:value.dashLength}:{}),
+      ...(value.dashGap !== undefined ? {dashGap:value.dashGap}:{}),
       ...(value.brush !== undefined ? {brush:value.brush}:{}),
       ...(value.lineCap !== undefined ? {lineCap:value.lineCap}:{}),
       ...(value.smoothing !== undefined ? {smoothing:value.smoothing}:{}),
@@ -230,7 +249,7 @@ function createStore(file, initial) {
       if (current?.value && value && (localTopologyItem(current) || localTopologyItem({ value })) &&
           (current.value.type !== value.type || Boolean(current.value.localOnly) !== Boolean(value.localOnly)))
         throw fail(409, "不能更改本机内容的类型或共享范围");
-      if (current?.value?.canvasId && value?.canvasId && current.value.canvasId !== value.canvasId)
+      if (current?.value && value && current.value.canvasId !== value.canvasId)
         throw fail(409, "不能将引用移动到其他画布");
       if (value?.type === "free-file" && value.roomId !== state.roomId) throw fail(400,"附件工作页已更换");
       if (value?.type === "canvas-edge") {
@@ -277,6 +296,8 @@ function startServer({
   port = 0,
   staticDir,
   legacyOnly = false,
+  preview,
+  canvasShare,
 }) {
   const server = http.createServer(async (req, res) => {
     const send = (status, value) => {
@@ -290,10 +311,12 @@ function startServer({
     res.setHeader("Cache-Control", "no-store");
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
     );
     try {
       const url = new URL(req.url, "http://localhost");
+      if (preview && url.pathname.startsWith("/preview-content/"))
+        return await preview(req, res, url.pathname.slice("/preview-content/".length));
       if (url.pathname.startsWith("/api/")) {
         const auth = req.headers.authorization || "";
         const expected = `Bearer ${token}`;
@@ -307,8 +330,21 @@ function startServer({
           req.headers.origin !== `http://${req.headers.host}`
         )
           return send(403, { error: "不允许跨站请求" });
+        if (canvasShare && req.method === "GET" && url.pathname.startsWith("/api/attachment/")) {
+          const file = await canvasShare.file(url.pathname.slice("/api/attachment/".length));
+          const stream = fs.createReadStream(file.path);
+          stream.on("error", () => res.destroy());
+          res.on("close", () => stream.destroy());
+          res.writeHead(200, {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": file.size,
+            "Content-Disposition": "attachment; filename*=UTF-8''" + encodeURIComponent(file.name),
+          });
+          stream.pipe(res);
+          return;
+        }
         if (req.method === "GET" && url.pathname === "/api/board") {
-          const state = store.snapshot();
+          const state = canvasShare ? await canvasShare.snapshot(req.socket.remoteAddress) : store.snapshot();
           if (
             url.searchParams.get("roomId") === state.roomId &&
             url.searchParams.get("revision") === String(state.revision)
@@ -338,18 +374,26 @@ function startServer({
           } catch {
             throw fail(400, "JSON 无效");
           }
-          const state = await store.apply(operation, { legacyOnly });
+          const state = canvasShare ? await canvasShare.apply(operation) : await store.apply(operation, { legacyOnly });
           return send(200, legacyOnly ? legacySnapshot(state) : state);
         }
         return send(404, { error: "接口不存在" });
       }
       if (req.method !== "GET") return send(405, { error: "请求方法无效" });
+      if (canvasShare) {
+        const asset = canvasShare.assets[url.pathname];
+        if (!asset) return send(404, { error: "文件不存在" });
+        res.setHeader("Content-Type", asset.type);
+        return res.end(asset.body);
+      }
       const relative =
         url.pathname === "/"
           ? "index.html"
           : decodeURIComponent(url.pathname).slice(1);
       if (
         relative !== "index.html" &&
+        !(preview && (relative === "file-preview-worker.html" ||
+          /^preview-pdf\/(cmaps|standard_fonts)\/[a-zA-Z0-9_.-]+$/.test(relative))) &&
         !/^assets\/[a-zA-Z0-9_.-]+$/.test(relative)
       )
         return send(404, { error: "文件不存在" });
@@ -360,6 +404,7 @@ function startServer({
         {
           ".html": "text/html; charset=utf-8",
           ".js": "text/javascript; charset=utf-8",
+          ".mjs": "text/javascript; charset=utf-8",
           ".css": "text/css; charset=utf-8",
           ".svg": "image/svg+xml",
         }[path.extname(file)] || "application/octet-stream",

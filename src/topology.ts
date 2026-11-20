@@ -6,13 +6,46 @@ export const NODE_KINDS = {
 export const NODE_STATUSES = { open: "待处理", active: "进行中", done: "已完成" };
 export const RELATION_TYPES = { related: "关联", reference: "引用", dependency: "依赖", resolves: "解决", source: "来源", attachment: "附件" };
 
-export function relationCurve(from: Point, to: Point) {
-  const bend = Math.max(80, Math.abs(to.x - from.x) * 0.5);
-  return `M ${from.x} ${from.y} C ${from.x + bend} ${from.y}, ${to.x - bend} ${to.y}, ${to.x} ${to.y}`;
+export const PORT_SIDES = ["top", "right", "bottom", "left"] as const;
+export type PortSide = typeof PORT_SIDES[number];
+const PORT_NORMAL: Record<PortSide, Point> = {
+  top: { x: 0, y: -1 }, right: { x: 1, y: 0 }, bottom: { x: 0, y: 1 }, left: { x: -1, y: 0 },
+};
+
+export function portPoint(box: Bounds, side: PortSide): Point {
+  const normal = PORT_NORMAL[side];
+  return { x: box.x + box.width * (1 + normal.x) / 2, y: box.y + box.height * (1 + normal.y) / 2 };
+}
+
+export function nearestPort(box: Bounds, point: Point): PortSide {
+  let distance = Infinity;
+  let nearest: PortSide = "top";
+  for (const side of PORT_SIDES) {
+    const anchor = portPoint(box, side);
+    const next = Math.hypot(anchor.x - point.x, anchor.y - point.y);
+    if (next < distance) { nearest = side; distance = next; }
+  }
+  return nearest;
+}
+
+function portControls(start: Point, end: Point, from: PortSide, to: PortSide | undefined, zoom: number) {
+  const bend = Math.min(160 / zoom, Math.hypot(end.x - start.x, end.y - start.y) * .45);
+  const control = (point: Point, side: PortSide) => ({
+    x: point.x + PORT_NORMAL[side].x * bend, y: point.y + PORT_NORMAL[side].y * bend,
+  });
+  return { c1: control(start, from), c2: to ? control(end, to) : end };
+}
+
+const cubicPath = (start: Point, c1: Point, c2: Point, end: Point) =>
+  `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
+
+export function relationDraft(start: Point, end: Point, from: PortSide, to: PortSide | undefined, zoom: number) {
+  const { c1, c2 } = portControls(start, end, from, to, zoom);
+  return cubicPath(start, c1, c2, end);
 }
 
 // Layout-only geometry: existing node IDs, relation types and stored endpoints stay unchanged.
-export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLabels: Bounds[] = []) {
+export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLabels: Bounds[] = [], ports?: { fromPort?: PortSide; toPort?: PortSide }) {
   // Stacked cards use their top/bottom boundaries when a horizontal route would enter a card.
   const vertical = a.x < b.x + b.width && b.x < a.x + a.width &&
     (a.y + a.height < b.y || b.y + b.height < a.y);
@@ -30,8 +63,11 @@ export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLab
   const normalBend = Math.max(40 / zoom, Math.min(180 / zoom, Math.abs(to.x - from.x) * .5 + Math.abs(to.y - from.y) * .12));
   // Close, separated cards keep monotonic control points instead of folding back.
   const bend = vertical || short ? Math.min(normalBend, Math.abs(to.x - from.x) / 2) : normalBend;
-  const start = world(from), end = world(to);
-  const c1 = world({ x: from.x + direction * bend, y: from.y }), c2 = world({ x: to.x - direction * bend, y: to.y });
+  const sourceAnchor = ports?.fromPort ? portPoint(a, ports.fromPort) : world({ x: sourcePort, y: from.y });
+  const targetAnchor = ports?.toPort ? portPoint(b, ports.toPort) : world({ x: targetPort, y: to.y });
+  const start = ports?.fromPort ? sourceAnchor : world(from), end = ports?.toPort ? targetAnchor : world(to);
+  const { c1, c2 } = ports?.fromPort && ports.toPort ? portControls(start, end, ports.fromPort, ports.toPort, zoom)
+    : { c1: world({ x: from.x + direction * bend, y: from.y }), c2: world({ x: to.x - direction * bend, y: to.y }) };
   const point = (t: number) => {
     const u = 1 - t;
     return { x: u ** 3 * start.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t ** 3 * end.x,
@@ -46,20 +82,22 @@ export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLab
     if (![a, b].some(node => overlaps(rect, node, 8 / zoom)) && !occupiedLabels.some(other => overlaps(rect, other, 4 / zoom))) { label = candidate; break search; }
   }
   return { start, end, c1, c2, label, labelWidth, direction, vertical,
-    sourceAnchor: world({ x: sourcePort, y: from.y }), targetAnchor: world({ x: targetPort, y: to.y }),
+    sourceAnchor, targetAnchor,
     labelBounds: { x: label.x - labelWidth / 2 / zoom, y: label.y - 14 / zoom, width: labelWidth / zoom, height: 28 / zoom },
-    path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}` };
+    path: cubicPath(start, c1, c2, end) };
 }
 
 export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
 export type Bounds = Point & Size;
 export type Camera = Point & { zoom: number };
-export type CanvasOptions = { roomId: string; grid: boolean; snap: boolean; minimap: boolean; wheel: "auto" | "zoom" | "pan"; nodeDisplay?: "detailed" | "compact" };
+export type CustomNodeType = { id: string; name: string; icon: string; color: string; description?: string };
+export type CanvasOptions = { roomId: string; grid: boolean; snap: boolean; minimap: boolean; wheel: "auto" | "zoom" | "pan"; nodeDisplay?: "detailed" | "compact"; nodeTypes?: CustomNodeType[] };
 export type TopologyViewport = Camera & { roomId: string };
 export type TopologyLayout = Bounds & {
   kind: keyof typeof NODE_KINDS;
   status: keyof typeof NODE_STATUSES;
+  customTypeId?: string;
   hidden?: boolean;
   locked?: boolean;
   autoSize?: boolean;
@@ -102,7 +140,7 @@ export function layoutOf(value: TopologyNote) {
 export function sameLayout(a: TopologyLayout, b: TopologyLayout) {
   return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height &&
     a.kind === b.kind && a.status === b.status && Boolean(a.hidden) === Boolean(b.hidden) &&
-    Boolean(a.locked) === Boolean(b.locked) && Boolean(a.autoSize) === Boolean(b.autoSize) && a.color === b.color;
+    Boolean(a.locked) === Boolean(b.locked) && Boolean(a.autoSize) === Boolean(b.autoSize) && a.color === b.color && a.customTypeId === b.customTypeId;
 }
 
 export function screenToWorld(point: Point, size: Size, camera: Camera): Point {

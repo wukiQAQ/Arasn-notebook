@@ -1,0 +1,35 @@
+{
+  "full": {
+    "title": 163,
+    "main": 212,
+    "toolbar": 212,
+    "frame": 212,
+    "panel": 224,
+    "viewport": 212,
+    "width": 200
+  },
+  "compact": {
+    "title": 163,
+    "main": 76,
+    "toolbar": 76,
+    "frame": 76,
+    "panel": 88,
+    "viewport": 76,
+    "width": 64
+  },
+  "hidden": {
+    "title": 163,
+    "main": 12,
+    "toolbar": 12,
+    "frame": 12,
+    "panel": 24,
+    "viewport": 12,
+    "width": 0
+  },
+  "select": {
+    "outline": "0px",
+    "shadow": "rgb(125, 135, 154) 0px 0px 0px 1px inset",
+    "weight": "400",
+    "background": "rgb(229, 231, 236)"
+  }
+}

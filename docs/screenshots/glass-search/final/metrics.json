@@ -1,0 +1,72 @@
+{
+  "metrics": [
+    {
+      "theme": "dark",
+      "style": {
+        "background": "rgba(28, 32, 43, 0.78)",
+        "image": "linear-gradient(rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0) 64px), none",
+        "blur": "blur(10px) saturate(1.2)",
+        "radius": "16px",
+        "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.22) 0px 8px 24px 0px",
+        "border": "0.666667px",
+        "color": "rgb(240, 242, 248)"
+      },
+      "changedPixels": 20640,
+      "withBlur": {
+        "median": 6.099999999999909,
+        "p95": 6.199999999999818,
+        "over34": 0,
+        "frames": 90
+      },
+      "withoutBlur": {
+        "median": 6.099999999999454,
+        "p95": 6.199999999999818,
+        "over34": 0,
+        "frames": 90
+      },
+      "filterMs": 8
+    },
+    {
+      "theme": "light",
+      "style": {
+        "background": "rgba(249, 251, 255, 0.78)",
+        "image": "linear-gradient(rgba(255, 255, 255, 0.46), rgba(0, 0, 0, 0) 64px), none",
+        "blur": "blur(10px) saturate(1.2)",
+        "radius": "16px",
+        "shadow": "rgba(255, 255, 255, 0.46) 0px 1px 0px 0px inset, rgba(28, 38, 59, 0.14) 0px 8px 24px 0px",
+        "border": "0.666667px",
+        "color": "rgb(38, 48, 68)"
+      },
+      "changedPixels": 27840,
+      "withBlur": {
+        "median": 6.099999999998545,
+        "p95": 6.199999999998909,
+        "over34": 0,
+        "frames": 90
+      },
+      "withoutBlur": {
+        "median": 6.100000000000364,
+        "p95": 6.199999999998909,
+        "over34": 0,
+        "frames": 90
+      },
+      "filterMs": 9
+    }
+  ],
+  "gpu": {
+    "2d_canvas": "enabled",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "enabled",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "enabled_on",
+    "rasterization": "enabled",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "disabled_off",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "enabled",
+    "video_encode": "enabled",
+    "webgl": "enabled",
+    "webgpu": "enabled",
+    "webnn": "disabled_off"
+  }
+}

@@ -18,22 +18,53 @@
 .file-station .file-list-grid .file-select { grid-row: 2; }
 .file-station .file-list-grid .file-meta { grid-row: 2; }
 .file-station .file-list-grid .file-row-actions { grid-column: 1 / -1; flex-wrap: wrap; }
-.file-picker { position: fixed; z-index: 70; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; gap: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: var(--xigra-shadow-floating); }
-.file-picker header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
-.file-picker h2 { margin: 0 0 8px; font-size: 20px; }
-.file-picker header p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
-.file-picker button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--surface); }
-.file-picker button:hover:not(:disabled) { background: var(--xigra-hover); }
-.file-picker-controls, .file-picker footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.file-picker-controls > input { flex: 1; min-width: 120px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--desk); color: var(--ink); }
-.file-picker-list { min-height: 90px; overflow: auto; display: grid; gap: 4px; }
-.file-picker-list label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; border-radius: 7px; background: var(--desk); }
-.file-picker-list label > span { overflow-wrap: anywhere; flex: 1; min-width: 0; font-size: 14px; }
-.file-picker-list small { color: var(--muted); }
-.file-picker .file-primary { margin-inline-start: auto; color: var(--xigra-on-brand); background: var(--xigra-brand); border-color: var(--xigra-brand); }
-.file-picker .file-primary:hover:not(:disabled) { background: var(--xigra-brand-hover); }
-.file-picker :focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 2px; }
-.file-picker button:disabled { opacity: .45; cursor: default; }
+.file-picker { position: fixed; z-index: 70; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(640px, calc(100vw - 24px)); height: min(680px, calc(100dvh - 28px)); display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: var(--ui-shadow-modal); }
+.file-picker header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.file-picker h2 { margin: 0; font-size: 20px; }
+.file-picker-controls, .file-picker footer { display: flex; flex: none; align-items: center; flex-wrap: wrap; gap: 8px; }
+.file-picker-controls > input { flex: 1; min-width: 0; width: 0; min-height: var(--ui-control-height); }
+.file-picker-layout { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--ui-surface-subtle); }
+.file-picker :is(.file-picker-layout, .file-picker-row) .arasn-icon-action { --icon-hit: 34px; }
+:root .file-picker .arasn-icon-action:focus-visible { outline-width: 1px; }
+.file-picker-layout .arasn-icon-action[aria-pressed="true"] .arasn-icon-action-face { background: var(--ui-nav-active); color: var(--ui-nav-on-active); }
+.file-picker-list { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 3px; padding: 4px 2px; border-block: 1px solid var(--line); scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent; }
+.file-picker-list[data-layout="grid"] { grid-template-columns: repeat(auto-fill, minmax(min(136px, 100%), 1fr)); gap: 8px; }
+.file-picker-empty { grid-column: 1 / -1; margin: 20px 8px; color: var(--muted); font-size: 13px; text-align: center; }
+.file-picker-row { min-width: 0; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding-inline-end: 6px; border-radius: 8px; }
+.file-picker-row:hover { background: var(--ui-surface-subtle); }
+.file-picker-row[data-selected="true"] { background: var(--ui-nav-active); }
+.file-picker-select { display: grid; grid-template-columns: auto 48px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; min-height: 64px; padding: 8px; cursor: pointer; }
+.file-picker-select input { margin: 0 2px; width: 16px; height: 16px; accent-color: var(--ui-action); }
+.file-picker-select input:focus-visible { outline: 1px solid var(--ui-focus); outline-offset: 2px; }
+.file-picker-file { min-width: 0; display: grid; gap: 3px; }
+.file-picker-file > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 620; }
+.file-picker-file small, .file-picker-quick small, .file-picker footer > span { color: var(--muted); font-size: 11px; }
+.file-picker-file small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-preview-surface { display: grid; align-items: stretch; height: 48px; min-width: 0; min-height: 0; overflow: hidden; border-radius: 5px; background: var(--ui-surface-subtle); color: var(--muted); }
+.picker-preview-surface > img { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.picker-preview-placeholder { display: grid; place-content: center; justify-items: center; gap: 5px; text-align: center; font-size: 11px; }
+.picker-preview-surface :is(.preview-text-content,.preview-table-wrap) { min-width: 0; overflow: hidden; padding: 4px; font-size: 9px; }
+.picker-preview-surface .preview-waveform { place-self: center; width: 88%; height: 36%; gap: 0; }
+.picker-preview-surface pre { overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; font-size: inherit; }
+[data-layout="grid"] .file-picker-row { align-items: start; padding: 0; background: var(--ui-surface-subtle); }
+[data-layout="grid"] .file-picker-row:hover { background: var(--xigra-hover); }
+[data-layout="grid"] .file-picker-row[data-selected="true"] { background: var(--ui-nav-active); }
+[data-layout="grid"] .file-picker-select { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr); gap: 7px; }
+[data-layout="grid"] .file-picker-select input { position: absolute; top: 12px; left: 12px; z-index: 1; }
+[data-layout="grid"] .picker-preview-surface { height: 92px; background: var(--surface); }
+.file-picker [data-layout="grid"] .file-picker-preview-action { position: absolute; top: 8px; right: 8px; }
+.file-picker [data-layout="grid"] .file-picker-preview-action .arasn-icon-action-face { color: var(--ink); background: var(--surface); }
+.file-picker [data-layout="grid"] .file-picker-preview-action:hover .arasn-icon-action-face { background: var(--ui-nav-active); }
+[data-layout="grid"] .picker-preview-surface :is(.preview-text-content,.preview-table-wrap) { padding-top: 30px; }
+:is([data-layout="grid"], .file-picker-quick) .picker-preview-surface .preview-waveform { gap: 1px; }
+.file-picker footer > span { min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
+.file-picker .file-primary { margin-inline-start: auto; }
+.file-picker-quick { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: 5px; overflow: hidden; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); box-shadow: 0 3px 12px #0002; pointer-events: none; animation: picker-quick-in 140ms ease-out both; }
+.file-picker-quick > strong { font-size: 12px; overflow-wrap: anywhere; }
+.file-picker-quick .picker-preview-surface { height: 128px; flex: 1 1 auto; }
+.file-picker-quick :is(.preview-text-content,.preview-table-wrap) { padding: 8px; font-size: 11px; }
+@keyframes picker-quick-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .file-picker-quick { animation: none; } }
 .record-attachments { max-height: 180px; overflow: auto; padding: 8px 20px; display: grid; gap: 6px; border-top: 1px solid var(--line); }
 .record-attachments > div { display: flex; align-items: center; gap: 8px; }
 .record-attachments > div > span:not(.file-media) { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
@@ -55,5 +86,11 @@
   .file-station .file-layout { gap: 2px; }
   .file-station .file-layout button { width: 30px; }
   .file-station .file-list-grid { grid-template-columns: minmax(0, 1fr); }
-  .file-picker { padding: 16px; }
+  .file-picker { padding: 12px; gap: 8px; }
+  .file-picker-controls, .file-picker footer { gap: 6px; }
+}
+@media (max-width: 420px) {
+  .file-picker footer .arasn-button { padding-inline: 8px; }
+  .file-picker footer > span { min-width: 34px; }
+  .file-picker-quick .picker-preview-surface { height: 104px; }
 }

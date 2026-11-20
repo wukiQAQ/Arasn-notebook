@@ -3,6 +3,8 @@ contextBridge.exposeInMainWorld("desktop", {
   initialTheme: ipcRenderer.sendSync("app:theme"),
   initialAppearance: ipcRenderer.sendSync("app:appearance"),
   canvas: {
+    share: (action, args) => ipcRenderer.invoke("canvas:share", action, args),
+    catalog: (action, args) => ipcRenderer.invoke("canvas:catalog", action, args),
     create: (options) => ipcRenderer.invoke("canvas:create", options),
     migrate: (options) => ipcRenderer.invoke("canvas:migrate", options),
   },
@@ -30,6 +32,7 @@ contextBridge.exposeInMainWorld("desktop", {
   files: {
     originalImage: id => ipcRenderer.invoke("files:originalImage", id),
     thumbnail: (id) => ipcRenderer.invoke("files:thumbnail", id),
+    preview: (id, mode, page) => ipcRenderer.invoke("files:preview", id, mode, page),
     list: (options) => ipcRenderer.invoke("files:list", options),
     choose: () => ipcRenderer.invoke("files:choose"),
     drop: (files) =>

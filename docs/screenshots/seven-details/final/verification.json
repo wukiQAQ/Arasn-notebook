@@ -1,0 +1,773 @@
+{
+  "checks": [
+    "automatic save is silent",
+    {
+      "page": "quick",
+      "theme": "light",
+      "window": "normal",
+      "bar": {
+        "x": 24,
+        "y": 642,
+        "width": 287.40625,
+        "height": 42,
+        "top": 642,
+        "right": 311.40625,
+        "bottom": 684,
+        "left": 24
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 37,
+            "y": 651,
+            "width": 141.421875,
+            "height": 24,
+            "top": 651,
+            "right": 178.421875,
+            "bottom": 675,
+            "left": 37
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 186.421875,
+            "y": 648,
+            "width": 81.984375,
+            "height": 30,
+            "top": 648,
+            "right": 268.40625,
+            "bottom": 678,
+            "left": 186.421875
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 272.40625,
+            "y": 648,
+            "width": 30,
+            "height": 30,
+            "top": 648,
+            "right": 302.40625,
+            "bottom": 678,
+            "left": 272.40625
+          }
+        }
+      ],
+      "width": 620,
+      "height": 700,
+      "editor": {
+        "x": 24,
+        "y": 108,
+        "width": 572,
+        "height": 512,
+        "top": 108,
+        "right": 596,
+        "bottom": 620,
+        "left": 24
+      }
+    },
+    {
+      "page": "quick",
+      "theme": "light",
+      "window": "compact",
+      "bar": {
+        "x": 16,
+        "y": 486,
+        "width": 190.984375,
+        "height": 42,
+        "top": 486,
+        "right": 206.984375,
+        "bottom": 528,
+        "left": 16
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 29,
+            "y": 495,
+            "width": 45,
+            "height": 24,
+            "top": 495,
+            "right": 74,
+            "bottom": 519,
+            "left": 29
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 82,
+            "y": 492,
+            "width": 81.984375,
+            "height": 30,
+            "top": 492,
+            "right": 163.984375,
+            "bottom": 522,
+            "left": 82
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 167.984375,
+            "y": 492,
+            "width": 30,
+            "height": 30,
+            "top": 492,
+            "right": 197.984375,
+            "bottom": 522,
+            "left": 167.984375
+          }
+        }
+      ],
+      "width": 500,
+      "height": 540,
+      "editor": {
+        "x": 16,
+        "y": 108,
+        "width": 468,
+        "height": 364,
+        "top": 108,
+        "right": 484,
+        "bottom": 472,
+        "left": 16
+      }
+    },
+    {
+      "page": "quick",
+      "theme": "light",
+      "window": "maximized",
+      "bar": {
+        "x": 24,
+        "y": 974,
+        "width": 287.40625,
+        "height": 42,
+        "top": 974,
+        "right": 311.40625,
+        "bottom": 1016,
+        "left": 24
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 37,
+            "y": 983,
+            "width": 141.421875,
+            "height": 24,
+            "top": 983,
+            "right": 178.421875,
+            "bottom": 1007,
+            "left": 37
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 186.421875,
+            "y": 980,
+            "width": 81.984375,
+            "height": 30,
+            "top": 980,
+            "right": 268.40625,
+            "bottom": 1010,
+            "left": 186.421875
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 272.40625,
+            "y": 980,
+            "width": 30,
+            "height": 30,
+            "top": 980,
+            "right": 302.40625,
+            "bottom": 1010,
+            "left": 272.40625
+          }
+        }
+      ],
+      "width": 1920,
+      "height": 1032,
+      "editor": {
+        "x": 24,
+        "y": 108,
+        "width": 1872,
+        "height": 844,
+        "top": 108,
+        "right": 1896,
+        "bottom": 952,
+        "left": 24
+      }
+    },
+    {
+      "theme": "light",
+      "primary": {
+        "default": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "rgb(93, 75, 210)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "hover": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "rgb(80, 64, 188)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "pressed": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "color(srgb 0.291765 0.235294 0.658824)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "focus": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "oklab(0.443023 0.0383573 -0.163792)",
+          "weight": "500",
+          "width": 116,
+          "outline": "1px",
+          "focus": true
+        }
+      }
+    },
+    {
+      "page": "records",
+      "theme": "light",
+      "state": {
+        "x": 854.59375,
+        "y": 775,
+        "width": 160.421875,
+        "height": 24,
+        "top": 775,
+        "right": 1015.015625,
+        "bottom": 799,
+        "left": 854.59375
+      },
+      "actions": {
+        "x": 1027.015625,
+        "y": 772,
+        "width": 83.984375,
+        "height": 30,
+        "top": 772,
+        "right": 1111,
+        "bottom": 802,
+        "left": 1027.015625
+      },
+      "bar": {
+        "x": 841.59375,
+        "y": 766,
+        "width": 278.40625,
+        "height": 42,
+        "top": 766,
+        "right": 1120,
+        "bottom": 808,
+        "left": 841.59375
+      }
+    },
+    {
+      "theme": "light",
+      "shortcutAlignment": [
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ]
+      ]
+    },
+    {
+      "page": "quick",
+      "theme": "dark",
+      "window": "normal",
+      "bar": {
+        "x": 24,
+        "y": 642,
+        "width": 287.40625,
+        "height": 42,
+        "top": 642,
+        "right": 311.40625,
+        "bottom": 684,
+        "left": 24
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 37,
+            "y": 651,
+            "width": 141.421875,
+            "height": 24,
+            "top": 651,
+            "right": 178.421875,
+            "bottom": 675,
+            "left": 37
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 186.421875,
+            "y": 648,
+            "width": 81.984375,
+            "height": 30,
+            "top": 648,
+            "right": 268.40625,
+            "bottom": 678,
+            "left": 186.421875
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 272.40625,
+            "y": 648,
+            "width": 30,
+            "height": 30,
+            "top": 648,
+            "right": 302.40625,
+            "bottom": 678,
+            "left": 272.40625
+          }
+        }
+      ],
+      "width": 620,
+      "height": 700,
+      "editor": {
+        "x": 24,
+        "y": 108,
+        "width": 572,
+        "height": 512,
+        "top": 108,
+        "right": 596,
+        "bottom": 620,
+        "left": 24
+      }
+    },
+    {
+      "page": "quick",
+      "theme": "dark",
+      "window": "compact",
+      "bar": {
+        "x": 16,
+        "y": 486,
+        "width": 190.984375,
+        "height": 42,
+        "top": 486,
+        "right": 206.984375,
+        "bottom": 528,
+        "left": 16
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 29,
+            "y": 495,
+            "width": 45,
+            "height": 24,
+            "top": 495,
+            "right": 74,
+            "bottom": 519,
+            "left": 29
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 82,
+            "y": 492,
+            "width": 81.984375,
+            "height": 30,
+            "top": 492,
+            "right": 163.984375,
+            "bottom": 522,
+            "left": 82
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 167.984375,
+            "y": 492,
+            "width": 30,
+            "height": 30,
+            "top": 492,
+            "right": 197.984375,
+            "bottom": 522,
+            "left": 167.984375
+          }
+        }
+      ],
+      "width": 500,
+      "height": 540,
+      "editor": {
+        "x": 16,
+        "y": 108,
+        "width": 468,
+        "height": 364,
+        "top": 108,
+        "right": 484,
+        "bottom": 472,
+        "left": 16
+      }
+    },
+    {
+      "page": "quick",
+      "theme": "dark",
+      "window": "maximized",
+      "bar": {
+        "x": 24,
+        "y": 974,
+        "width": 287.40625,
+        "height": 42,
+        "top": 974,
+        "right": 311.40625,
+        "bottom": 1016,
+        "left": 24
+      },
+      "items": [
+        {
+          "label": "已保存32 / 10,000 字符",
+          "rect": {
+            "x": 37,
+            "y": 983,
+            "width": 141.421875,
+            "height": 24,
+            "top": 983,
+            "right": 178.421875,
+            "bottom": 1007,
+            "left": 37
+          }
+        },
+        {
+          "label": "3 个附件",
+          "rect": {
+            "x": 186.421875,
+            "y": 980,
+            "width": 81.984375,
+            "height": 30,
+            "top": 980,
+            "right": 268.40625,
+            "bottom": 1010,
+            "left": 186.421875
+          }
+        },
+        {
+          "label": "添加文件",
+          "rect": {
+            "x": 272.40625,
+            "y": 980,
+            "width": 30,
+            "height": 30,
+            "top": 980,
+            "right": 302.40625,
+            "bottom": 1010,
+            "left": 272.40625
+          }
+        }
+      ],
+      "width": 1920,
+      "height": 1032,
+      "editor": {
+        "x": 24,
+        "y": 108,
+        "width": 1872,
+        "height": 844,
+        "top": 108,
+        "right": 1896,
+        "bottom": 952,
+        "left": 24
+      }
+    },
+    {
+      "theme": "dark",
+      "primary": {
+        "default": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "rgb(105, 84, 216)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "hover": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "rgb(116, 94, 230)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "pressed": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "color(srgb 0.329412 0.263529 0.677647)",
+          "weight": "500",
+          "width": 116,
+          "outline": "3px",
+          "focus": false
+        },
+        "focus": {
+          "color": "rgb(255, 255, 255)",
+          "icon": "rgb(255, 255, 255)",
+          "background": "oklab(0.472871 0.0441291 -0.160084)",
+          "weight": "500",
+          "width": 116,
+          "outline": "1px",
+          "focus": true
+        }
+      }
+    },
+    {
+      "page": "records",
+      "theme": "dark",
+      "state": {
+        "x": 854.59375,
+        "y": 775,
+        "width": 160.421875,
+        "height": 24,
+        "top": 775,
+        "right": 1015.015625,
+        "bottom": 799,
+        "left": 854.59375
+      },
+      "actions": {
+        "x": 1027.015625,
+        "y": 772,
+        "width": 83.984375,
+        "height": 30,
+        "top": 772,
+        "right": 1111,
+        "bottom": 802,
+        "left": 1027.015625
+      },
+      "bar": {
+        "x": 841.59375,
+        "y": 766,
+        "width": 278.40625,
+        "height": 42,
+        "top": 766,
+        "right": 1120,
+        "bottom": 808,
+        "left": 841.59375
+      }
+    },
+    {
+      "theme": "dark",
+      "shortcutAlignment": [
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ],
+        [
+          {
+            "x": 922,
+            "width": 112,
+            "height": 36
+          },
+          {
+            "x": 1042,
+            "width": 64,
+            "height": 36
+          },
+          {
+            "x": 1114,
+            "width": 64,
+            "height": 36
+          }
+        ]
+      ]
+    },
+    "save failure + retry preserve text and attachments",
+    "success capsule hover pause, ~2s dismissal, coalescing",
+    "record/cancel and enable preserve existing trigger registration API",
+    {
+      "cardControls": {
+        "detail": {
+          "x": 896,
+          "y": 463,
+          "width": 59,
+          "height": 26,
+          "top": 463,
+          "right": 955,
+          "bottom": 489,
+          "left": 896
+        },
+        "resize": {
+          "x": 967,
+          "y": 473,
+          "width": 24,
+          "height": 24,
+          "top": 473,
+          "right": 991,
+          "bottom": 497,
+          "left": 967
+        },
+        "radius": "13px"
+      }
+    },
+    "record and three source files preserved; explicit removal deletes only one attachment reference"
+  ],
+  "errors": []
+}

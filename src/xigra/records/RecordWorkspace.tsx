@@ -1,4 +1,4 @@
-import { Button } from "../../Button";
+import { Button, IconButton } from "../../Button";
 import { RecordAttachments } from "../../FilePicker";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
@@ -19,7 +19,7 @@ import { AppSelect } from "../AppSelect";
 import { HelpPopover } from "../HelpPopover";
 import { FolderOpen } from "lucide-react";
 
-export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQuick, importing, setImporting, session, client, query, setQuery, confirmDelete, copy, notify, sendNote, onCanvas, onFreePage, onFiles, onFileCenter, onAttach, onSendFiles }: {
+export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQuick, importing, setImporting, session, client, query, setQuery, confirmDelete, copy, notify, sendNote, onCanvas, onFreePage, freeCanvasId, relationCanvasId, onFiles, onFileCenter, onAttach, onSendFiles }: {
   onCreate(): void;
   createDisabled: boolean;
   active: boolean;
@@ -32,6 +32,8 @@ export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQu
   sendNote?(id: string, title: string): void;
   onCanvas?(id: string): void;
   onFreePage(id: string): void;
+  freeCanvasId?: string;
+  relationCanvasId?: string;
   onFiles(): void;
   onFileCenter(): void;
   onAttach(files: ManagedFile[], id: string, origin: string): Promise<void>;
@@ -100,9 +102,10 @@ export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQu
   const rows = filterRecords(showRecent ? session.recent : session.rows, query).filter(row => !pinnedIds.has(row.id) && inScope(row));
   const rowActions = { current: session.id, disabled: importing || session.composing || titleComposition !== null || session.volatile, onSelect: (id: string) => { session.open(id); setLibraryOpen(false); } };
   const record = session.record;
-  const source = client.view()[session.id]?.value;
-  const onFreeCanvas = (source?.type === "text" && !source.localOnly) ||
-    ((source?.type === "node" || source?.type === "text") && Boolean(source.freePlacement));
+  const placements = Object.values(client.view());
+  const onFreeCanvas = placements.some(({ value }) => value?.type === "free-note" && value.canvasId === freeCanvasId && value.recordId === session.id);
+  const onRelationCanvas = placements.some(({ value }) => value?.type === "canvas-node" && value.canvasId === relationCanvasId && !value.layout.hidden &&
+    value.contentRef.kind === "record" && value.contentRef.id === session.id);
   const isPinned = client.pinnedRecords.includes(session.id);
   const PinAction = isPinned ? PinOff : Pin;
   const deletion = session.deletion;
@@ -118,17 +121,19 @@ export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQu
     <aside className="xigra-record-index" id="record-library" aria-label="便签库" inert={!libraryVisible}>
       <div className="record-index-heading"><h2>便签库</h2></div>
       <RecordSearch query={query} setQuery={setQuery} />
-      <div className="xigra-record-filters" aria-label="列表范围">
-        <Button type="button" aria-pressed={!showRecent} onClick={() => setShowRecent(false)}>全部 <small>{session.rows.length}</small></Button>
-        <Button type="button" aria-pressed={showRecent} onClick={() => setShowRecent(true)}>最近</Button>
+      <div className="record-library-filters">
+        <div className="xigra-record-filters" aria-label="列表范围">
+          <Button type="button" aria-pressed={!showRecent} onClick={() => setShowRecent(false)}>全部 <small>{session.rows.length}</small></Button>
+          <Button type="button" aria-pressed={showRecent} onClick={() => setShowRecent(true)}>最近</Button>
+        </div>
+        <AppSelect<typeof scope> label="记录关联筛选" value={scope} onValueChange={setScope} options={[{value:'all',label:'所有记录'},{value:'linked',label:'已加入关系画布'},{value:'unlinked',label:'未加入关系画布'}]} />
       </div>
-      <AppSelect<typeof scope> label="记录关联筛选" value={scope} onValueChange={setScope} options={[{value:'all',label:'所有记录'},{value:'linked',label:'已加入关系画布'},{value:'unlinked',label:'未加入关系画布'}]} />
       <div className="xigra-record-scroll">
         {pinned.length > 0 && <section className="xigra-record-pins" aria-label="置顶">
           <h3><Pin size={13} aria-hidden="true" />置顶</h3>
-          <RecordList rows={pinned} {...rowActions} />
+          <RecordList rows={pinned} titleTooltip {...rowActions} />
         </section>}
-        {rows.length > 0 && <RecordList rows={rows} {...rowActions} />}
+        {rows.length > 0 && <RecordList rows={rows} titleTooltip {...rowActions} />}
         {!pinned.length && !rows.length && <p className="xigra-empty">{query.trim() || scope !== 'all' ? "没有符合条件的便签。" : showRecent ? "还没有最近记录。" : "暂无便签。"}</p>}
       </div>
     </aside>
@@ -193,17 +198,17 @@ export function RecordWorkspace({ onCreate, createDisabled, active, quick, setQu
       {deletion && <div className="xigra-record-undo">
         <span role="status" title={recordTitle(deletion.text)}>{deletion.confirmed ? "已删除" : "删除待确认"}「{recordTitle(deletion.text)}」</span>
         <Button className="button" type="button" disabled={!deletion.confirmed || session.composing} onClick={session.restoreDeleted}>恢复为新便签</Button>
-        <Button className="icon-button" type="button" aria-label="关闭恢复提示" title="关闭恢复提示" onClick={session.dismissDeletion}><X size={15} aria-hidden="true" /></Button>
+        <IconButton hitArea="compact" aria-label="关闭恢复提示" tooltip="关闭恢复提示" onClick={session.dismissDeletion}><X size={15} /></IconButton>
       </div>}
       <NoteStatusBar client={client} recordId={session.id} empty={!record} volatile={session.volatile} count={session.text.length} progress={importProgress}>
         <Button className="record-destination" disabled={!record || session.composing || titleComposition !== null || session.volatile}
           onClick={() => record && onFreePage(record.id)}>{onFreeCanvas ? "查看工作页" : "加入工作页"}</Button>
         {onCanvas && <Button className="record-destination" disabled={!record || session.composing || titleComposition !== null || session.volatile}
-          onClick={() => record && onCanvas(record.id)}>{record && linked.has(record.id) ? "查看关系画布" : "加入关系画布"}</Button>}
+          onClick={() => record && onCanvas(record.id)}>{onRelationCanvas ? "查看关系画布" : "加入关系画布"}</Button>}
         <Popover.Root open={attachmentsOpen} onOpenChange={open => { if (open) dismiss(); setAttachmentsOpen(open); }}>
           <Popover.Trigger render={<Button />} disabled={!client.ready || importing || session.composing} aria-label={`${recordFileLinks(client, session.id).length} 个附件`}><Paperclip size={16}/>{recordFileLinks(client, session.id).length} 个附件</Popover.Trigger>
           <Popover.Portal><Popover.Positioner className="attachment-position" side="top" align="end" sideOffset={10} collisionPadding={{top:60,bottom:12,left:12,right:12}}><Popover.Popup className="attachment-popover record-attachment-popover">
-            <header><Popover.Title>当前便签附件</Popover.Title><Popover.Close render={<Button iconOnly tooltip="关闭附件" />} aria-label="关闭附件"><X size={18}/></Popover.Close></header>
+            <header><Popover.Title>当前便签附件</Popover.Title><Popover.Close render={<IconButton tooltip="关闭附件" />} aria-label="关闭附件"><X size={18}/></Popover.Close></header>
             {recordFileLinks(client, session.id).length ? <RecordAttachments client={client} recordId={session.id} active={attachmentsOpen} notify={notify} onSend={onSendFiles}/> : <p>当前便签还没有附件。</p>}
             <footer className="attachment-actions">
               <Button onClick={() => { setAttachmentsOpen(false); void importFiles(() => files.choose()); }}><Upload size={15}/>本地导入</Button>

@@ -1,5 +1,5 @@
 import { useResizableSidebar } from "./useResizableSidebar";
-import { Button } from "./Button";
+import { Button, IconButton } from "./Button";
 import {ExportDialog} from './ExportDialog';
 import { Notification, NotificationProvider, useNotification } from './Notification';
 import {freeExportSource} from './render-export';
@@ -59,6 +59,8 @@ import "./xigra/primitives.css";
 import "./xigra/graphite.css";
 import "./xigra/file-station.css";
 import { SHAPES, Shape, shapePoints } from "./drawing";
+import { CanvasLibrary, CanvasLibraryDialog, CanvasShareDialog, CanvasSwitcher } from "./CanvasLibrary";
+import { canvasItems, placedNote, type CanvasEntry, type CanvasType, type Catalog } from "./canvas-library-model";
 import { TopologyWorkspace } from "./xigra/TopologyWorkspace";
 import { FreeFileCard } from "./FreeFileCard";
 import { transformStroke, strokeBounds } from "./drawing";
@@ -70,7 +72,8 @@ import "./free-canvas.css";
 import { FreeToolbar, freeToolHint } from "./FreeToolbar";
 import { NewNoteButton } from "./NewNoteButton";
 import { BrushProperties } from './BrushProperties';
-import { DEFAULT_BRUSH, brushPath, brushDash, validPreset, type BrushStyle, type BrushPreset } from './brush';
+import { BRUSH_NAMES, DEFAULT_BRUSH, defaultBrush, isHighlighter, validPreset, type BrushPreset } from './brush';
+import { InkStroke } from './InkStroke';
 import { AppSelect } from "./xigra/AppSelect";
 import "./xigra/note-roles.css";
 import "./sidebar.css";
@@ -125,9 +128,8 @@ function App() {
   const [, refresh] = useState(0);
   const [client] = useState(() => new BoardClient(() => refresh((n) => n + 1)));
   const [tool, setTool] = useState<"select" | "hand" | "text" | "pen" | "erase">("select");
-  const [color, setColor] = useState(COLORS[0]);
-  const [width, setWidth] = useState(4);
-  const [brushStyle,setBrushStyle]=useState<BrushStyle>(DEFAULT_BRUSH);
+  const [brushPreferences, setBrushPreferences] = useState<BrushPreset[]>([]);
+  const [brushSettingsReady, setBrushSettingsReady] = useState(false);
   const [brushPresets,setBrushPresets]=useState<BrushPreset[]>([]);
   const [textStyle,setTextStyle]=useState({fontSize:18,bold:false});
   const [textColor, setTextColor] = useState(COLORS[0]);
@@ -136,9 +138,18 @@ function App() {
   const [shape, setShape] = useState<Shape>("free");
   const [properties, setProperties] = useState(false);
   const [selected, setSelected] = useState("");
-  const [workbenchPage, setWorkbenchPage, pageHistory] = usePageHistory<"canvas" | "records" | "topology" | "files">(window.desktop ? "records" : "canvas");
+  type Page = "canvas" | "records" | "topology" | "files" | "workspace-library" | "relation-library";
+  const [catalog, setCatalog] = useState<Catalog>();
+  const [catalogError, setCatalogError] = useState("");
+  const [catalogRetry, setCatalogRetry] = useState(0);
+  const [canvasBusy, setCanvasBusy] = useState(false);
+  const canvasLock = useRef(false);
+  const catalogGeneration = useRef(0);
+  const [libraryDialog, setLibraryDialog] = useState<{ action: string; type: CanvasType; entry?: CanvasEntry }>();
+  const [canvasIds, setCanvasIds] = useState<Partial<Record<CanvasType, string>>>({});
+  const [workbenchPage, setWorkbenchPage, pageHistory] = usePageHistory<Page>(window.desktop ? "records" : "canvas");
   const sidebar = useResizableSidebar();
-  const [fileReturnPage, setFileReturnPage] = useState<"canvas" | "records" | "topology">("canvas");
+  const [fileReturnPage, setFileReturnPage] = useState<Page>("canvas");
   const [recordSearchOpen, setRecordSearchOpen] = useState(false);
   const [recordQuery, setRecordQuery] = useState("");
   const [deleteRecord, setDeleteRecord] = useState("");
@@ -176,10 +187,38 @@ function App() {
     else if (notice?.source === 'save') dismissNotice();
   }, [client.error, client.canRetry, setToast, dismissNotice]);
   const inRecords = Boolean(window.desktop) && workbenchPage === "records";
-  const inTopology = Boolean(window.desktop) && workbenchPage === "topology";
+  const boards = catalog?.roomId === client.base.roomId ? catalog?.boards ?? [] : [];
+  function chosenCanvas(type: CanvasType) {
+    return boards.find(board => board.id === canvasIds[type] && !board.deletedAt) ?? boards.find(board => board.type === type && !board.deletedAt);
+  }
+  const freeBoard = chosenCanvas("workspace");
+  const relationBoard = chosenCanvas("relation");
+  const libraryType = workbenchPage === "workspace-library" ? "workspace" : workbenchPage === "relation-library" ? "relation" :
+    window.desktop && workbenchPage === "canvas" && !freeBoard ? "workspace" :
+    window.desktop && workbenchPage === "topology" && !relationBoard ? "relation" : undefined;
+  const inTopology = !libraryType && Boolean(window.desktop) && workbenchPage === "topology";
   const inFiles = Boolean(window.desktop) && workbenchPage === "files";
-  const inCanvas = !inRecords && !inTopology && !inFiles;
-  const viewport = useFreeViewport(client.base.roomId, setToast, inCanvas);
+  const inCanvas = !libraryType && !inRecords && !inTopology && !inFiles;
+  const viewport = useFreeViewport(client.base.roomId, setToast, inCanvas, freeBoard);
+  const currentCanvas = inCanvas ? freeBoard : inTopology ? relationBoard : undefined;
+
+  useEffect(() => {
+    if (!window.desktop || !client.ready || !libraryType && !["canvas", "topology"].includes(workbenchPage) && catalog?.roomId === client.base.roomId) return;
+    let active = true;
+    const generation = catalogGeneration.current;
+    const timer = window.setTimeout(async () => {
+      try {
+        if (!catalog || catalog.roomId !== client.base.roomId) {
+          await client.flushBeforeCanvasMigration();
+        }
+        const next = await window.desktop!.canvas.catalog("list");
+        if (active && next && generation === catalogGeneration.current && !canvasLock.current) { setCatalog(next); setCatalogError(""); }
+      } catch (error) {
+        if (active) setCatalogError(String((error as Error).message));
+      }
+    }, catalog ? 130 : 0);
+    return () => { active = false; clearTimeout(timer); };
+  }, [client, client.ready, client.base.roomId, client.base.revision, catalogRetry, libraryType, workbenchPage]);
   const scale = viewport.camera.zoom;
   const zoom = Math.round(scale * 100);
   const [working, setWorking] = useState(false);
@@ -203,7 +242,8 @@ function App() {
   const [recordImporting, setRecordImporting] = useState(false);
   const [canvasRequest, setCanvasRequest] = useState<{ id: string; token: number }>();
   useEffect(() => { if (!inCanvas) setProperties(false); }, [inCanvas]);
-  const pageTitle = inTopology ? "关系画布" : inRecords ? (quickCapture ? "快捷记录" : "便签") : inFiles ? "文件中心" : "自由工作页";
+  const freeNoteAt = (value: Item["value"] | undefined) => placedNote(value, items) ?? (!window.desktop ? freeNote(value) : undefined);
+  const pageTitle = inTopology || libraryType === "relation" ? "关系画布" : inRecords ? (quickCapture ? "快捷记录" : "便签") : inFiles ? "文件中心" : "自由工作页";
   function openFilePage() {
     if (records.composing) return;
     if (workbenchPage !== "files") setFileReturnPage(workbenchPage);
@@ -232,7 +272,7 @@ function App() {
       await client.flush();
     }
   }
-  const pendingViewport = useRef<TopologyViewport | undefined>(undefined);
+  const pendingViewport = useRef<(TopologyViewport & { canvasId?: string }) | undefined>(undefined);
   const viewportTimer = useRef(0);
   const viewportWrite = useRef<Promise<boolean> | null>(null);
   const flushViewport = useCallback(function flush(): Promise<boolean> {
@@ -242,8 +282,8 @@ function App() {
     const desktop = window.desktop;
     pendingViewport.current = undefined;
     if (!next || !desktop || next.roomId !== client.base.roomId) return Promise.resolve(true);
-    viewportWrite.current = desktop.settings({ topologyViewport: next }).then(updated => {
-      setInfo(current => current && { ...current, topologyViewport: updated.topologyViewport });
+    const request = next.canvasId ? desktop.canvas.catalog("viewport", { id: next.canvasId, camera: next }) : desktop.settings({ topologyViewport: next });
+    viewportWrite.current = request.then(() => {
       return true;
     }, () => {
       pendingViewport.current ??= next;
@@ -253,10 +293,10 @@ function App() {
     return viewportWrite.current;
   }, [client]);
   const queueViewport = useCallback((camera: Camera) => {
-    pendingViewport.current = { ...camera, roomId: client.base.roomId };
+    pendingViewport.current = { ...camera, roomId: client.base.roomId, canvasId: relationBoard?.id };
     window.clearTimeout(viewportTimer.current);
     viewportTimer.current = window.setTimeout(() => void flushViewport(), 180);
-  }, [client, flushViewport]);
+  }, [client, flushViewport, relationBoard?.id]);
   const composingTarget = useRef<Node | null>(null);
   const focusRecords = useRef(() => {});
   const prepareWindow = useRef<(action: "hide" | "quit") => Promise<boolean>>(async () => false);
@@ -325,17 +365,22 @@ function App() {
       document.removeEventListener("compositionend", compositionEnd, true);
     };
   }, []);
-  const selectedText =
-    items[selected]?.value?.type === "text"
-      ? (items[selected].value as TextValue)
-      : null;
-  const visible = Object.entries(items).filter(([, item]) => item.value);
+  const selectedText = freeNoteAt(items[selected]?.value) ?? null;
+  const visible = freeBoard ? canvasItems(items, freeBoard.id) : window.desktop ? [] : Object.entries(items).filter(([, item]) => item.value);
   const texts = visible.flatMap(([id, item]) => {
-    const value = freeNote(item.value);
+    const value = freeNoteAt(item.value);
     return value ? [[id, { ...item, value }] as const] : [];
   });
   function updateFreeNote(id: string, patch: FreePlacement | Partial<TextValue>, group?: string) {
     const source = client.view()[id]?.value;
+    if (source?.type === "free-note") {
+      const { text, ...style } = patch as Partial<TextValue>;
+      if (Object.keys(style).length) commit(id, { ...source, ...style, type: "free-note" }, group);
+      const record = client.view()[source.recordId]?.value;
+      if (text !== undefined && (record?.type === "text" || record?.type === "node"))
+        commit(source.recordId, { ...record, text }, group);
+      return;
+    }
     if (source?.type === "text" && !source.localOnly) commit(id, { ...source, ...patch }, group);
     else if ((source?.type === "text" || source?.type === "node") && source.freePlacement) {
       const { x, y, width, height } = { ...source.freePlacement, ...patch };
@@ -350,9 +395,19 @@ function App() {
     note.focus({ preventScroll: true });
   }, [selected]);
   const strokes = visible.filter(([, item]) => item.value?.type === "stroke");
-  useEffect(()=>{history.current=new DrawingHistory();},[client.base.roomId]);
-  const drawingBrush = shape === 'free' ? { color, width, ...brushStyle } : shapeBrush;
-  const tools=useDrawingTools({client,tool,shape,color:drawingBrush.color,width:drawingBrush.width,brushStyle:drawingBrush,scale,selected,select:setSelected,point:viewport.point,commit:commitGroup});
+  useEffect(()=>{history.current=new DrawingHistory();},[client.base.roomId, freeBoard?.id]);
+  const drawingBrush = shape === 'free' ? brushPreferences.at(-1) ?? defaultBrush('ink',appearance.tone==='dark') : shapeBrush;
+  const tools=useDrawingTools({client,canvasId: freeBoard?.id,tool,shape,color:drawingBrush.color,width:drawingBrush.width,brushStyle:drawingBrush,scale,selected,select:setSelected,point:viewport.point,commit:commitGroup});
+  function renderStrokes(overlay:boolean) {
+    return strokes.flatMap(([id,item])=>{
+      if(tools.erased.has(id))return [];
+      const stroke=(tools.previewId===id?tools.preview:item.value) as StrokeValue;
+      if(isHighlighter(stroke)!==overlay)return [];
+      return (tools.fragments?.get(id)??[stroke]).map((ink,index)=>
+        <InkStroke key={`${id}:${index}`} ink={ink} selected={boxSelection.includes(id)} testId="stroke"/>
+      );
+    });
+  }
   async function saveBrushPresets(next: BrushPreset[]) {
     if(next.length>12||!next.every(validPreset))throw new Error('方案无效');
     if(window.desktop)await window.desktop.settings({brushPresets:next});
@@ -360,17 +415,41 @@ function App() {
     setBrushPresets(next);
   }
   useEffect(()=>{
-    if(window.desktop)void window.desktop.info().then(info=>{if(Array.isArray(info.brushPresets)&&info.brushPresets.length<=12&&info.brushPresets.every(validPreset))setBrushPresets(info.brushPresets);});
-    else {try {const saved=JSON.parse(localStorage.getItem('arasn-brush-presets-v1')||'[]');if(Array.isArray(saved)&&saved.length<=12&&saved.every(validPreset))setBrushPresets(saved);}catch{/* Ignore corrupt local preferences. */}}
+    const load = (presets:unknown, prefs:unknown) => {
+      if(Array.isArray(presets)&&presets.length<=12&&presets.every(validPreset))setBrushPresets(presets);
+      if(Array.isArray(prefs)&&prefs.length<=6&&prefs.every(validPreset))setBrushPreferences(current=>current.length?current:prefs);
+      setBrushSettingsReady(true);
+    };
+    if(window.desktop)void window.desktop.info().then(info=>load(info.brushPresets,info.brushPreferences)).catch(()=>load([],[]));
+    else {
+      try {load(JSON.parse(localStorage.getItem('arasn-brush-presets-v1')||'[]'),JSON.parse(localStorage.getItem('arasn-brush-preferences-v1')||'[]'));}
+      catch {load([],[]);}
+    }
   },[]);
+  useEffect(()=>{
+    if(!brushSettingsReady||!brushPreferences.length)return;
+    const timeout=window.setTimeout(()=>{
+      if(window.desktop)void window.desktop.settings({brushPreferences}).catch(()=>setToast('画笔设置保存失败'));
+      else localStorage.setItem('arasn-brush-preferences-v1',JSON.stringify(brushPreferences));
+    },250);
+    return ()=>window.clearTimeout(timeout);
+  },[brushPreferences,brushSettingsReady]);
   function changeBrush(patch: Partial<BrushPreset>) {
     const value=client.view()[selected]?.value;
     const {name: _name,...style}=patch;
-    if(tool==='select'&&value?.type==='stroke')commit(selected,{...value,...style});
-    else if(tool==='select'&&value?.type==='text') {if(style.color)commit(selected,{...value,color:style.color});}
+    if(tool==='select'&&value?.type==='stroke') {
+      const {pressure:_pressure,...ink}=style;
+      commit(selected,{...value,...ink,...(ink.brush&&ink.brush!==value.brush?{inkVersion:1 as const}:{} )},`brush:${selected}`);
+    }
+    else if(tool==='select'&&(value?.type==='text'||value?.type==='free-note')) {if(style.color)commit(selected,{...value,color:style.color});}
     else if(tool==='text') {if(style.color)setTextColor(style.color);}
     else if(tool==='pen'&&shape!=='free')setShapeBrush(v=>({...v,...style}));
-    else {if(style.color)setColor(style.color);if(style.width)setWidth(style.width);setBrushStyle(v=>({...v,...Object.fromEntries(Object.entries(style).filter(([k])=>!['color','width'].includes(k)))}));}
+    else setBrushPreferences(current=>{
+      const active=current.at(-1)??defaultBrush('ink',appearance.tone==='dark'), kind=style.brush??active.brush;
+      const saved=current.find(v=>v.brush===kind)??defaultBrush(kind,appearance.tone==='dark');
+      const next={...(patch.name?{}:saved),...style,name:BRUSH_NAMES[kind]} as BrushPreset;
+      return [...current.filter(v=>v.brush!==kind),next];
+    });
   }
 
 
@@ -462,7 +541,7 @@ function App() {
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || composingTarget.current?.isConnected) return;
-      if (lanRequest || exportRequest) return;
+      if (lanRequest || exportRequest || libraryDialog) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         if (!event.repeat) void actionHandler.current("commands", true);
@@ -480,7 +559,7 @@ function App() {
       )
         return;
       if (inCanvas && event.ctrlKey && event.key.toLowerCase() === "y") { event.preventDefault(); undoLast(true); }
-      if (event.key === "Delete" && inCanvas && tool === "select" && (boxSelection.length>0 || selected && ["stroke","text","free-file"].includes(client.view()[selected]?.value?.type ?? ""))) removeFreeSelection();
+      if (event.key === "Delete" && inCanvas && tool === "select" && (boxSelection.length>0 || selected && ["stroke","text","free-note","free-file"].includes(client.view()[selected]?.value?.type ?? ""))) removeFreeSelection();
       if (inCanvas && event.ctrlKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
         undoLast(event.shiftKey);
@@ -502,7 +581,7 @@ function App() {
     }
   }
   function commitGroup(changes: { id: string; value: Value | null }[], key?: string) {
-    const edits = changes.map(({id,value}) => ({id,before:client.view()[id]?.value??null,after:value}));
+    const edits = changes.map(({id,value}) => ({id,before:client.view()[id]?.value??null,after:value?.type === "stroke" && freeBoard ? { ...value, canvasId: freeBoard.id } : value}));
     history.current.record(edits,key);
     for (const {id,after} of edits) client.edit(id,after);
   }
@@ -515,24 +594,24 @@ function App() {
   }
   function coordinate(event: React.PointerEvent) { return viewport.point(event.clientX, event.clientY); }
   const activeObject=items[selected]?.value;
-  const objectBox=activeObject?.type==='stroke'?strokeBounds(activeObject.points):activeObject?.type==='text'?{x:activeObject.x,y:activeObject.y,width:activeObject.width??280,height:activeObject.height??140}:activeObject?.type==='free-file'?activeObject:null;
+  const objectBox=activeObject?.type==='stroke'?strokeBounds(activeObject.points):(activeObject?.type==='text'||activeObject?.type==='free-note')?{x:activeObject.x,y:activeObject.y,width:activeObject.width??280,height:activeObject.height??140}:activeObject?.type==='free-file'?activeObject:null;
   function updateBox(key:'x'|'y'|'width'|'height',n:number) {
     if(!activeObject || !objectBox || !Number.isFinite(n))return;
     if((key==='x'||key==='y')&&Math.abs(n)>1e6)return;
     if(key==='width'||key==='height'){const minimum=activeObject.type==='text'?(key==='width'?CARD_LIMITS.minWidth:CARD_LIMITS.minHeight):activeObject.type==='stroke'?1:key==='width'?120:96;const maximum=activeObject.type==='text'?(key==='width'?CARD_LIMITS.maxWidth:CARD_LIMITS.maxHeight):1200;if(n<minimum||n>maximum)return;}
     const box={...objectBox,[key]:n};
     if(activeObject.type==='stroke')commit(selected,{...activeObject,points:transformStroke(activeObject.points,objectBox,box)});
-    else if(activeObject.type==='text'||activeObject.type==='free-file')commit(selected,{...activeObject,[key]:n});
+    else if(activeObject.type==='text'||activeObject.type==='free-note'||activeObject.type==='free-file')commit(selected,{...activeObject,[key]:n});
   }
   async function importAttachments(load:()=>Promise<ImportResult[]>,point?:[number,number]) {
-    if(importing||!client.ready)return false;
+    if(importing||!client.ready||window.desktop&&!freeBoard)return false;
     const room=client.base.roomId;
     setImporting(true);setImportProgress("");
     try {
       const results=await load();
       if(room!==client.base.roomId)throw new Error('工作页已更换，文件已保留在文件区');
       const base=point??[viewport.current.current.x-160,viewport.current.current.y-110];
-      const changes=results.flatMap((r,index)=>r.ok&&r.file?[{id:uid(),value:{type:'free-file',roomId:room,contentRef:{kind:'file',id:r.file.id},name:r.file.name,category:r.file.category,x:Math.max(-1e6,Math.min(1e6,base[0]+index*32)),y:Math.max(-1e6,Math.min(1e6,base[1]+index*32)),width:320,height:r.file.category==='图片'?240:140,localOnly:true} as FreeFileValue}]:[]);
+      const changes=results.flatMap((r,index)=>r.ok&&r.file?[{id:uid(),value:{type:'free-file',canvasId:freeBoard?.id,roomId:room,contentRef:{kind:'file',id:r.file.id},name:r.file.name,category:r.file.category,x:Math.max(-1e6,Math.min(1e6,base[0]+index*32)),y:Math.max(-1e6,Math.min(1e6,base[1]+index*32)),width:320,height:r.file.category==='图片'?240:140,localOnly:true} as FreeFileValue}]:[]);
       commitGroup(changes); if(changes.length){setSelected(changes.at(-1)!.id);setTool('select');}
       const failed=results.filter(r=>!r.ok);
       if(failed.length)setToast(`${failed.length} 个文件导入失败：${failed[0].error??'未知错误'}；成功文件保留`);
@@ -541,7 +620,7 @@ function App() {
   }
   function contentBounds() {
     return enclosingBounds(visible.flatMap(([, item]) => {
-      const value = freeNote(item.value) ?? item.value!;
+      const value = freeNoteAt(item.value) ?? item.value!;
       if (value.type === "text" && !value.localOnly) return [{ x: value.x, y: value.y, width: value.width??NOTE_WIDTH, height: value.height??NOTE_HEIGHT }];
       if(value.type==='free-file')return [{x:value.x,y:value.y,width:value.width,height:value.height}];
       if (value.type !== "stroke") return [];
@@ -563,7 +642,7 @@ function App() {
     let position = notePosition(...(point ?? center));
     if (!point) {
       const occupied=visible.flatMap(([,item])=>{
-        const v=freeNote(item.value) ?? item.value;
+        const v=freeNoteAt(item.value) ?? item.value;
         return v?.type==='free-file'?[{x:v.x,y:v.y,width:v.width,height:v.height}]:v?.type==='text'&&!v.localOnly?[{x:v.x,y:v.y,width:v.width??280,height:v.height??140}]:[];
       });
       const overlaps=(p:{x:number;y:number})=>occupied.some(o=>p.x<o.x+o.width+16&&p.x+NOTE_WIDTH+16>o.x&&p.y<o.y+o.height+16&&p.y+NOTE_HEIGHT+16>o.y);
@@ -573,14 +652,21 @@ function App() {
       }
     }
     const id = uid();
-    commit(id, {
+    if (window.desktop && !freeBoard) return;
+    const recordId = freeBoard ? uid() : id;
+    const note: TextValue = {
       type: "text",
       text: "",
       ...position,
       color: textColor,
       width: NOTE_WIDTH, height: 180,
       ...textStyle,
-    });
+    };
+    if (freeBoard) {
+      client.edit(recordId, { ...note, localOnly: true });
+      const { text: _text, type: _type, ...style } = note;
+      commit(id, { ...style, type: "free-note", canvasId: freeBoard.id, recordId });
+    } else commit(id, note);
     newCanvasNote.current = id;
     setSelected(id);
     setTool("select");
@@ -590,13 +676,13 @@ function App() {
   const freeBox=useRef<{pointer:number;start:[number,number]}|null>(null);
   function removeFreeNoteValue(id: string) {
     const value = client.view()[id]?.value;
-    return (value?.type === "text" || value?.type === "node") && value.freePlacement
+    return !window.desktop && (value?.type === "text" || value?.type === "node") && value.freePlacement
       ? { ...value, freePlacement: undefined } : null;
   }
-  function removeFreeSelection(){const ids=boxSelection.length?boxSelection:[selected];commitGroup(ids.filter(id => { const value = client.view()[id]?.value; return value?.type === 'stroke' || value?.type === 'free-file' || freeNote(value); }).map(id => ({ id, value: removeFreeNoteValue(id) })));setBoxSelection([]);setSelected('');}
+  function removeFreeSelection(){const ids=boxSelection.length?boxSelection:[selected];commitGroup(ids.filter(id => { const value = client.view()[id]?.value; return value?.type === 'stroke' || value?.type === 'free-file' || freeNoteAt(value); }).map(id => ({ id, value: removeFreeNoteValue(id) })));setBoxSelection([]);setSelected('');}
   useEffect(()=>{setBoxSelection([]);freeBox.current=null;setFreeMarquee(undefined);},[tool,inCanvas]);
   function down(event: React.PointerEvent) {
-    if (!client.ready) return;
+    if (!client.ready || tools.active() || paperPan.current || freeBox.current || !event.isPrimary) return;
     const middleBlocked = Boolean(info && !info.triggers.paused && info.triggers.bindings.some(b => b.enabled && ((b.input.device === "mouse" && b.input.button === "Middle") || (b.input.device === "gesture" && b.input.button === "Middle" && b.input.global))));
     if (event.button !== 0 && (event.button !== 1 || middleBlocked)) return;
     if(tool==='select'&&event.button===0&&event.shiftKey){event.currentTarget.closest<HTMLElement>('.paper-scroll')?.focus({preventScroll:true});event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);freeBox.current={pointer:event.pointerId,start:viewport.point(event.clientX,event.clientY)};setBoxSelection([]);setSelected('');return;}
@@ -630,13 +716,13 @@ function App() {
     }
   }
   function up(event: React.PointerEvent) {
-    if(freeBox.current?.pointer===event.pointerId){if(event.type==='pointerup'&&freeMarquee){const box=freeMarquee;setBoxSelection(visible.flatMap(([id,item])=>{const v=freeNote(item.value) ?? item.value;const b=v?.type==='stroke'?strokeBounds(v.points):v?.type==='free-file'?v:v?.type==='text'&&!v.localOnly?{x:v.x,y:v.y,width:v.width??NOTE_WIDTH,height:v.height??NOTE_HEIGHT}:undefined;return b&&b.x<=box.x+box.width&&b.x+b.width>=box.x&&b.y<=box.y+box.height&&b.y+b.height>=box.y?[id]:[];}));}freeBox.current=null;setFreeMarquee(undefined);return;}
+    if(freeBox.current?.pointer===event.pointerId){if(event.type==='pointerup'&&freeMarquee){const box=freeMarquee;setBoxSelection(visible.flatMap(([id,item])=>{const v=freeNoteAt(item.value) ?? item.value;const b=v?.type==='stroke'?strokeBounds(v.points):v?.type==='free-file'?v:v?.type==='text'&&!v.localOnly?{x:v.x,y:v.y,width:v.width??NOTE_WIDTH,height:v.height??NOTE_HEIGHT}:undefined;return b&&b.x<=box.x+box.width&&b.x+b.width>=box.x&&b.y<=box.y+box.height&&b.y+b.height>=box.y?[id]:[];}));}freeBox.current=null;setFreeMarquee(undefined);return;}
     if (tools.up(event)) return;
     const pan = paperPan.current;
     if (pan?.pointer === event.pointerId) { if (event.type !== "pointerup") viewport.show(pan.camera); paperPan.current = null; viewport.save(); return; }
     const d = drag.current;
     if (d && event.type === "pointerup") {
-      const value = freeNote(client.view()[d.id]?.value);
+      const value = freeNoteAt(client.view()[d.id]?.value);
       const position = notePosition(d.value.x + (event.clientX - d.x) / scale, d.value.y + (event.clientY - d.y) / scale);
       if (value?.type === "text" && (value.x !== position.x || value.y !== position.y)) updateFreeNote(d.id, position);
     }
@@ -667,7 +753,7 @@ function App() {
   function exportSnapshot() {
     const target = exportTarget();
     if (!target) throw new Error('请先打开画布视图再截图。');
-    return freeExportSource(visible.map(([id, item]) => [id, { ...item, value: freeNote(item.value) ?? item.value }]), target, viewport.current.current);
+    return freeExportSource(visible.map(([id, item]) => [id, { ...item, value: freeNoteAt(item.value) ?? item.value }]), target, viewport.current.current);
   }
 
   async function share(enabled: boolean) {
@@ -714,7 +800,7 @@ function App() {
       const note = document.querySelector<HTMLElement>(
         `[data-note-id="${id}"]`,
       );
-      const value = freeNote(client.view()[id]?.value);
+      const value = freeNoteAt(client.view()[id]?.value);
       if (value) viewport.show({ ...viewport.current.current, x: value.x + (value.width ?? NOTE_WIDTH) / 2, y: value.y + (value.height ?? NOTE_HEIGHT) / 2 });
       note
         ?.querySelector<HTMLTextAreaElement>("textarea")
@@ -723,9 +809,9 @@ function App() {
   }
   const adaptive = useAdaptiveLayout(viewport.size, properties, inCanvas);
   const dock = useToolbarDock("free", inCanvas, adaptive.toolbar);
-  const compactRecordNavigation = inRecords && (quickCapture || (adaptive.nav === "collapsed" && mobile));
-  const sidebarMode = compactRecordNavigation && sidebar.mode === "full" && !showFullRecordNavigation ? "compact" : sidebar.mode;
-  const navigationContext = `${workbenchPage}:${compactRecordNavigation}`;
+  const autoCompactNavigation = Boolean(libraryType && mobile) || inRecords && (quickCapture || (adaptive.nav === "collapsed" && mobile));
+  const sidebarMode = autoCompactNavigation && sidebar.mode === "full" && !showFullRecordNavigation ? "compact" : sidebar.mode;
+  const navigationContext = `${workbenchPage}:${autoCompactNavigation}`;
   const [sidebarMotionContext, setSidebarMotionContext] = useState("");
   useLayoutEffect(() => { setSidebarMotionContext(""); }, [navigationContext]);
   function toggleSidebar() {
@@ -734,13 +820,71 @@ function App() {
   }
   function toggleNavigationDensity() {
     setSidebarMotionContext(navigationContext);
-    if (compactRecordNavigation && sidebar.mode === "full") {
+    if (autoCompactNavigation && sidebar.mode === "full") {
       setShowFullRecordNavigation(sidebarMode === "compact");
     } else {
-      if (compactRecordNavigation) setShowFullRecordNavigation(sidebar.mode === "compact");
+      if (autoCompactNavigation) setShowFullRecordNavigation(sidebar.mode === "compact");
       sidebar.toggleCompact();
     }
   }
+  function showLibrary(type: CanvasType) {
+    setWorkbenchPage(type === "workspace" ? "workspace-library" : "relation-library");
+  }
+  async function runCanvasAction(action: string, args: Record<string, unknown> = {}, open = false) {
+    if (canvasLock.current || records.composing) return;
+    canvasLock.current = true;
+    catalogGeneration.current++;
+    setCanvasBusy(true);
+    try {
+      if (importing || tools.active() || paperPan.current || drag.current) throw new Error("请先完成当前画布操作");
+      await client.flush();
+      if (!await flushViewport() || !await viewport.save()) throw new Error("视口未保存，请重试");
+      const saved = await window.desktop!.canvas.catalog(action, args);
+      if (!saved) return;
+      const next = action === "create" || action === "import" ? saved.boards.at(-1) : saved.boards.find(board => board.id === args.id);
+      const result = open && next && action !== "open" ? await window.desktop!.canvas.catalog("open", { id: next.id }) : saved;
+      if (!result) return;
+      setCatalog(result);
+      if (open && next) {
+        const target = next;
+        setCanvasIds(current => ({ ...current, [target.type]: target.id }));
+        newCanvasNote.current = "";
+        setSelected(""); setBoxSelection([]); setDragPreview(null); setProperties(false); setTool("select"); setShape("free");
+        setCanvasRequest(undefined);
+        setReader(false);
+        setWorkbenchPage(target.type === "workspace" ? "canvas" : "topology");
+        if (target.missingReferences) setToast(target.missingReferences + " 个全局引用暂不可用");
+      }
+      setLibraryDialog(undefined);
+    } catch (error) {
+      setToast((error as Error).message);
+    } finally {
+      canvasLock.current = false;
+      setCanvasBusy(false);
+    }
+  }
+  function canvasAction(action: string, entry: CanvasEntry) {
+    if (["rename", "trash", "purge", "share", "export"].includes(action)) setLibraryDialog({ action, type: entry.type, entry });
+    else void runCanvasAction(action, { id: entry.id });
+  }
+  function openCanvas(entry: CanvasEntry) { void runCanvasAction("open", { id: entry.id }, true); }
+  function newCanvas(type: CanvasType) { setLibraryDialog({ action: "create", type }); }
+  const recentCanvas = (libraryType ? boards.filter(board => board.type === libraryType) : boards)
+    .filter(board => board.openedAt && !board.deletedAt)
+    .sort((a, b) => b.openedAt!.localeCompare(a.openedAt!))[0];
+  useEffect(() => {
+    function hotkey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.code === "KeyJ" && recentCanvas && !event.isComposing) {
+        event.preventDefault();
+        openCanvas(recentCanvas);
+      }
+    }
+    window.addEventListener("keydown", hotkey);
+    return () => window.removeEventListener("keydown", hotkey);
+  });
+  const [includeNotes, setIncludeNotes] = useState(false);
+  const [includeFiles, setIncludeFiles] = useState(false);
+  useEffect(() => { setIncludeNotes(false); setIncludeFiles(false); }, [libraryDialog]);
   const navExpanded = sidebarMode === "full";
   const newNoteDisabled = !client.ready || records.composing || records.volatile || recordImporting;
   function newNote() {
@@ -769,7 +913,9 @@ function App() {
                   <Settings2 size={19} />
                 </Button>}
               </div>);
-  const windowBar = <WindowNavigationBar context={pageActions} title={pageTitle} disabled={records.composing}
+  const windowBar = <WindowNavigationBar context={pageActions} title={libraryType ? "" : pageTitle} canvasTitle={currentCanvas ? <CanvasSwitcher
+    current={currentCanvas} boards={boards} open={openCanvas} library={() => showLibrary(currentCanvas.type)}
+    create={() => newCanvas(currentCanvas.type)} rename={() => canvasAction("rename", currentCanvas)} share={() => canvasAction("share", currentCanvas)}/> : undefined} disabled={records.composing}
     inboxAction={lanCount ? <Button className="quick-incoming" aria-label={`待接收便签，${lanCount} 条`} disabled={records.composing} onClick={() => setLanRequest({})}>收件 {lanCount}</Button> : undefined}
     sidebar={toggleSidebar} sidebarMode={sidebarMode} toggleCompact={toggleNavigationDensity} hide={() => void hidePanel()}
     back={pageHistory.back} forward={pageHistory.forward} canBack={pageHistory.canBack} canForward={pageHistory.canForward}
@@ -781,8 +927,8 @@ function App() {
 
             <nav aria-label="工作台导航">
             <div className="sidebar-group sidebar-primary nav-active-surface" role="group" aria-label="主导航">
-            <NavItem collapsed={sidebarMode === "compact"} selected={inCanvas && dialog !== "devices"} aria-label="我的随手页" disabled={records.composing} onClick={() => { setWorkbenchPage("canvas"); setReader(true); }} icon={<Layers3 size={21}/>}>工作页</NavItem>
-            {window.desktop && <NavItem collapsed={sidebarMode === "compact"} className="topology-rail-entry" selected={inTopology && dialog !== "devices"} aria-label="打开关系画布" disabled={records.composing || !info || !client.ready} onClick={() => setWorkbenchPage("topology")} icon={<RelationCanvasIcon size={21} strokeWidth={1.65} aria-hidden="true"/>}>关系画布</NavItem>}
+            <NavItem collapsed={sidebarMode === "compact"} selected={(inCanvas || libraryType === "workspace") && dialog !== "devices"} aria-label="我的随手页" disabled={records.composing} onClick={() => { setWorkbenchPage(window.desktop ? "workspace-library" : "canvas"); setReader(true); }} icon={<Layers3 size={21}/>}>工作页</NavItem>
+            {window.desktop && <NavItem collapsed={sidebarMode === "compact"} className="topology-rail-entry" selected={(inTopology || libraryType === "relation") && dialog !== "devices"} aria-label="打开关系画布" disabled={records.composing || !info || !client.ready} onClick={() => setWorkbenchPage("relation-library")} icon={<RelationCanvasIcon size={21} strokeWidth={1.65} aria-hidden="true"/>}>关系画布</NavItem>}
             <NavItem collapsed={sidebarMode === "compact"} selected={inRecords && dialog !== "devices"} aria-label="便笺列表" disabled={records.composing} onClick={() => { if (window.desktop) { setQuickCapture(false); setWorkbenchPage("records"); } else setIndexOpen(true); }} icon={<FileText size={21}/>}>便签</NavItem>
             {window.desktop && <NavItem collapsed={sidebarMode === "compact"} selected={inFiles && dialog !== "devices"} aria-label="文件" disabled={records.composing} onClick={openFilePage} icon={<Icon name="tray"/>}>文件</NavItem>}
             </div>
@@ -810,22 +956,27 @@ function App() {
                 <button onClick={() => void client.tick()}>重试连接</button>
               </div>
             )}
-            {window.desktop && <RecordWorkspace onCreate={newNote} createDisabled={newNoteDisabled} active={inRecords} quick={quickCapture} setQuick={setQuickCapture} importing={recordImporting} setImporting={setRecordImporting} session={records} client={client} query={recordQuery} setQuery={setRecordQuery} confirmDelete={setDeleteRecord} copy={copy} notify={setToast} sendNote={(id, title) => void sendNote(id, title)} onFiles={() => openFilePicker(records.id || "")} onFileCenter={openFilePage} onSendFiles={files => attachFiles(files, "canvas")}
+            {window.desktop && <RecordWorkspace freeCanvasId={freeBoard?.id} relationCanvasId={relationBoard?.id} onCreate={newNote} createDisabled={newNoteDisabled} active={inRecords} quick={quickCapture} setQuick={setQuickCapture} importing={recordImporting} setImporting={setRecordImporting} session={records} client={client} query={recordQuery} setQuery={setRecordQuery} confirmDelete={setDeleteRecord} copy={copy} notify={setToast} sendNote={(id, title) => void sendNote(id, title)} onFiles={() => openFilePicker(records.id || "")} onFileCenter={openFilePage} onSendFiles={files => attachFiles(files, "canvas")}
               onAttach={(files, id, origin) => attachFiles(files, "record", id, origin)}
               onFreePage={id => {
-                const value = client.view()[id]?.value;
-                if ((value?.type === "node" || (value?.type === "text" && value.localOnly)) && !value.freePlacement) {
+                if (!freeBoard) { setWorkbenchPage("workspace-library"); return; }
+                const existing = canvasItems(client.view(), freeBoard.id).find(([, item]) => item.value?.type === "free-note" && item.value.recordId === id);
+                const placementId = existing?.[0] ?? uid();
+                if (!existing) {
                   const { x, y } = viewport.current.current;
-                  commit(id, { ...value, freePlacement: { ...notePosition(x - NOTE_WIDTH / 2, y - NOTE_HEIGHT / 2), width: NOTE_WIDTH, height: NOTE_HEIGHT } });
+                  commit(placementId, { type: "free-note", canvasId: freeBoard.id, recordId: id, ...notePosition(x - NOTE_WIDTH / 2, y - NOTE_HEIGHT / 2), color: "#263449", width: NOTE_WIDTH, height: NOTE_HEIGHT });
                 }
-                setWorkbenchPage("canvas"); locateNote(id);
+                setWorkbenchPage("canvas"); locateNote(placementId);
               }}
               onCanvas={id => { setCanvasRequest({ id, token: Date.now() }); setWorkbenchPage("topology"); }} />}
+            {libraryType && <CanvasLibrary key={libraryType} type={libraryType} boards={boards} items={items} theme={appearance.tone}
+              busy={canvasBusy || !catalog && !catalogError} error={catalogError} retry={() => setCatalogRetry(value => value + 1)}
+              create={() => newCanvas(libraryType)} open={openCanvas} action={canvasAction} importPack={() => void runCanvasAction("import", {}, true)}/>}
             {window.desktop && inFiles && <section className="file-workspace" id="workspace" aria-label="文件工作区" tabIndex={-1}>
               <FileStation client={client} onAttach={files => attachFiles(files, "canvas")} onRecord={records.id ? files => attachFiles(files, "record", records.id) : undefined} onDevices={() => setDialog("devices")} />
             </section>}
-            {window.desktop && <TopologyWorkspace active={inTopology} client={client} items={items}
-              request={canvasRequest} onOpenRecord={id => { if (!records.composing && !recordImporting) { records.open(id); setQuickCapture(false); setWorkbenchPage("records"); } }} savedOptions={info?.canvasOptions} onOptions={next => void changeSettings({ canvasOptions: next }, true)} savedViewport={info?.topologyViewport} onViewport={queueViewport} notify={setToast} />}
+            {window.desktop && relationBoard && <TopologyWorkspace key={relationBoard.id} canvasId={relationBoard.id} active={inTopology} client={client} items={items}
+              request={canvasRequest} onOpenRecord={id => { if (!records.composing && !recordImporting) { records.open(id); setQuickCapture(false); setWorkbenchPage("records"); } }} savedOptions={relationBoard.options} onOptions={next => void window.desktop!.canvas.catalog("options", { id: relationBoard.id, options: next }).catch(error => setToast(error.message))} savedViewport={relationBoard.viewport} onViewport={queueViewport} notify={setToast} />}
             <section
               ref={adaptive.canvasRef}
               className="workspace xigra-workspace-view free-workspace" data-tool={tool} data-toolbar-mode={adaptive.toolbar} style={{ "--free-available-height": `${viewport.size.height}px` } as React.CSSProperties}
@@ -843,20 +994,20 @@ function App() {
                   canRemove={tool === 'select' && (boxSelection.length>0 || !!activeObject && ['stroke','text','free-file'].includes(activeObject.type))}
                   remove={()=>{if(tool==='select')removeFreeSelection();}}
                   attach={window.desktop ? () => openFilePicker() : undefined} importing={importing || !client.ready} exportCanvas={exportImage}
-                  settings={<div className="free-properties" data-object={tool==='select'?activeObject?.type:undefined}><div className="free-properties-heading">{tool==='select'?'选择设置':tool==='hand'?'画布导航':tool==='erase'?'橡皮擦设置':tool==='text'?'文字设置':shape==='free'?'画笔设置':'图形设置'}<Button iconOnly aria-label="关闭工具设置" title="关闭工具设置 · Esc" onClick={() => setProperties(false)}><X size={18}/></Button></div>
-                {tool==='erase' && <label className="eraser-size"><AppSelect<'stroke'|'partial'> label="擦除模式" value={tools.eraserMode} onValueChange={tools.setEraserMode} options={[{value:'stroke',label:'整条笔迹'},{value:'partial',label:'局部擦除'}]}/>橡皮擦范围 {tools.eraserSize}px<input aria-label="橡皮擦大小" type="range" min="12" max="96" value={tools.eraserSize} onChange={e=>tools.setEraserSize(Number(e.target.value))}/><small>{tools.eraserMode==='partial'?'只擦除经过的笔迹片段，保留其余部分':'划过删除整条笔迹'}，一次拖动可整组撤销</small></label>}
-                {tool==='select'&&objectBox&&<fieldset className="object-properties"><legend>对象属性</legend>{(['x','y','width','height'] as const).map((key,index)=><label key={key}>{['横坐标','纵坐标','宽度','高度'][index]}<input aria-label={['对象横坐标','对象纵坐标','对象宽度','对象高度'][index]} type="number" value={Math.round(objectBox[key]*100)/100} onChange={e=>updateBox(key,e.target.valueAsNumber)}/></label>)}{activeObject?.type!=='stroke'&&<label>不透明度<input aria-label="对象不透明度" type="range" min="10" max="100" value={Math.round(((activeObject?.type==='text'||activeObject?.type==='free-file')?(activeObject.opacity??1):1)*100)} onChange={e=>{if(activeObject?.type==='text'||activeObject?.type==='free-file')commit(selected,{...activeObject,opacity:Number(e.target.value)/100},`opacity:${selected}`);}}/></label>}</fieldset>}
+                  settings={<div className="free-properties" data-object={tool==='select'?activeObject?.type:undefined}><div className="free-properties-heading">{tool==='select'?'选择设置':tool==='hand'?'画布导航':tool==='erase'?'橡皮擦设置':tool==='text'?'文字设置':shape==='free'?BRUSH_NAMES[drawingBrush.brush]:'图形设置'}<IconButton hitArea="roomy" aria-label="关闭工具设置" tooltip="关闭工具设置 · Esc" onClick={() => setProperties(false)}><X size={18}/></IconButton></div>
+                {tool==='erase' && <div className="eraser-size"><div className="tool-select-row"><span>擦除模式</span><AppSelect<'stroke'|'partial'> label="擦除模式" value={tools.eraserMode} onValueChange={tools.setEraserMode} options={[{value:'stroke',label:'整条笔迹'},{value:'partial',label:'局部擦除'}]}/></div><label className="tool-range-row">橡皮擦范围 <output>{tools.eraserSize}px</output><input aria-label="橡皮擦大小" type="range" min="12" max="96" value={tools.eraserSize} onChange={e=>tools.setEraserSize(Number(e.target.value))}/></label><small>{tools.eraserMode==='partial'?'只擦除经过的笔迹片段，保留其余部分':'划过删除整条笔迹'}，一次拖动可整组撤销</small></div>}
+                {tool==='select'&&objectBox&&<fieldset className="object-properties"><legend>对象属性</legend>{(['x','y','width','height'] as const).map((key,index)=><label key={key}>{['横坐标','纵坐标','宽度','高度'][index]}<input className="ui-field" aria-label={['对象横坐标','对象纵坐标','对象宽度','对象高度'][index]} type="number" value={Math.round(objectBox[key]*100)/100} onChange={e=>updateBox(key,e.target.valueAsNumber)}/></label>)}{activeObject?.type!=='stroke'&&<label>不透明度<input aria-label="对象不透明度" type="range" min="10" max="100" value={Math.round(((activeObject?.type==='text'||activeObject?.type==='free-file')?(activeObject.opacity??1):1)*100)} onChange={e=>{if(activeObject?.type==='text'||activeObject?.type==='free-file')commit(selected,{...activeObject,opacity:Number(e.target.value)/100},`opacity:${selected}`);}}/></label>}</fieldset>}
                 {tool==='hand'&&<p className="property-hint">拖动画布移动视口；缩放与适配位于右下角。</p>}
                 {tool==='select'&&<p className="property-hint">Shift 拖动框选，Shift 点击增减选区；拖动空白平移。选中对象后可编辑下方对象属性。</p>}
                 {(tool==='pen'||tool==='text'||tool==='select'&&(activeObject?.type==='stroke'||activeObject?.type==='text'))&&<BrushProperties
                   color={tool==='text'?textColor:tool==='select'&&selectedText?selectedText.color:tool==='select'&&activeObject?.type==='stroke'?activeObject.color:drawingBrush.color}
                   width={tool==='select'&&activeObject?.type==='stroke'?activeObject.width:drawingBrush.width}
-                  style={tool==='select'&&activeObject?.type==='stroke'?{opacity:activeObject.opacity??1,smoothing:activeObject.smoothing??0,lineCap:activeObject.lineCap??'round',brush:activeObject.brush??'ink'}:drawingBrush}
+                  style={tool==='select'&&activeObject?.type==='stroke'?{opacity:activeObject.opacity??1,smoothing:activeObject.smoothing??0,lineCap:activeObject.lineCap??'round',brush:activeObject.brush??'ink',dashLength:activeObject.dashLength,dashGap:activeObject.dashGap}:drawingBrush}
                   change={changeBrush} ink={tool==='pen'||tool==='select'&&activeObject?.type==='stroke'}
                   shape={tool==='pen'?shape:undefined} setShape={tool==='pen'&&shape!=='free'?s=>{setShape(s);setLastShape(s);}:undefined}
-                  presets={brushPresets} save={saveBrushPresets}
+                  presets={brushPresets} save={saveBrushPresets} dark={appearance.tone==='dark'} inkVersion={tool==='select'&&activeObject?.type==='stroke'?activeObject.inkVersion:1}
                   text={tool==='text'?textStyle:tool==='select'&&selectedText?selectedText:undefined}
-                  changeText={patch=>{if(tool==='select'&&selectedText)commit(selected,{...selectedText,...patch});else setTextStyle(v=>({...v,...patch}));}} />}
+                  changeText={patch=>{if(tool==='select'&&selectedText)updateFreeNote(selected,patch);else setTextStyle(v=>({...v,...patch}));}} />}
                 </div>} />
               </div>
               <div id="free-tool-hint" className="free-tool-hint" role="status">{freeToolHint(tool)}</div>
@@ -896,43 +1047,18 @@ function App() {
                   >
                     {freeMarquee&&<div className="free-marquee" style={{left:freeMarquee.x,top:freeMarquee.y,width:freeMarquee.width,height:freeMarquee.height,borderWidth:1/scale}}/>}
                     <svg className="ink" width="1" height="1" overflow="visible">
-                      {strokes.flatMap(([id, item]) => {
-                        if(tools.erased.has(id))return null;
-                        const s = (tools.previewId===id ? tools.preview : item.value) as StrokeValue;
-                        return (tools.fragments?.get(id)??[s]).map((s,index)=>(
-                          <path
-                            key={`${id}:${index}`}
-                            data-box-selected={boxSelection.includes(id)||undefined}
-                            data-testid="stroke"
-                            d={brushPath(s)}
-                            stroke={s.color}
-                            strokeWidth={s.width}
-                            opacity={s.opacity??1}
-                            fill="none"
-                            strokeLinecap={s.lineCap??"round"}
-                            strokeDasharray={brushDash(s).join(" ")}
-                            strokeLinejoin="round"
-                          />
-                        ));
-                      })}
-                      {tools.draft && (
-                        <path
-                          d={brushPath(tools.draft)}
-                          stroke={tools.draft.color}
-                          strokeWidth={tools.draft.width}
-                          opacity={tools.draft.opacity??1}
-                          fill="none"
-                          strokeLinecap={tools.draft.lineCap??"round"}
-                          strokeDasharray={brushDash(tools.draft).join(" ")}
-                          strokeLinejoin="round"
-                        />
-                      )}
+                      {renderStrokes(false)}
+                      {tools.draft && !isHighlighter(tools.draft) && <InkStroke ink={tools.draft}/>}
+                    </svg>
+                    <svg className="ink ink-overlay" width="1" height="1" overflow="visible">
+                      {renderStrokes(true)}
+                      {tools.draft && isHighlighter(tools.draft) && <InkStroke ink={tools.draft}/>}
                       {tool==='select' && tools.bounds && <g className="stroke-selection">
                         <rect x={tools.bounds.x-6/scale} y={tools.bounds.y-6/scale} width={tools.bounds.width+12/scale} height={tools.bounds.height+12/scale} fill="none" stroke="var(--xigra-brand)" strokeWidth={1/scale} strokeDasharray={`${4/scale} ${3/scale}`}/>
                         <circle aria-label="调整图形尺寸" data-testid="stroke-resize" cx={tools.bounds.x+tools.bounds.width} cy={tools.bounds.y+tools.bounds.height} r={6/scale} fill="var(--surface)" stroke="var(--xigra-brand)" strokeWidth={2/scale} style={{pointerEvents:'all',cursor:'nwse-resize'}} onPointerDown={e=>{e.stopPropagation();tools.down(e,true);}}/>
                       </g>}
                     </svg>
-                    {visible.map(([id,item])=>item.value?.type==='free-file'?<FreeFileCard key={id} interactive={tool === 'select'} value={item.value} selected={selected===id||boxSelection.includes(id)} select={()=>setSelected(id)} change={value=>commit(id,value)} remove={()=>commit(id,null)} point={viewport.point} notify={setToast}/>:null)}
+                    {visible.map(([id,item])=>item.value?.type==='free-file'?<FreeFileCard key={id} interactive={tool === 'select'} value={item.value} scale={scale} selected={selected===id||boxSelection.includes(id)} select={()=>setSelected(id)} change={value=>commit(id,value)} remove={()=>commit(id,null)} point={viewport.point} notify={setToast}/>:null)}
                     {texts.map(([id, item]) => {
                       const value =
                         dragPreview?.id === id
@@ -996,7 +1122,7 @@ function App() {
                               </button>
                             </div>
                           </div>
-                          <CanvasNoteContent id={id} value={value} autoOpen={newCanvasNote.current === id} client={client} notify={setToast} onChange={text => {
+                          <CanvasNoteContent id={id} recordId={items[id]?.value?.type === "free-note" ? items[id].value.recordId : id} value={value} autoOpen={newCanvasNote.current === id} client={client} notify={setToast} onChange={text => {
                             updateFreeNote(id, { text }, `typing:${id}`);
                           }}/>
                           <CardResizeHandle width={value.width ?? NOTE_WIDTH} height={value.height ?? NOTE_HEIGHT} zoom={scale}
@@ -1020,7 +1146,7 @@ function App() {
                       ? "本机工作空间"
                       : "已连接共享工作空间"}
                 </StatusPill>
-                <SaveStatus client={client} recordId={selectedText ? selected : undefined}/></div>
+                <SaveStatus client={client} recordId={activeObject?.type === "free-note" ? activeObject.recordId : selectedText ? selected : undefined}/></div>
                 <span>
                   {texts.length} 张便笺 · {strokes.length} 段笔迹{" "}
                   <span className="footer-separator">|</span>{" "}
@@ -1062,17 +1188,17 @@ function App() {
             <Dialog.Title className="sr-only">
               {dialogContent === "share" ? "白板实时共享" : dialogContent === "devices" ? "设备互传" : "设置"}
             </Dialog.Title>
-            {dialogContent === "share" ? <Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="modal-close icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>
-              : dialogContent === "devices" ? <PageHeader level={2} title="设备互传" titleAction={<HelpPopover topic="devices" />} className="device-page-header" actions={<Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>} />
-              : <header className="settings-header"><h2>设置</h2><Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close></header>}
+            {dialogContent === "share" ? <Dialog.Close render={<IconButton hitArea="roomy" tooltip="关闭弹窗" />} className="modal-close" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>
+              : dialogContent === "devices" ? <PageHeader level={2} title="设备互传" titleAction={<HelpPopover topic="devices" />} className="device-page-header" actions={<Dialog.Close render={<IconButton hitArea="roomy" tooltip="关闭弹窗" />} aria-label="关闭弹窗"><X size={18} /></Dialog.Close>} />
+              : <header className="settings-header"><h2>设置</h2><Dialog.Close render={<IconButton hitArea="roomy" tooltip="关闭弹窗" />} aria-label="关闭弹窗"><X size={18} /></Dialog.Close></header>}
             {dialogError && dialogContent !== 'share' && <p className="xigra-notice" data-tone="error" role="alert">{dialogError.replace(/^Error invoking remote method '[^']+': Error: /, '')}</p>}
             {dialogContent === "devices" ? <div className="device-hub-actions">
-              <button className="device-hub-action" aria-label="打开便签互传" onClick={() => { setDialog(null); setLanRequest({}); }}>
+              <Button className="device-hub-action" aria-label="打开便签互传" onClick={() => { setDialog(null); setLanRequest({}); }}>
                 <MonitorUp size={22} aria-hidden="true"/><span><strong>设备连接与便签互传</strong>{lanCount > 0 && <small className="device-pending">{lanCount} 条便签待接收</small>}</span><ArrowUpRight size={17} aria-hidden="true"/>
-              </button>
-              <button className="device-hub-action" aria-label="打开白板共享" onClick={() => setDialog("share")}>
+              </Button>
+              <Button className="device-hub-action" aria-label="打开白板共享" onClick={() => setDialog("share")}>
                 <Network size={22} aria-hidden="true"/><span><strong>白板实时共享</strong><small>{info?.sharing ? "共享已开启" : "当前未共享"}</small></span><ArrowUpRight size={17} aria-hidden="true"/>
-              </button>
+              </Button>
             </div> : dialogContent === "share" ? (
               <WhiteboardShare info={info} desktop={Boolean(window.desktop)} address={selectedShareAddress}
                 working={working} operation={shareOperation} error={dialogError}
@@ -1153,7 +1279,23 @@ function App() {
       </Dialog.Root>
       <FocusModality /><LagoonMotion/>
       {window.desktop && <FilePicker  open={filesOpen} onOpenChange={setFilesOpen} onChoose={files => attachFiles(files, attachmentRecord !== null ? "record" : "canvas", attachmentRecord === "" ? records.ensureRecord() : attachmentRecord)} />}
-      <Dialog.Root  open={indexOpen} onOpenChange={setIndexOpen}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="modal lagoon-index"><Dialog.Title>此页便笺</Dialog.Title><Dialog.Description>选择便笺，继续记录。</Dialog.Description>{texts.map(([id,item]) => <button className="index-item" key={id} onClick={() => { setIndexOpen(false); locateNote(id); }}><FileText size={18}/><span>{(item.value as TextValue).text.split("\n")[0] || "未命名便笺"}</span></button>)}<Dialog.Close className="button">关闭</Dialog.Close></Dialog.Popup></Dialog.Portal></Dialog.Root>
+      <Dialog.Root  open={indexOpen} onOpenChange={setIndexOpen}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="modal lagoon-index"><Dialog.Title>此页便笺</Dialog.Title><Dialog.Description>选择便笺，继续记录。</Dialog.Description>{texts.map(([id,item]) => <button className="index-item" key={id} onClick={() => { setIndexOpen(false); locateNote(id); }}><FileText size={18}/><span>{(item.value as TextValue).text.split("\n")[0] || "未命名便笺"}</span></button>)}<Dialog.Close render={<Button />}>关闭</Dialog.Close></Dialog.Popup></Dialog.Portal></Dialog.Root>
+      {libraryDialog?.action === "share" && libraryDialog.entry && <CanvasShareDialog entry={libraryDialog.entry} networks={info?.networks ?? []}
+        flush={() => client.flush()} notify={setToast} close={() => setLibraryDialog(undefined)}
+        exportPack={() => setLibraryDialog({ ...libraryDialog, action: "export" })}/>}
+      {libraryDialog && libraryDialog.action !== "share" && <CanvasLibraryDialog key={libraryDialog.action + (libraryDialog.entry?.id ?? "")}
+        title={{ create: "新建画布", rename: "重命名画布", share: "分享画布", export: "导出画布包", trash: "移至回收站", purge: "永久删除画布" }[libraryDialog.action] ?? ""}
+        detail={libraryDialog.action === "create" ? (libraryDialog.type === "workspace" ? "自由工作页" : "关系画布") : libraryDialog.action === "trash" ? "可在回收站恢复这张画布。全局便签与文件会保留。" :
+          libraryDialog.action === "purge" ? "将永久移除此画布的布局。全局便签与文件会保留。" : libraryDialog.entry?.name}
+        name={libraryDialog.action === "create" ? "" : libraryDialog.action === "rename" ? libraryDialog.entry?.name : undefined}
+        label={libraryDialog.action === "create" ? "创建并打开" : libraryDialog.action === "rename" ? "保存名称" : ["export", "share"].includes(libraryDialog.action) ? "导出画布包" : libraryDialog.action === "purge" ? "永久删除" : "移至回收站"}
+        busy={canvasBusy} close={() => setLibraryDialog(undefined)}
+        submit={name => void runCanvasAction(libraryDialog.action, { id: libraryDialog.entry?.id, type: libraryDialog.type, name, includeNotes, includeFiles }, libraryDialog.action === "create")}>
+        {libraryDialog.action === "export" && <>
+          <label className="canvas-dialog-choice"><input type="checkbox" checked={includeNotes} onChange={event => setIncludeNotes(event.target.checked)}/> 包含引用便签的正文</label>
+          <label className="canvas-dialog-choice"><input type="checkbox" checked={includeFiles} onChange={event => setIncludeFiles(event.target.checked)}/> 包含引用附件（合计最多 24 MiB）</label>
+        </>}
+      </CanvasLibraryDialog>}
       <GlobalRecordSearch  session={records} onSelect={() => { setQuickCapture(false); setWorkbenchPage("records"); }} blocked={recordImporting} open={recordSearchOpen} setOpen={open => { setRecordSearchOpen(open); if (!open) records.focus(); }} />
       <Dialog.Root  open={Boolean(deleteRecord)} onOpenChange={open => { if (!open) setDeleteRecord(""); }}>
         <Dialog.Portal><Dialog.Backdrop className="desk-backdrop" />
@@ -1161,7 +1303,7 @@ function App() {
             <Dialog.Title>删除便笺</Dialog.Title>
             <Dialog.Description>确认删除「{recordTitle(records.rows.find(row => row.id === deleteRecord)?.text ?? "")}」？</Dialog.Description>
             <div className="xigra-record-dialog-actions">
-              <Dialog.Close className="button" autoFocus>取消</Dialog.Close>
+              <Dialog.Close render={<Button />} autoFocus>取消</Dialog.Close>
               <button className="button xigra-delete-button" onClick={() => { records.remove(deleteRecord); setDeleteRecord(""); }}>确认删除</button>
             </div>
           </Dialog.Popup>

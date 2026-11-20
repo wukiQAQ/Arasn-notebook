@@ -9,3 +9,16 @@ export function Button({ className = "", type = "button", variant, iconOnly, too
   const button = <button {...props} type={type} data-ui-button={role} className={`arasn-button arasn-button-${role}${icon ? " arasn-icon-button" : ""} ${className}`} />;
   return label ? <ControlTooltip label={label}>{button}</ControlTooltip> : button;
 }
+
+type IconButtonProps = ComponentPropsWithRef<"button"> & {
+  "aria-label"?: string;
+  hitArea?: "compact" | "regular" | "roomy";
+  tooltip?: string;
+};
+
+export function IconButton({ className = "", type = "button", hitArea = "regular", tooltip, children, ...props }: IconButtonProps) {
+  const button = <button {...props} type={type} className={`arasn-icon-action ${className}`} data-hit-area={hitArea}>
+    <span className="arasn-icon-action-face" aria-hidden="true">{children}</span>
+  </button>;
+  return tooltip ? <ControlTooltip label={tooltip}>{button}</ControlTooltip> : button;
+}

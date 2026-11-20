@@ -2,42 +2,50 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { screenToWorld, worldLimit, zoomAt, type Camera } from "./topology";
 
 // Local, per-room camera; content continues through BoardClient's recovery queue.
-export function useFreeViewport(roomId: string, notify: (message: string) => void, active: boolean) {
+export function useFreeViewport(roomId: string, notify: (message: string) => void, active: boolean, scoped?: { id: string; viewport?: Camera }) {
+  const initial = useRef(scoped);
+  initial.current = scoped;
+  const canvasId = scoped?.id;
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 1, height: 1 });
   const [camera, setCamera] = useState<Camera>({ x: 800, y: 500, zoom: .8 });
   const current = useRef(camera);
   const frame = useRef(0);
   const timer = useRef(0);
-  const key = `arasn-free-viewport:${roomId}`;
+  const key = `arasn-free-viewport:${canvasId ?? roomId}`;
   const loaded = useRef(false);
+  const pending = useRef<Camera | undefined>(undefined);
   const writing = useRef(Promise.resolve(true));
   const save = useCallback((): Promise<boolean> => {
     clearTimeout(timer.current);
-    if (!roomId || !loaded.current) return writing.current;
-    const next = { ...current.current, roomId };
+    if (!roomId || !loaded.current || !pending.current) return writing.current;
+    const camera = pending.current;
+    pending.current = undefined;
+    const next = { ...camera, roomId };
     writing.current = writing.current.then(async () => {
       try {
-        if (window.desktop) await window.desktop.settings({ freeViewport: next });
+        if (canvasId) await window.desktop!.canvas.catalog("viewport", { id: canvasId, camera: next });
+        else if (window.desktop) await window.desktop.settings({ freeViewport: next });
         else localStorage.setItem(key, JSON.stringify(next));
         return true;
-      } catch { notify("工作页视图位置未保存，请重试"); return false; }
+      } catch { if (initial.current?.id === canvasId) pending.current ??= camera; notify("工作页视图位置未保存，请重试"); return false; }
     });
     return writing.current;
-  }, [key, roomId, notify]);
+  }, [key, roomId, notify, canvasId]);
   const show = useCallback((next: Camera) => {
     current.current = { x: worldLimit(next.x), y: worldLimit(next.y), zoom: Math.max(.25, Math.min(4, next.zoom)) };
+    pending.current = current.current;
     if (!frame.current) frame.current = requestAnimationFrame(() => { frame.current = 0; setCamera(current.current); });
     clearTimeout(timer.current);
     timer.current = window.setTimeout(save, 180);
   }, [save]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     let active = true;
     loaded.current = false;
     if (roomId) void (async () => {
       let next = { x: 800, y: 500, zoom: .8 };
       try {
-        const value = window.desktop ? (await window.desktop.info()).freeViewport : JSON.parse(localStorage.getItem(key) || "null");
+        const value = canvasId ? { ...initial.current?.viewport, roomId } : window.desktop ? (await window.desktop.info()).freeViewport : JSON.parse(localStorage.getItem(key) || "null");
         if (value && (!value.roomId || value.roomId === roomId) && Number.isFinite(value.x) && Math.abs(value.x) <= 1e6 && Number.isFinite(value.y) && Math.abs(value.y) <= 1e6 && value.zoom >= .25 && value.zoom <= 4) next = value;
       } catch { notify("工作页视图位置读取失败，已使用默认视图"); }
       if (active) { current.current = next; setCamera(next); loaded.current = true; }
@@ -46,7 +54,7 @@ export function useFreeViewport(roomId: string, notify: (message: string) => voi
     window.addEventListener("pagehide", flush);
     window.addEventListener("blur", flush);
     return () => { active = false; void save(); cancelAnimationFrame(frame.current); frame.current = 0; window.removeEventListener("pagehide", flush); window.removeEventListener("blur", flush); };
-  }, [key, save, notify, roomId]);
+  }, [key, save, notify, roomId, canvasId]);
   // The viewport may mount after compact mode or the mobile reader closes.
   useLayoutEffect(() => {
     if (!element || !active) return;

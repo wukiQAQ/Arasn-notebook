@@ -1,5 +1,7 @@
 import type { Item, CanvasEdgeValue, StrokeValue } from './board';
-import { brushPath, brushDash } from './brush';
+import { isHighlighter } from './brush';
+import { paintInk } from './ink-renderer';
+import { strokeBounds } from './drawing';
 import { enclosingBounds, relationGeometry, RELATION_TYPES, type Bounds, type Camera } from './topology';
 import { RELATION_APPEARANCE } from './relation-appearance';
 import { exportSize, wrapText, type ExportRequest, type ExportResult } from './canvas-export';
@@ -41,15 +43,19 @@ export function freeExportSource(entries: [string, Item][], target: HTMLElement,
     width: target.clientWidth / camera.zoom, height: target.clientHeight / camera.zoom } };
 }
 const intersects = (a: Bounds, b: Bounds) => a.x <= b.x + b.width && a.y <= b.y + b.height && a.x + a.width >= b.x && a.y + a.height >= b.y;
-export async function renderCanvasExport(source: ExportSource, request: ExportRequest, original: (id: string) => Promise<string>): Promise<ExportResult> {
+export async function renderCanvasExport(source: ExportSource, request: ExportRequest, original: (id: string, name: string) => Promise<string | undefined>): Promise<ExportResult> {
   const { cards, strokes, edges, palette } = source, zoom = request.mode === 'all' ? 1 : source.zoom;
   const occupied: Bounds[] = [], byId = new Map(cards.map(card => [card.id, card]));
   const relations = edges.flatMap(edge => {
     const a = byId.get(edge.fromNodeId), b = byId.get(edge.toNodeId); if (!a || !b) return [];
-    const geometry = relationGeometry(a.box, b.box, zoom, occupied); occupied.push(geometry.labelBounds); return [{ edge, geometry }];
+    const geometry = relationGeometry(a.box, b.box, zoom, occupied, edge); occupied.push(geometry.labelBounds); return [{ edge, geometry }];
   });
   const boxes = cards.map(card => card.box);
-  for (const stroke of strokes) for (const [x, y] of stroke.points) boxes.push({ x: x - stroke.width, y: y - stroke.width, width: stroke.width * 2, height: stroke.width * 2 });
+  const ink=strokes.map(stroke=>{
+    const {x,y,width,height}=strokeBounds(stroke.points), margin=stroke.width;
+    return {stroke,box:{x:x-margin,y:y-margin,width:width+2*margin,height:height+2*margin}};
+  });
+  boxes.push(...ink.map(({box})=>box));
   for (const { geometry: g } of relations) { boxes.push(g.labelBounds); for (const p of [g.start, g.c1, g.c2, g.end]) boxes.push({ x: p.x - 10 / zoom, y: p.y - 10 / zoom, width: 20 / zoom, height: 20 / zoom }); }
   const bounds = request.mode === 'all' ? enclosingBounds(boxes) : request.mode === 'region' ? request.region : source.view;
   if (!bounds) throw new Error(request.mode === 'all' ? '画布没有可导出的内容，请先添加便签或图形。' : '请重新框选截图范围。');
@@ -64,7 +70,9 @@ export async function renderCanvasExport(source: ExportSource, request: ExportRe
       if (!img) {
         // Output pixel limits do not bound memory occupied by decoded originals.
         if (images.size >= 2) { const oldest = images.keys().next().value!; images.get(oldest)!.src = ''; images.delete(oldest); }
-        img = new Image(); img.src = await original(card.fileId!); await img.decode(); images.set(card.fileId!, img);
+        const url = await original(card.fileId!, card.title ?? "");
+        if (!url) return undefined;
+        img = new Image(); img.src = url; await img.decode(); images.set(card.fileId!, img);
       }
       const ratio = Math.min(card.box.width / img.naturalWidth, Math.max(1, card.box.height - 34) / img.naturalHeight);
       if (ratio * size.factor > 1.01) warnings.add(`“${card.title}”原图像素较少；放大输出不会增加原始细节。`);
@@ -86,7 +94,7 @@ export async function renderCanvasExport(source: ExportSource, request: ExportRe
     ctx.fillStyle = palette.surface; rounded(g.labelBounds, 4 / zoom); ctx.fill(); ctx.fillStyle = color; font(12 / zoom); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(ellipsis(RELATION_TYPES[type] + (edge.label ? ` · ${edge.label}` : ''), g.labelBounds.width - 12 / zoom), g.label.x, g.label.y); ctx.restore();
   }
-  for (const stroke of strokes) { ctx.save(); ctx.globalAlpha = stroke.opacity ?? 1; ctx.strokeStyle = stroke.color; ctx.lineWidth = stroke.width; ctx.lineCap = stroke.lineCap ?? 'round'; ctx.lineJoin = 'round'; ctx.setLineDash(brushDash(stroke)); ctx.stroke(new Path2D(brushPath(stroke))); ctx.restore(); }
+  for (const {stroke,box} of ink) if(!isHighlighter(stroke)&&intersects(box,bounds)) paintInk(ctx, stroke);
   try {
   for (const card of [...cards.filter(c => c.kind === 'file'), ...cards.filter(c => c.kind !== 'file')]) {
     if (!intersects(card.box, bounds)) continue;
@@ -108,10 +116,10 @@ export async function renderCanvasExport(source: ExportSource, request: ExportRe
       ctx.strokeStyle = palette.border; ctx.beginPath(); ctx.moveTo(b.x, b.y + 34); ctx.lineTo(b.x + b.width, b.y + 34); ctx.stroke(); ctx.fillStyle = palette.text; font(12);
       ctx.fillText(ellipsis(card.title ?? '', Math.max(1, b.width - 20)), b.x + 10, b.y + 10);
       const bodyVisible = intersects({ ...b, y: b.y + 34, height: Math.max(0, b.height - 34) }, bounds);
-      const img = card.category === '图片' && bodyVisible ? await loadImage(card) : undefined;
+      const img = card.fileId && bodyVisible ? await loadImage(card) : undefined;
       if (img) { const ratio = Math.min(b.width / img.naturalWidth, Math.max(1, b.height - 34) / img.naturalHeight);
         ctx.drawImage(img, b.x + (b.width - img.naturalWidth * ratio) / 2, b.y + 34 + (b.height - 34 - img.naturalHeight * ratio) / 2, img.naturalWidth * ratio, img.naturalHeight * ratio); }
-      else if (card.category !== '图片') { const middle = b.y + 34 + (b.height - 34) / 2; ctx.textAlign = 'center'; font(14, '500'); ctx.fillText(ellipsis(card.text, b.width - 24), b.x + b.width / 2, middle - 12); ctx.fillStyle = palette.muted; font(12); ctx.fillText(`${card.category ?? '文件'} · 本机托管副本`, b.x + b.width / 2, middle + 12); }
+      else { const middle = b.y + 34 + (b.height - 34) / 2; ctx.textAlign = 'center'; font(14, '500'); ctx.fillText(ellipsis(card.text, b.width - 24), b.x + b.width / 2, middle - 12); ctx.fillStyle = palette.muted; font(12); ctx.fillText(`${card.category ?? '文件'} · 本机托管副本`, b.x + b.width / 2, middle + 12); }
     } else {
       const compact = zoom < .6; ctx.fillStyle = palette.text; font(compact ? Math.max(18, 11 / zoom) : 15, '600'); ctx.fillText(ellipsis(card.title ?? '', b.width - 28), b.x + 14, b.y + 12);
       if (!compact) { font(12); ctx.fillStyle = palette.muted; wrapText(card.text, b.width - 28, text => ctx.measureText(text).width).slice(0, card.short ? 1 : 2).forEach((row, i) => ctx.fillText(row, b.x + 14, b.y + 38 + i * 18));
@@ -119,6 +127,7 @@ export async function renderCanvasExport(source: ExportSource, request: ExportRe
     }
     ctx.restore();
   }
+  for (const {stroke,box} of ink) if(isHighlighter(stroke)&&intersects(box,bounds)) paintInk(ctx, stroke);
   const blob = await new Promise<Blob>((resolve, reject) => { try { canvas.toBlob(value => value ? resolve(value) : reject(new Error('PNG 编码失败，请降低倍率后重试。')), 'image/png'); } catch { reject(new Error('图片读取或跨域权限失败，无法生成 PNG。')); } });
   return { blob, width: size.width, height: size.height, warnings: [...warnings] };
   } finally { for (const image of images.values()) image.src = ''; images.clear(); }

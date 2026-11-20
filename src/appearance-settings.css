@@ -14,13 +14,8 @@
   --xigra-type-body: 17px;
 }
 .appearance-panel { display: grid; gap: 16px; }
-.appearance-card, .appearance-advanced {
-  border: 1px solid var(--ui-border-subtle);
-  border-radius: 12px;
-  padding-inline: 18px;
-  background: var(--ui-surface-card);
-  min-width: 0;
-}
+.appearance-card, .appearance-advanced { min-width: 0; }
+.appearance-advanced { border-top: 1px solid var(--ui-border-subtle); }
 .appearance-row {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr);
@@ -42,6 +37,7 @@
   border: 0;
   color: var(--ui-text-primary);
   background: transparent;
+  border-radius: var(--ui-radius-control);
   text-align: center;
   font-size: var(--ui-helper-size);
   cursor: pointer;
@@ -55,13 +51,10 @@
   border-radius: 9px;
   border: 1px solid var(--ui-border-control);
 }
-.appearance-mode:hover .appearance-preview { border-color: var(--ui-focus); }
-.appearance-mode[aria-pressed="true"] .appearance-preview { border-color: var(--ui-focus); box-shadow: 0 0 0 1px var(--ui-focus); }
-:root body .modal .appearance-modes button.appearance-mode[aria-pressed="true"]:not(:disabled) {
-  color: var(--ui-text-primary);
-  font-weight: 600;
-  background: transparent;
-}
+.appearance-mode:hover:not(:disabled) .appearance-preview { border-color: var(--ui-focus); }
+.appearance-mode[aria-pressed="true"] .appearance-preview { border-color: var(--ui-focus); }
+.appearance-mode[aria-pressed="true"] { color: var(--ui-nav-on-active); }
+.appearance-mode:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .appearance-preview-window {
   position: absolute;
   inset: 3px;
@@ -111,7 +104,7 @@
   font-size: var(--ui-helper-size);
   cursor: pointer;
 }
-.appearance-presets button[aria-pressed="true"] { border-color: var(--ui-focus); background: var(--ui-nav-active); color: var(--ui-nav-on-active); }
+.appearance-presets button[aria-pressed="true"] { border-color: transparent; background: var(--ui-nav-active); color: var(--ui-nav-on-active); }
 .appearance-preset-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--ui-border-control); flex: none; }
 .appearance-swatches { gap: 4px; }
 :root body .modal .appearance-swatches .appearance-swatch.arasn-button[data-ui-button] {
@@ -130,7 +123,7 @@
 :root body .modal .appearance-swatches .appearance-swatch[aria-pressed="true"] { border-color: var(--ui-focus); }
 .appearance-color-control { min-width: 0; text-align: end; }
 .appearance-color-fields { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-.appearance-color-fields input { min-height: 34px; border: 1px solid var(--ui-border-control); border-radius: 7px; color: var(--ui-text-primary); background: var(--ui-surface-card); }
+.appearance-color-fields input { min-height: var(--ui-control-height); }
 .appearance-color-fields input[type="color"] { width: 34px; height: 34px; padding: 3px; cursor: pointer; }
 .appearance-color-fields .appearance-hex { box-sizing: border-box; width: 92px; padding: 4px 6px; font: 13px/1.2 var(--ui-font); font-variant-numeric: tabular-nums; }
 :root body .modal .appearance-color-fields button.arasn-button[data-ui-button] { width: 34px; min-width: 34px; height: 34px; min-height: 34px; padding: 0; }

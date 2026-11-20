@@ -101,7 +101,13 @@ const { createStore } = require('../desktop/server.cjs');
         const scale = Math.hypot(el.getScreenCTM().a, el.getScreenCTM().b), marker = document.getElementById(el.getAttribute('marker-end').slice(5, -1));
         return { tx: end.x - near.x, ty: end.y - near.y, arrow: marker.markerWidth.baseVal.value * scale, units: marker.getAttribute('markerUnits') };
       });
-      assert(Math.abs(measured.ty) < .01); assert.equal(Math.sign(measured.tx), dx < 0 ? -1 : 1);
+      if (dx === 0) {
+        assert(Math.abs(measured.tx) < .01);
+        assert.equal(Math.sign(measured.ty), Math.sign(dy));
+      } else {
+        assert(Math.abs(measured.ty) < .01);
+        assert.equal(Math.sign(measured.tx), Math.sign(dx));
+      }
       assert(Math.abs(measured.arrow - 10) < .1, JSON.stringify(measured)); assert.equal(measured.units, 'userSpaceOnUse');
       if (dx < 0) { await button('适配节点').click(); await page.screenshot({ path: path.join(shots, 'reverse-arrow.png'), scale: 'css', animations: 'disabled' }); }
     }
@@ -119,9 +125,10 @@ const { createStore } = require('../desktop/server.cjs');
     await expect(page.locator('[data-topology-node][data-relation-focus]')).toHaveCount(2);
     await page.screenshot({ path: path.join(shots, 'colors-hover.png'), scale: 'css', animations: 'disabled' });
     await card.focus();
+    await card.press('Enter');
     const edit = card.getByRole('button', { name: '编辑节点', exact: true });
     const box = await edit.boundingBox(); assert(box.height >= 31.9 && box.width >= 38);
-    const anchor = await card.locator('.relation-anchor-out').boundingBox(); assert(anchor.width >= 31.9);
+    const anchor = await card.locator('[data-port=right]').boundingBox(); assert(anchor.width >= 31.9);
     const cardBox = await card.boundingBox(); assert(box.y + box.height <= cardBox.y);
     await button('更多节点操作').click(); await expect(card.getByText('节点属性', { exact: true })).toBeVisible();
     await page.keyboard.press('Escape'); await expect(card.getByText('节点属性', { exact: true })).toHaveCount(0);
@@ -167,7 +174,7 @@ const { createStore } = require('../desktop/server.cjs');
     await page.screenshot({ path: path.join(shots, 'reduced-motion.png'), scale: 'css', animations: 'disabled' });
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     const sourceCard = page.locator(`[data-topology-node="${nodes[1]}"]`);
-    await sourceCard.click(); await button('连接节点').click();
+    await sourceCard.click(); await sourceCard.locator('[data-port=right]').press('Enter');
     await page.locator(`[data-topology-node="${nodes[2]}"]`).click();
     await expect(page.locator('[data-edge]')).toHaveCount(7);
     await button('删除连接').click(); await expect(page.locator('[data-edge]')).toHaveCount(6);
@@ -199,12 +206,21 @@ const { createStore } = require('../desktop/server.cjs');
       return page.locator('[data-edge]').count();
     }).toBe(500);
     metrics.static300nodes500edges = await sample();
-    const viewport = page.locator('.topology-viewport'); const viewportBox = await viewport.boundingBox();
-    await page.mouse.move(viewportBox.x + 20, viewportBox.y + 25); await page.mouse.down({ button: "middle" });
-    await page.mouse.move(viewportBox.x + 30, viewportBox.y + 35);
+    const viewport = page.locator('.topology-viewport');
+    const blank = await viewport.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      for (let y = box.top + 50; y < box.bottom - 140; y += 32) {
+        for (let x = box.left + 115; x < box.right - 140; x += 32) {
+          if (document.elementFromPoint(x, y) === element) return { x, y };
+        }
+      }
+      throw new Error('No unobstructed canvas point for panning');
+    });
+    await page.mouse.move(blank.x, blank.y); await page.mouse.down({ button: 'middle' });
+    await page.mouse.move(blank.x + 10, blank.y + 10);
     await expect(viewport).toHaveAttribute('data-panning', 'true');
     const panSample = sample();
-    await page.mouse.move(viewportBox.x + 150, viewportBox.y + 105, { steps: 120 });
+    await page.mouse.move(blank.x + 120, blank.y + 80, { steps: 120 });
     metrics.panning300nodes500edges = await panSample;
     await page.mouse.up({ button: "middle" });
     await page.screenshot({ path: path.join(shots, 'stress-static.png'), scale: 'css', animations: 'disabled' });

@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "theme": "light",
+      "width": 1440,
+      "actualWidth": 1440
+    },
+    {
+      "theme": "light",
+      "width": 720,
+      "actualWidth": 720
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "actualWidth": 1440
+    },
+    {
+      "theme": "dark",
+      "width": 720,
+      "actualWidth": 720
+    }
+  ],
+  "errors": []
+}

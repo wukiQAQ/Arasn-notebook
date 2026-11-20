@@ -8,6 +8,9 @@
 .free-workspace .paper .note { pointer-events:auto; min-height:140px; }
 .free-workspace .paper .note textarea { min-height:0; }
 .free-workspace .paper .ink { position:absolute; top:0; left:0; width:1px; height:1px; overflow:visible; }
+[data-theme="dark"] .free-workspace .ink { filter:none; }
+[data-theme="dark"] .free-workspace .ink [data-legacy-ink] { filter:invert(.85) hue-rotate(180deg); }
+.free-workspace .ink-overlay { pointer-events:none; z-index:3; }
 .free-workspace .toolbar { top:16px; bottom:auto; left:12px; transform:none; display:flex; flex-direction:column; width:56px; max-width:none; max-height:calc(100% - 72px); overflow:visible; padding:7px; gap:6px; border-radius:11px; min-height:0; justify-content:flex-start; }
 .free-workspace .toolbar .tool-group { flex-direction:column; gap:4px; }
 .free-workspace .toolbar .tool { width:40px; height:40px; flex-shrink:0; }
@@ -81,7 +84,7 @@
 .brush-properties label { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:6px; }
 .brush-properties input[type="range"] { width:100%; accent-color:var(--xigra-brand); }
 .brush-properties .app-select { width:112px; min-width:0; }
-.brush-preview { width:100%; height:42px; background:var(--rail); border-radius:6px; }
+.brush-preview { width:100%; height:42px; border-radius:var(--ui-radius-control); }
 .brush-properties .colors { display:flex; flex-wrap:wrap; gap:8px; }
 .brush-properties .color { width:26px; height:26px; min-width:26px; border:1px solid var(--line); border-radius:50%; }
 .brush-properties .color.chosen { outline:2px solid var(--xigra-brand); outline-offset:2px; }

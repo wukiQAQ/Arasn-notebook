@@ -5,40 +5,21 @@ import { Menu } from "@base-ui/react/menu";
 import { Select } from "@base-ui/react/select";
 import {
   Archive, Check, ChevronDown, ChevronLeft, ChevronRight, Clipboard, Download,
-  Ellipsis, File, FileText, Film, Image, Music, PanelTop, Pencil, Plus, Search,
+  Ellipsis, PanelTop, Pencil, Plus, Search,
   Trash2, Upload, X, LayoutGrid, List,
 } from "lucide-react";
-import { ImagePreview } from "./ImagePreview";
+import { FilePreviewCard } from "./FilePreviewCard";
 import { BoardClient, uid } from "./board";
 import type { ManagedFile, ImportResult } from "./board";
 import { fileOriginLabel } from './record-attachments';
 import { useNotification } from './Notification';
 
 const fileKinds = { "": "所有类型", 图片: "图片", 音频: "音频", 视频: "视频", 文档: "文档", 其他: "其他" };
-const fileIcons = { 图片: Image, 音频: Music, 视频: Film, 文档: FileText };
-
 export function FileMedia({ file, disabled }: { file: ManagedFile; disabled: boolean }) {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let active = true;
-    if (file.category === "图片")
-      void window
-        .desktop!.files.thumbnail(file.id)
-        .then((u) => { if (active) setUrl(u); })
-        .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [file.id, file.category]);
-  const Icon = fileIcons[file.category as keyof typeof fileIcons] ?? File;
-  if (file.category !== '图片') return <span className="file-media"><Icon size={19} aria-hidden="true" /></span>;
-  return <ImagePreview id={file.id} name={file.name} closeLabel="返回文件列表" trigger={
-    <button className="file-media" aria-label={`预览 ${file.name}`} disabled={disabled}>
-      {url ? <img src={url} alt="" /> : <Icon size={19} aria-hidden="true" />}
-    </button>
-  } />;
+  return <FilePreviewCard id={file.id} name={file.name} category={file.category} disabled={disabled}
+    unavailable={Boolean(file.deleted_at) || file.status === "purged"} />;
 }
-const sizeLabel = (bytes: number) =>
+export const sizeLabel = (bytes: number) =>
   bytes < 1024
     ? `${bytes} B`
     : bytes < 1024 * 1024
@@ -508,6 +489,12 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
           </Button>
           <Button disabled={busy} onClick={(event) => openConfirmation("purge", event.currentTarget)}>
             清空回收站
+          </Button>
+          <Button disabled={busy} onClick={() => void run(async () => {
+            await api.action("clearPreviews");
+            window.dispatchEvent(new Event("arasn-preview-refresh"));
+          }, "缩略图缓存已清理")}>
+            清理缩略图缓存
           </Button>
         </div>
         <p className="file-hint">

@@ -1,4 +1,4 @@
-import { Button } from "../Button";
+import { Button, IconButton } from "../Button";
 import { ToolbarDockControls } from "../ToolbarDockControls";
 import { useToolbarDock } from "../useToolbarDock";
 import { CardResizeHandle } from "../CardResizeHandle";
@@ -13,18 +13,19 @@ import {Menu} from '@base-ui/react/menu';
 import {arrangeGraph} from '../graph-layout';
 import { AppSelect } from "./AppSelect";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type MouseEvent } from "react";
-import { CircleHelp, File, Lightbulb, ListTodo, Maximize, Plus, Redo2, RotateCcw, StickyNote, Trash2, Undo2, X, Minus, Pencil, Link2, MoreHorizontal, CheckCircle2, MousePointer2, Settings2, Network, Download, Search, Paperclip, Palette } from "lucide-react";
+import { CircleHelp, File, Lightbulb, ListTodo, Maximize, Plus, Redo2, RotateCcw, StickyNote, Trash2, Undo2, X, Minus, Pencil, MoreHorizontal, CheckCircle2, MousePointer2, Settings2, Network, Download, Search, Paperclip, Palette } from "lucide-react";
 import { Popover } from '@base-ui/react/popover';
 import { BoardClient, uid, type Item, type CanvasNodeValue, type CanvasEdgeValue, type CanvasMigrationResult } from "../board";
 import {
   DEFAULT_CAMERA, MAX_ZOOM, MIN_ZOOM, NODE_KINDS, NODE_STATUSES, enclosingBounds, fitCamera,
-  RELATION_TYPES, relationCurve, relationGeometry, centeredNodeLayout, vacantLayout, overlaps, sameLayout, screenToWorld, viewportBounds, worldLimit, zoomAt,
-  type CanvasOptions, type Camera, type Point, type Size, type TopologyLayout, type TopologyNote, type TopologyViewport,
+  RELATION_TYPES, PORT_SIDES, portPoint, nearestPort, relationDraft, relationGeometry, centeredNodeLayout, vacantLayout, overlaps, sameLayout, screenToWorld, viewportBounds, worldLimit, zoomAt,
+  type CanvasOptions, type CustomNodeType, type PortSide, type Camera, type Point, type Size, type TopologyLayout, type TopologyNote, type TopologyViewport,
 } from "../topology";
 import "./topology.css";
 import { relationTokens } from "../relation-appearance";
 import { FloatingInspector } from "./FloatingInspector";
 import { nodeCardLayout, nodePreviewLines, readableNodeContent } from "./node-preview";
+import { NodeTypeDialog, TYPE_ICONS } from "./NodeTypeDialog";
 import { NodeColorDialog } from "./NodeColorDialog";
 import { SaveStatus, StatusPill } from "./visuals";
 
@@ -32,9 +33,11 @@ const KIND_ICONS = { note: StickyNote, question: CircleHelp, idea: Lightbulb, ta
 type Node = { id: string; sourceId: string; missing: boolean; value: TopologyNote; layout: TopologyLayout; title: string; summary: string };
 type CanvasValue = CanvasNodeValue | CanvasEdgeValue;
 type Change = { id: string; before: CanvasValue | null; after: CanvasValue | null };
+type HistoryBatch = { changes: Change[]; types?: { before: CustomNodeType[]; after: CustomNodeType[] } };
 type Interaction = { pointer: number; start: Point; camera: Camera; moved: boolean; node?: Node; nodes?: Node[]; mode: "node" | "pan" | "box" | "idle"; additive?: boolean };
 type Props = {
   active: boolean;
+  canvasId?: string;
   client: BoardClient;
   items: Record<string, Item>;
   request?: { id: string; token: number };
@@ -51,15 +54,27 @@ function worldPosition(start: Point, delta: Point, zoom: number, direction: numb
   return { x: worldLimit(start.x + direction * delta.x / zoom), y: worldLimit(start.y + direction * delta.y / zoom) };
 }
 
-const kindOptions = Object.entries(NODE_KINDS).filter(([id]) => id !== 'file').map(([value, label]) => ({value: value as Exclude<TopologyLayout['kind'], 'file'>,label,tone:`var(--kind-${value})`}));
+const builtinOptions = Object.entries(NODE_KINDS).filter(([id]) => id !== 'file').map(([value, label]) => ({value,label,tone:`var(--kind-${value})`}));
+const PORT_LABEL: Record<PortSide, string> = { top: "上", right: "右", bottom: "下", left: "左" };
+type ConnectionSource = { source: string; fromPort: PortSide };
+type ConnectionTarget = { id: string; toPort: PortSide };
+
 const toolPlacement = { side: "right", align: "start", sideOffset: 14, collisionPadding: { top: 52, right: 12, bottom: 12, left: 12 } } as const;
 
-export function TopologyWorkspace({ active, client, items, savedViewport, onViewport, notify, request, onOpenRecord, savedOptions, onOptions }: Props) {
+export function TopologyWorkspace({ active, canvasId: selectedCanvasId, client, items, savedViewport, onViewport, notify, request, onOpenRecord, savedOptions, onOptions }: Props) {
   const viewport = useRef<HTMLDivElement>(null);
   const surface = useRef<HTMLDivElement>(null);
   const dock = useToolbarDock('relation');
   const [exportOpen,setExportOpen]=useState(false);
-  const [arrangement,setArrangement]=useState<{positions:Record<string,Point>;signature:string}|null>(null);
+  const [arrangement, setArrangement] = useState<{ positions: Record<string, Point>; signature: string }>();
+  const [arrangeOpen, setArrangeOpen] = useState(false);
+  const arrangementFrame = useRef(0);
+  const [arrangedPositions, setArrangedPositions] = useState<Record<string, Point>>();
+  function stopArrangement() {
+    cancelAnimationFrame(arrangementFrame.current);
+    arrangementFrame.current = 0;
+    setArrangedPositions(undefined);
+  }
   const [inspector, setInspector] = useState("");
   const [composing, setComposing] = useState(false);
   const editor = useRef<HTMLTextAreaElement>(null);
@@ -71,7 +86,8 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   const cameraRef = useRef(camera);
   const [preview, setPreview] = useState<(Point & { id: string; width?: number; height?: number; positions?: Record<string, Point> }) | null>(null);
   const [panning, setPanning] = useState(false);
-  const [kind, setKind] = useState<TopologyLayout["kind"]>("note");
+  const [kind, setKind] = useState("note");
+  const [typeDialog, setTypeDialog] = useState<"create" | "manage">();
   const [colorDialog, setColorDialog] = useState<"create" | { id: string; color?: string }>();
   const [selected, setSelected] = useState("");
   const [selectedMore, setSelectedMore] = useState<string[]>([]);
@@ -94,34 +110,52 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   const pasteOffset = useRef(0);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [newNode, setNewNode] = useState("");
-  const [history, setHistory] = useState<{ past: Change[][]; future: Change[][] }>({ past: [], future: [] });
+  const [history, setHistory] = useState<{ past: HistoryBatch[]; future: HistoryBatch[] }>({ past: [], future: [] });
   const roomId = client.base.roomId;
+  const canvasId = selectedCanvasId ?? roomId;
   const [migration, setMigration] = useState<CanvasMigrationResult>();
   const [busy, setBusy] = useState(false);
   const [migrationError, setMigrationError] = useState("");
   const enabled = migration?.roomId === roomId && migration.migrated === true;
   const [selectedEdge, setSelectedEdge] = useState("");
   const [focusedEdge,setFocusedEdge]=useState("");
-  const [connectTarget,setConnectTarget]=useState("");
   const [hoveredEdge, setHoveredEdge] = useState("");
   const [edgeChoices, setEdgeChoices] = useState<{ ids: string[]; x: number; y: number }>();
   useEffect(() => { setEdgeChoices(undefined); }, [camera.x,camera.y,camera.zoom,roomId,active]);
   const [hoveredNode, setHoveredNode] = useState("");
   const [moreNode, setMoreNode] = useState("");
   const [targetNode, setTargetNode] = useState("");
-  const [connection, setConnection] = useState<{ source: string; point: Point } | null>(null);
-  const connecting = useRef<{ source: string; pointer: number } | null>(null);
+  const [connection, setConnection] = useState<(ConnectionSource & { point: Point; target?: ConnectionTarget; keyboard?: boolean }) | null>(null);
+  const connecting = useRef<(ConnectionSource & { pointer: number }) | null>(null);
   const space = useRef(false);
   const handledRequest = useRef(-1);
   useEffect(() => { setOptions(savedOptions?.roomId === roomId ? savedOptions : { roomId, grid: true, snap: false, minimap: true, wheel: "auto" }); }, [roomId, savedOptions]);
-  useEffect(() => () => { cancelAnimationFrame(previewFrame.current); cancelAnimationFrame(cameraFrame.current); }, []);
+  useEffect(() => () => { cancelAnimationFrame(previewFrame.current); cancelAnimationFrame(cameraFrame.current); cancelAnimationFrame(arrangementFrame.current); }, []);
   useEffect(() => {
     if (!popup) return;
     const dismiss = (event: globalThis.PointerEvent) => { if (!(event.target as Element).closest(".topology-popup")) setPopup(undefined); };
     document.addEventListener("pointerdown", dismiss); return () => document.removeEventListener("pointerdown", dismiss);
   }, [popup]);
   function changeOptions(patch: Partial<CanvasOptions>) { const next = { ...options, ...patch, roomId }; setOptions(next); onOptions(next); }
-  function shownLayout(node: Node) { const point = preview?.positions?.[node.id] ?? (preview?.id === node.id ? preview : undefined); return point ? { ...node.layout, ...point } : node.layout; }
+  const types = options.roomId === roomId ? options.nodeTypes ?? [] : [];
+  const typesById = new Map(types.map(type => [type.id, type]));
+  const kindOptions = [...builtinOptions, ...types.map(type => ({ value: type.id, label: type.name, tone: type.color }))];
+  const typeActions = [{ value: "+type", label: "+ 自定义类型" }, ...(types.length ? [{ value: "manage-types", label: "管理自定义类型…" }] : [])];
+  const typeFor = (layout: TopologyLayout) => typesById.get(layout.customTypeId ?? "");
+  const typeLabel = (layout: TopologyLayout) => typeFor(layout)?.name ?? NODE_KINDS[layout.kind];
+  function typePatch(id: string): Pick<TopologyLayout, "kind" | "customTypeId"> {
+    if (Object.prototype.hasOwnProperty.call(NODE_KINDS, id)) return { kind: id as TopologyLayout["kind"], customTypeId: undefined };
+    return { kind: "note", customTypeId: typesById.has(id) ? id : undefined };
+  }
+  function typeAction(id: string) {
+    if (id === "+type" || id === "manage-types") {
+      setTypeDialog(id === "+type" ? "create" : "manage");
+      return true;
+    }
+    return false;
+  }
+
+  function shownLayout(node: Node) { const point = arrangedPositions?.[node.id] ?? preview?.positions?.[node.id] ?? (preview?.id === node.id ? preview : undefined); return point ? { ...node.layout, ...point } : node.layout; }
   function queuePreview(value: typeof preview) { pendingPreview.current = value; if (!previewFrame.current) previewFrame.current = requestAnimationFrame(() => { previewFrame.current = 0; setPreview(pendingPreview.current); }); }
   const snapped = (value: number) => worldLimit(options.snap ? Math.round(value / 32) * 32 : value);
 
@@ -136,10 +170,10 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   }, [active, roomId, client.ready]);
 
   useEffect(() => {
-    const reset = () => { if (interaction.current?.mode === "pan") showCamera(interaction.current.camera, false); cancelAnimationFrame(previewFrame.current); previewFrame.current = 0; setMarquee(undefined); setPopup(undefined); space.current = false; connecting.current = null; setConnectTarget(""); setConnection(null); interaction.current = null; setPreview(null); setPanning(false); };
+    const reset = () => { if (interaction.current?.mode === "pan") showCamera(interaction.current.camera, false); cancelAnimationFrame(previewFrame.current); previewFrame.current = 0; setMarquee(undefined); setPopup(undefined); space.current = false; connecting.current = null; setConnection(null); interaction.current = null; setPreview(null); setPanning(false); };
     const release = (event: globalThis.KeyboardEvent) => { if (event.code === "Space") space.current = false; };
     window.addEventListener("blur", reset); window.addEventListener("keyup", release);
-    if (!active) { reset(); setExportOpen(false); changeSearch(false); setPendingDelete(null); setColorDialog(undefined); setInspector(""); setComposing(false); setHoveredEdge(""); setFocusedEdge(""); }
+    if (!active) { stopArrangement(); setArrangeOpen(false); setTypeDialog(undefined); reset(); setExportOpen(false); changeSearch(false); setPendingDelete(null); setColorDialog(undefined); setInspector(""); setComposing(false); setHoveredEdge(""); setFocusedEdge(""); }
     return () => { window.removeEventListener("blur", reset); window.removeEventListener("keyup", release); };
   }, [active]);
 
@@ -163,7 +197,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     if (!active || !enabled || !request || handledRequest.current === request.token) return;
     handledRequest.current = request.token;
     let cancelled = false;
-    void client.addRecordToCanvas(request.id, { ...cameraRef.current, roomId }).then(({ nodeId }) => {
+    void client.addRecordToCanvas(request.id, { ...cameraRef.current, roomId }, canvasId).then(({ nodeId }) => {
       if (cancelled || client.base.roomId !== roomId) return;
       const value = client.view()[nodeId]?.value;
       if (value?.type !== "canvas-node") return;
@@ -187,7 +221,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   }, [items, roomId]);
   const nodes = useMemo(() => Object.entries(items).flatMap(([id, item]): Node[] => {
     const value = item.value;
-    if (value?.type !== "canvas-node" || value.canvasId !== roomId || value.roomId !== roomId) return [];
+    if (value?.type !== "canvas-node" || value.canvasId !== canvasId || value.roomId !== roomId) return [];
     const source = value.contentRef.kind === "record" ? items[value.contentRef.id]?.value : undefined;
     const missing = source?.type !== "text" && source?.type !== "node";
     const body: TopologyNote = !missing ? source : { type: "node", text: value.contentRef.kind === "file" ? "文件引用\n文件预览将在后续批次接入" : "原记录已删除或不可用\n可以移除此引用，原始内容不会受影响", topology: value.layout };
@@ -203,8 +237,8 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   const minimapPath = useMemo(() => live.map(({ layout: { x, y, width, height } }) =>
     `M${x} ${y}h${width}v${height}h${-width}Z`).join(""), [live]);
   const current = live.find(node => node.id === selected);
-  const edges = Object.entries(items).flatMap(([id, item]) => item.value?.type === "canvas-edge" &&
-    item.value.roomId === roomId && item.value.canvasId === roomId ? [{ id, value: item.value }] : []);
+  const edges = useMemo(() => Object.entries(items).flatMap(([id, item]) => item.value?.type === "canvas-edge" &&
+    item.value.roomId === roomId && item.value.canvasId === canvasId ? [{ id, value: item.value }] : []), [items, roomId]);
   const currentEdge = edges.find(edge => edge.id === selectedEdge);
   const selectedNodes = live.filter(node => selection.has(node.id));
   const searchTerm = query.trim().toLowerCase();
@@ -274,14 +308,18 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     return value?.type === "canvas-node" ? value : undefined;
   }
 
-  function remember(changes: Change | Change[]) {
+  function remember(changes: Change | Change[], types?: HistoryBatch["types"]) {
     const batch = Array.isArray(changes) ? changes : [changes];
-    if (batch.length) setHistory(previous => ({ past: [...previous.past, structuredClone(batch)].slice(-100), future: [] }));
+    if (batch.length || types) setHistory(previous => ({ past: [...previous.past, structuredClone({ changes: batch, types })].slice(-100), future: [] }));
   }
-  function mutate(changes: Change[]) { for (const change of changes) client.edit(change.id, change.after); remember(changes); }
-  function layouts(patches: { id: string; patch: Partial<TopologyLayout> }[]) {
+  function mutate(changes: Change[], typeChange?: HistoryBatch["types"]) {
+    client.editMany(changes.map(({ id, after: value }) => ({ id, value })));
+    if (typeChange) changeOptions({ nodeTypes: typeChange.after });
+    remember(changes, typeChange);
+  }
+  function layouts(patches: { id: string; patch: Partial<TopologyLayout> }[], typeChange?: HistoryBatch["types"]) {
     const changes = patches.flatMap(({ id, patch }): Change[] => { const value = readNode(id); if (!value) return []; const after = { ...value, layout: { ...value.layout, ...patch } }; return sameLayout(value.layout, after.layout) ? [] : [{ id, before: value, after }]; });
-    mutate(changes);
+    mutate(changes, typeChange);
     if (changes.some(change => change.id === selected && change.after?.type === "canvas-node" && change.after.layout.hidden)) selectOnly("");
   }
   function editLayout(id: string, patch: Partial<TopologyLayout>) { layouts([{ id, patch }]); }
@@ -329,19 +367,31 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   }
   function replay(redo: boolean) {
     if (busy) return;
-    const changes = (redo ? history.future : history.past).at(-1); if (!changes) return;
-    if (changes.some(change => JSON.stringify(client.view()[change.id]?.value ?? null) !== JSON.stringify(redo ? change.before : change.after))) { notify("内容已有新修改，保留当前数据"); setHistory({ past: [], future: [] }); return; }
+    stopArrangement();
+    const batch = (redo ? history.future : history.past).at(-1); if (!batch) return;
+    const { changes, types: typeChange } = batch;
+    const signature = (value: unknown): string | undefined => JSON.stringify(value, (_key, entry) =>
+      entry && typeof entry === "object" && !Array.isArray(entry)
+        ? Object.fromEntries(Object.keys(entry).sort().map(key => [key, entry[key]])) : entry);
+    if ((typeChange && signature(types) !== signature(redo ? typeChange.before : typeChange.after)) ||
+        changes.some(change => signature(client.view()[change.id]?.value ?? null) !== signature(redo ? change.before : change.after))) {
+      notify("内容已有新修改，保留当前数据"); setHistory({ past: [], future: [] }); return;
+    }
     // Tombstones remain immutable: restoring an edge creates a new identity.
     const replaced = new Map<string, string>();
-    for (const change of changes) {
+    const edits = changes.map(change => {
       const value = redo ? change.after : change.before;
       const id = value?.type === "canvas-edge" && client.view()[change.id]?.value === null ? uid() : change.id;
       if (id !== change.id) replaced.set(change.id, id);
-      client.edit(id, value);
-    }
+      return { id, value };
+    });
+    client.editMany(edits);
     selectOnly(""); setSelectedEdge(""); setInspector("");
-    const remap = (stack: Change[][]) => stack.map(batch => batch.map(change => replaced.has(change.id) ? { ...change, id: replaced.get(change.id)! } : change));
-    setHistory(redo ? { past: remap([...history.past, changes]), future: remap(history.future.slice(0, -1)) } : { past: remap(history.past.slice(0, -1)), future: remap([...history.future, changes]) });
+    if (typeChange) changeOptions({ nodeTypes: redo ? typeChange.after : typeChange.before });
+    const remap = (stack: HistoryBatch[]) => stack.map(entry => ({ ...entry, changes: entry.changes.map(change =>
+      replaced.has(change.id) ? { ...change, id: replaced.get(change.id)! } : change) }));
+    setHistory(redo ? { past: remap([...history.past, batch]), future: remap(history.future.slice(0, -1)) }
+      : { past: remap(history.past.slice(0, -1)), future: remap([...history.future, batch]) });
   }
   function copyNodes() {
     pasteOffset.current = 0;
@@ -356,10 +406,10 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     const minX = Math.min(...clip.nodes.map(node => node.value.layout.x)), minY = Math.min(...clip.nodes.map(node => node.value.layout.y));
     try {
       for (const entry of clip.nodes) {
-        const layout = { ...entry.value.layout, x: snapped(entry.value.layout.x + (point ? point.x - minX : pasteOffset.current)), y: snapped(entry.value.layout.y + (point ? point.y - minY : pasteOffset.current)) };
+        const layout = { ...entry.value.layout, ...(!typesById.has(entry.value.layout.customTypeId ?? "") ? { customTypeId: undefined } : {}), x: snapped(entry.value.layout.x + (point ? point.x - minX : pasteOffset.current)), y: snapped(entry.value.layout.y + (point ? point.y - minY : pasteOffset.current)) };
         let id: string;
-        if (entry.value.contentRef.kind === "record") id = await client.createCanvasRecord(layout, entry.text ?? "");
-        else { id = uid(); client.edit(id, { ...entry.value, layout }); }
+        if (entry.value.contentRef.kind === "record") id = await client.createCanvasRecord(layout, entry.text ?? "", canvasId);
+        else { id = uid(); client.edit(id, { ...entry.value, canvasId, layout }); }
         const value = readNode(id); if (!value) throw new Error("粘贴节点未创建");
         mapping.set(entry.id, id); ids.push(id);
         changes.push({ id, before: { ...value, layout: { ...layout, hidden: true } }, after: value });
@@ -367,7 +417,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       for (const edge of clip.edges) {
         const fromNodeId = mapping.get(edge.fromNodeId), toNodeId = mapping.get(edge.toNodeId);
         if (!fromNodeId || !toNodeId) continue;
-        const id = uid(), after = { ...edge, roomId, canvasId: roomId, fromNodeId, toNodeId };
+        const id = uid(), after = { ...edge, roomId, canvasId, fromNodeId, toNodeId };
         client.edit(id, after); changes.push({ id, before: null, after });
       }
       await client.flush(); remember(changes); selectNodes(ids);
@@ -376,23 +426,56 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   }
   function layoutSignature() {
     return JSON.stringify([
-      Object.entries(client.view()).filter(([, item]) => item.value?.type === "canvas-node" || item.value?.type === "canvas-edge"),
+      Object.entries(client.view()).filter(([, item]) => (item.value?.type === "canvas-node" || item.value?.type === "canvas-edge") && item.value.canvasId === canvasId),
       live.map(({ id, layout }) => [id, layout.width, layout.height]),
     ]);
   }
   function arrange() {
     try {const movable=selection.size>1?selection:new Set(live.map(n=>n.id));
       const positions=arrangeGraph(live,edges.map(e=>e.value),movable);
-      setArrangement({positions,signature:layoutSignature()});
+      setArrangement({ positions, signature: layoutSignature() });
+      setArrangeOpen(true);
     }catch(e){notify((e as Error).message);}
+  }
+
+  function confirmArrangement() {
+    if (!arrangement) return;
+    setArrangeOpen(false);
+    if (layoutSignature() !== arrangement.signature) {
+      notify("画布已有新修改，请重新整理");
+      return;
+    }
+    const moves = Object.entries(arrangement.positions).flatMap(([id, to]) => {
+      const node = nodeById.get(id);
+      if (!node) return [];
+      const from = shownLayout(node);
+      return from.x === to.x && from.y === to.y ? [] : [{ id, from, to }];
+    });
+    stopArrangement();
+    if (!moves.length) { notify("节点已排列整齐"); return; }
+    layouts(moves.map(({ id, to }) => ({ id, patch: to })));
+    const finish = () => { stopArrangement(); notify(`已整理 ${moves.length} 个节点`); };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    setArrangedPositions(Object.fromEntries(moves.map(({ id, from }) => [id, {x:from.x,y:from.y}])));
+    const start = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min(1, Math.max(0, (now - start) / 320));
+      if (progress === 1) { finish(); return; }
+      const eased = 1 - (1 - progress) ** 3;
+      setArrangedPositions(Object.fromEntries(moves.map(({ id, from, to }) =>
+        [id, { x: from.x + (to.x - from.x) * eased, y: from.y + (to.y - from.y) * eased }])));
+      arrangementFrame.current = requestAnimationFrame(animate);
+    };
+    arrangementFrame.current = requestAnimationFrame(animate);
   }
 
   async function create(center?: Point, text = "", nodeKind = kind, color?: string) {
     if (!client.ready || !enabled || busy) return;
     const point = center ?? cameraRef.current;
-    const base = centeredNodeLayout(point, nodeKind);
+    const patch = typePatch(nodeKind);
+    const base = { ...centeredNodeLayout(point, patch.kind), ...patch };
     if (color) base.color = color;
-    const layout = center ? base : vacantLayout(base, client.view(), roomId);
+    const layout = center ? base : vacantLayout(base, client.view(), canvasId);
     if (!center) {
       // Keep the new title and grab area visible when repeatedly adding at the same view center.
       for (let step = 0; step < 8 && live.some(({ layout: other }) =>
@@ -404,7 +487,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     layout.x = snapped(layout.x); layout.y = snapped(layout.y);
     setBusy(true);
     let id: string;
-    try { id = await client.createCanvasRecord(layout, text); }
+    try { id = await client.createCanvasRecord(layout, text, canvasId); }
     catch (error) { notify(String(error instanceof Error ? error.message : error)); return; }
     finally { setBusy(false); }
     const created = readNode(id); if (created) remember({ id, before: { ...created, layout: { ...layout, hidden: true } }, after: created });
@@ -416,6 +499,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
   }
 
   function start(event: PointerEvent<HTMLDivElement>) {
+    if (arrangementFrame.current) return;
     if (busy || (event.button !== 0 && event.button !== 1) || interaction.current || connecting.current) return;
     const pan = event.button === 1 || space.current;
     if ((event.target as Element).closest("input, select, textarea") || !pan && (event.target as Element).closest("[data-anchor], [data-edge], button, .topology-node-actions")) return;
@@ -428,12 +512,29 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       nodes: node ? selection.has(node.id) ? live.filter(n => selection.has(n.id)) : [node] : undefined,
       mode: pan ? "pan" : node ? "node" : event.shiftKey ? "box" : "pan", additive: event.shiftKey };
   }
+  function connectionAt(event: PointerEvent<HTMLDivElement>, { source, fromPort }: ConnectionSource) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const point = screenToWorld({ x: event.clientX - rect.left, y: event.clientY - rect.top }, size, cameraRef.current);
+    const hit = document.elementFromPoint(event.clientX, event.clientY);
+    if (!hit || !event.currentTarget.contains(hit)) return { point };
+    const card = hit.closest<HTMLElement>("[data-topology-node]");
+    const id = card?.dataset.topologyNode;
+    const node = id && nodeById.get(id);
+    if (!node || node.id === source || edges.some(({ value }) => value.fromNodeId === source && value.toNodeId === node.id)) return { point };
+    const explicit = hit.closest<HTMLElement>("[data-port]")?.dataset.port as PortSide | undefined;
+    const box = shownLayout(node);
+    const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const origin = nodeById.get(source);
+    const aim = origin && Math.abs(point.x - center.x) < box.width / 4 && Math.abs(point.y - center.y) < box.height / 4
+      ? portPoint(shownLayout(origin), fromPort) : point;
+    return { point, target: { id: node.id, toPort: explicit ?? nearestPort(box, aim) } };
+  }
+
   function move(event: PointerEvent<HTMLDivElement>) {
-    if (connecting.current?.pointer === event.pointerId) {
-      const target=document.elementFromPoint(event.clientX,event.clientY)?.closest<HTMLElement>('[data-topology-node]')?.dataset.topologyNode;
-      setConnectTarget(target&&target!==connecting.current.source&&!edges.some(e=>e.value.fromNodeId===connecting.current!.source&&e.value.toNodeId===target)?target:'');
-      const rect = event.currentTarget.getBoundingClientRect();
-      setConnection({ source: connecting.current.source, point: screenToWorld({ x: event.clientX - rect.left, y: event.clientY - rect.top }, size, cameraRef.current) }); return;
+    const drag = connecting.current;
+    if (drag?.pointer === event.pointerId) {
+      setConnection({ ...drag, ...connectionAt(event, drag) });
+      return;
     }
     const gesture = interaction.current; if (!gesture || gesture.pointer !== event.pointerId) return;
     const delta = { x: event.clientX - gesture.start.x, y: event.clientY - gesture.start.y };
@@ -448,23 +549,31 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     }
   }
 
-  function connect(source: string, target: string) {
+  function connect(source: string, target: string, ports?: { fromPort: PortSide; toPort: PortSide }) {
     if (!client.ready || !live.some(node => node.id === source) || !live.some(node => node.id === target) || target === source) return;
     if (edges.some(({ value }) => value.fromNodeId === source && value.toNodeId === target)) { notify("这两个节点已有连接"); return; }
     const id = uid();
-    mutate([{ id, before: null, after: { type: "canvas-edge", roomId, canvasId: roomId, fromNodeId: source, toNodeId: target, relationType: "related", label: "", direction: "forward" } }]);
+    mutate([{ id, before: null, after: { type: "canvas-edge", roomId, canvasId, fromNodeId: source, toNodeId: target, relationType: "related", label: "", direction: "forward", ...ports } }]);
     setSelectedEdge(id); selectOnly(""); setRecoveryOpen(false); setTargetNode(""); setInspector(`edge:${id}`);
   }
 
+  function finishKeyboardConnection(node: Node) {
+    if (!connection?.keyboard || node.id === connection.source) return false;
+    connect(connection.source, node.id, { fromPort: connection.fromPort, toPort: nearestPort(shownLayout(node), connection.point) });
+    setConnection(null);
+    return true;
+  }
+
   function end(event: PointerEvent<HTMLDivElement>) {
-    if (connecting.current?.pointer === event.pointerId) {
-      setConnectTarget("");
-      const source = connecting.current.source;
-      connecting.current = null; setConnectTarget(""); setConnection(null);
-      if (event.type !== "pointerup") return;
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-topology-node]")?.dataset.topologyNode;
-      if (!target || target === source) { notify("将连接点拖到另一个节点上"); return; }
-      connect(source, target);
+    const drag = connecting.current;
+    if (drag?.pointer === event.pointerId) {
+      connecting.current = null;
+      setConnection(null);
+      suppressClick.current = performance.now() + 150;
+      if (event.type === "pointerup") {
+        const { target } = connectionAt(event, drag);
+        if (target) connect(drag.source, target.id, { fromPort: drag.fromPort, toPort: target.toPort });
+      }
       return;
     }
     const gesture = interaction.current; if (!gesture || gesture.pointer !== event.pointerId) return;
@@ -500,9 +609,9 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       if (edgeChoices) { event.preventDefault(); setEdgeChoices(undefined); viewport.current?.focus(); return; }
       if (popup) { event.preventDefault(); setPopup(undefined); return; }
       if (moreNode) { event.preventDefault(); setMoreNode(""); return; }
-      if (connection) { event.preventDefault(); connecting.current = null; setConnectTarget(""); setConnection(null); return; }
+      if (connection) { event.preventDefault(); connecting.current = null; setConnection(null); return; }
       if (inspector) { event.preventDefault(); closeInspector(); return; }
-      setSelectedEdge(""); connecting.current = null; setConnectTarget(""); setConnection(null);
+      setSelectedEdge(""); connecting.current = null; setConnection(null);
       event.preventDefault();
       selectOnly("");
       setRecoveryOpen(false);
@@ -533,14 +642,17 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     }
   }
 
-  const relationLabels: { x: number; y: number; width: number; height: number }[] = [];
-  const edgeGeometry = new Map(edges.flatMap(({id,value}) => {
-    const from=nodeById.get(value.fromNodeId),to=nodeById.get(value.toNodeId);
-    if(!from||!to)return [];
-    const geometry=relationGeometry(shownLayout(from),shownLayout(to),camera.zoom,relationLabels);
-    relationLabels.push(geometry.labelBounds);
-    return [[id,geometry] as const];
-  }));
+  const edgeGeometry = useMemo(() => {
+    const labels: { x: number; y: number; width: number; height: number }[] = [];
+    return new Map(edges.flatMap(({ id, value }) => {
+      const from = nodeById.get(value.fromNodeId), to = nodeById.get(value.toNodeId);
+      if (!from || !to) return [];
+      const geometry = relationGeometry(shownLayout(from), shownLayout(to), camera.zoom, labels, value);
+      // Limit label collision work during motion on dense graphs. The settled layout uses all labels.
+      if (!arrangedPositions || labels.length < 64) labels.push(geometry.labelBounds);
+      return [[id, geometry] as const];
+    }));
+  }, [edges, nodeById, preview, arrangedPositions, camera.zoom]);
   function relationCandidates(event: {clientX:number;clientY:number}) {
     const rect=viewport.current!.getBoundingClientRect();
     const point=screenToWorld({x:event.clientX-rect.left,y:event.clientY-rect.top},size,cameraRef.current);
@@ -561,11 +673,13 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
     } else chooseEdge(first?.id ?? fallback);
   }
   const inspectorLayout = current ? shownLayout(current) : undefined;
+  const edgeAnchor = currentEdge && edgeGeometry.get(currentEdge.id)?.label;
   const inspectorAnchor = inspectorLayout ? { x: size.width / 2 + (inspectorLayout.x - camera.x) * camera.zoom,
     y: size.height / 2 + (inspectorLayout.y - camera.y) * camera.zoom, width: inspectorLayout.width * camera.zoom, height: inspectorLayout.height * camera.zoom }
-     : (() => { const from = currentEdge && nodeById.get(currentEdge.value.fromNodeId), to = currentEdge && nodeById.get(currentEdge.value.toNodeId); return from && to ? { x: size.width/2 + ((from.layout.x + from.layout.width + to.layout.x)/2 - camera.x)*camera.zoom, y: size.height/2 + ((from.layout.y + from.layout.height/2 + to.layout.y + to.layout.height/2)/2 - camera.y)*camera.zoom, width: 0, height: 0 } : { x: size.width/2, y: 24, width: 0, height: 0 }; })();
-  const tooltipEdge=edges.find(e=>e.id===(hoveredEdge||focusedEdge));
-  const tooltipGeometry=tooltipEdge&&(()=>{const a=nodeById.get(tooltipEdge.value.fromNodeId),b=nodeById.get(tooltipEdge.value.toNodeId);return a&&b?relationGeometry(shownLayout(a),shownLayout(b),camera.zoom):undefined;})();
+    : edgeAnchor ? { x: size.width / 2 + (edgeAnchor.x - camera.x) * camera.zoom, y: size.height / 2 + (edgeAnchor.y - camera.y) * camera.zoom, width: 0, height: 0 }
+    : { x: size.width / 2, y: 24, width: 0, height: 0 };
+  const tooltipEdge = edges.find(edge => edge.id === (focusedEdge || hoveredEdge));
+  const tooltipGeometry = tooltipEdge && edgeGeometry.get(tooltipEdge.id);
   const tooltipPosition=tooltipGeometry?placeRelationTooltip({x:size.width/2+(tooltipGeometry.label.x-camera.x)*camera.zoom,y:size.height/2+(tooltipGeometry.label.y-camera.y)*camera.zoom},size,live.map(n=>{const p=shownLayout(n);return {x:size.width/2+(p.x-camera.x)*camera.zoom,y:size.height/2+(p.y-camera.y)*camera.zoom,width:p.width*camera.zoom,height:p.height*camera.zoom};})):undefined;
   function closeInspector() {
     if (composing) return;
@@ -584,8 +698,20 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
 
   return <section id={active ? "workspace" : undefined} className="topology-workspace" hidden={!active}
     tabIndex={-1} aria-label="关系画布" onKeyDown={shortcuts}>
+    {active && typeDialog && <NodeTypeDialog key={typeDialog} create={typeDialog === "create"} types={types}
+      builtins={builtinOptions} usage={id => nodes.filter(node => node.layout.customTypeId === id).length}
+      onClose={() => setTypeDialog(undefined)}
+      onChange={next => mutate([], { before: types, after: next })}
+      onDelete={(id, target) => {
+        const next = types.filter(type => type.id !== id);
+        layouts(nodes.filter(node => node.layout.customTypeId === id).map(node => ({ id: node.id, patch: typePatch(target) })),
+          { before: types, after: next });
+        if (kind === id) setKind(target);
+        notify("已删除类型");
+      }} />}
     {active && colorDialog && <NodeColorDialog
-      initialKind={colorDialog === "create" ? kind === "file" ? "note" : kind : undefined}
+      initialKind={colorDialog === "create" ? kind : undefined}
+      kindOptions={kindOptions}
       initialColor={colorDialog === "create" ? undefined : colorDialog.color}
       onClose={() => setColorDialog(undefined)}
       onSave={(color, nextKind) => {
@@ -608,10 +734,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
         </AlertDialog.Popup>
       </AlertDialog.Portal>
     </AlertDialog.Root>}
-    {arrangement&&<Dialog.Root open onOpenChange={open=>{if(!open)setArrangement(null);}}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="modal xigra-record-dialog correctness-dialog" onKeyDown={e=>e.stopPropagation()}>
-      <Dialog.Title>整理节点</Dialog.Title><Dialog.Description>将按连接方向重新排列 {Object.keys(arrangement.positions).length} 个节点。循环关系放在同层，按节点实际尺寸避让；锁定及未选节点保留位置。多选时仅整理所选节点。手动位置将改变，正文、引用与关系类型保持不变。</Dialog.Description>
-      <p>确认后可用一次“撤销节点操作”恢复。本操作不保证消除所有交叉连线。</p><div className="dialog-actions"><button className="button" onClick={()=>setArrangement(null)}>取消</button><button className="button primary" onClick={()=>{if(layoutSignature()!==arrangement.signature){notify('画布已有新修改，请重新整理');setArrangement(null);return;}layouts(Object.entries(arrangement.positions).map(([id,patch])=>({id,patch})));setArrangement(null);}}>确认整理</button></div>
-    </Dialog.Popup></Dialog.Portal></Dialog.Root>}
+
     {active&&exportOpen&&<ExportDialog target={()=>viewport.current} close={()=>setExportOpen(false)} notify={notify} snapshot={():ExportSource=>{
       if(!viewport.current)throw new Error('请先打开关系画布。');
       return {name:'Arasn-关系画布',palette:exportPalette(viewport.current),view:viewportBounds(cameraRef.current,size),zoom:cameraRef.current.zoom,
@@ -619,7 +742,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
           const {title,summary,layout}=node;
           const status=layout.kind==='task'||layout.kind==='question'||layout.status!=='open'?(layout.kind==='question'&&layout.status==='done'?'已解决':NODE_STATUSES[layout.status]):'';
           return {id:node.id,kind:'node',box:{x:layout.x,y:layout.y,width:layout.width,height:layout.height},title,text:node.missing?'':summary,color:layout.color,
-            short:layout.height<130,missing:node.missing,footer:[NODE_KINDS[layout.kind],status,node.missing?'原内容不可用':''].filter(Boolean).join(' · ')};
+            short:layout.height<130,missing:node.missing,footer:[typeLabel(layout),status,node.missing?'原内容不可用':''].filter(Boolean).join(' · ')};
         })};
     }}/>}
 
@@ -627,7 +750,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       <div className="topology-surface" ref={surface}>
       <aside ref={dock.ref} style={dock.style} data-dock-side={dock.side} data-dragging={dock.dragging || undefined} className="relation-tool-panel free-tool-rail" data-mode="full" aria-label="关系画布工具">
         <ToolbarDockControls dock={dock} />
-        <Button className="tool" tooltip="选择 · 拖动空白处平移" aria-label="选择与平移" aria-pressed={!connection} onClick={() => { setConnection(null); setInspector(""); viewport.current?.focus(); }}><MousePointer2 size={18}/><span>选择</span></Button>
+        <Button className="tool" tooltip="选择 · 拖动空白处平移" aria-label="选择与平移" aria-pressed={!connection} onClick={() => { connecting.current = null; setConnection(null); setInspector(""); viewport.current?.focus(); }}><MousePointer2 size={18}/><span>选择</span></Button>
         <Menu.Root modal={false}>
           <Menu.Trigger render={<Button className="tool" tooltip="节点" />} aria-label="新建节点" disabled={!client.ready || busy || !enabled}>
             <Plus size={18}/><span>节点</span>
@@ -635,16 +758,19 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
           <Menu.Portal><Menu.Positioner className="relation-tool-position" {...toolPlacement}>
             <Menu.Popup className="relation-tool-popup relation-tool-kind" aria-label="新建节点类型">
               {kindOptions.map(option => {
-                const Icon = KIND_ICONS[option.value];
+                const custom = typesById.get(option.value);
+                const Icon = custom ? (TYPE_ICONS[custom.icon]?.glyph ?? StickyNote) : KIND_ICONS[option.value as TopologyLayout["kind"]];
                 return <Menu.Item key={option.value} onClick={() => { setKind(option.value); void create(undefined, "", option.value); }}>
                   <Icon size={18} aria-hidden="true" style={{ color: option.tone }}/>{option.label}
                 </Menu.Item>;
               })}
               <Menu.Item onClick={() => setColorDialog("create")}><Palette size={18} aria-hidden="true"/>自定义颜色…</Menu.Item>
+              <Menu.Separator />
+              <Menu.Item onClick={() => setTypeDialog("create")}><Plus size={18} aria-hidden="true"/>自定义类型</Menu.Item>
+              {!!types.length && <Menu.Item onClick={() => setTypeDialog("manage")}><Settings2 size={18} aria-hidden="true"/>管理自定义类型…</Menu.Item>}
             </Menu.Popup>
           </Menu.Positioner></Menu.Portal>
         </Menu.Root>
-        <Button className="tool" tooltip={current ? "连线" : "连线 · 先选择源节点"} aria-label="创建连接" aria-pressed={!!connection} onClick={() => { if (current) setConnection(connection ? null : { source: current.id, point: { x: current.layout.x + current.layout.width + 40, y: current.layout.y + current.layout.height / 2 } }); }} disabled={!current || busy}><Link2 size={18}/><span>连线</span></Button>
         <Popover.Root open={active && searchOpen} onOpenChange={changeSearch}>
           <Popover.Trigger render={<Button className="tool" tooltip="搜索 · Ctrl+F" />} aria-label="搜索节点" aria-keyshortcuts="Control+F">
             <Search size={18}/><span>搜索</span>
@@ -664,7 +790,22 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
           </Popover.Positioner></Popover.Portal>
         </Popover.Root>
         <Button className="tool" tooltip="截图 / 导出" aria-label="截图 / 导出" onClick={() => setExportOpen(true)}><Download size={18}/><span>截图</span></Button>
-        <Button className="tool" tooltip="整理" aria-label="整理节点" disabled={!live.length || busy} onClick={arrange}><Network size={18}/><span>整理</span></Button>
+        <Popover.Root open={arrangeOpen} onOpenChange={open => { if (!open) setArrangeOpen(false); }}>
+          <Popover.Trigger render={<Button className="tool" tooltip="整理" />} aria-label="整理节点"
+            disabled={!live.length || busy || !!arrangedPositions} onClick={() => { if (!arrangeOpen) arrange(); }}>
+            <Network size={18}/><span>整理</span>
+          </Popover.Trigger>
+          <Popover.Portal><Popover.Positioner className="relation-tool-position" {...toolPlacement}>
+            <Popover.Popup className="relation-tool-popup relation-arrange-popup" onKeyDown={event => {
+              if (event.key !== "Escape") event.stopPropagation();
+            }}>
+              <Popover.Title>整理节点</Popover.Title>
+              <Popover.Description>将按连接方向重新排列 {Object.keys(arrangement?.positions ?? {}).length} 个节点。锁定节点保留位置，多选时仅整理所选节点。</Popover.Description>
+              <div className="dialog-actions"><Button className="button" onClick={() => setArrangeOpen(false)}>取消</Button>
+                <Button className="button primary" onClick={confirmArrangement}>确认整理</Button></div>
+            </Popover.Popup>
+          </Popover.Positioner></Popover.Portal>
+        </Popover.Root>
         <Popover.Root>
           <Popover.Trigger render={<Button className="tool" tooltip="设置" />} aria-label="画布设置"><Settings2 size={18}/><span>设置</span></Popover.Trigger>
           <Popover.Portal><Popover.Positioner className="relation-tool-position" {...toolPlacement}>
@@ -711,6 +852,12 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
               const from = nodeById.get(value.fromNodeId), to = nodeById.get(value.toNodeId);
               if (!from || !to) return null;
               const geometry = edgeGeometry.get(id)!;
+              if (arrangedPositions && edges.length > 100) {
+                const points = [geometry.start, geometry.c1, geometry.c2, geometry.end];
+                const margin = 96 / camera.zoom;
+                if (points.every(p => p.x < area.x - margin) || points.every(p => p.x > area.x + area.width + margin) ||
+                    points.every(p => p.y < area.y - margin) || points.every(p => p.y > area.y + area.height + margin)) return null;
+              }
               const path = geometry.path;
               const related = selection.has(from.id) || selection.has(to.id);
               const type = value.relationType ?? "related";
@@ -724,8 +871,6 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
                 onFocus={() => setFocusedEdge(id)} onBlur={() => setFocusedEdge("")}>
 
                 {selectedEdge===id && <path className="relation-selection-halo" d={path} aria-hidden="true"/>}
-                {geometry.vertical && [geometry.sourceAnchor, geometry.targetAnchor].map((port, index) =>
-                  <circle key={index} className="relation-vertical-anchor" cx={port.x} cy={port.y} r={4 / camera.zoom} aria-hidden="true"/>)}
                 <path className="relation-line" d={path} markerEnd={value.direction !== "none" ? arrow : undefined} markerStart={value.direction === "both" ? arrow : undefined} />
                 <path className="relation-hit" d={path} role="button" tabIndex={0} aria-pressed={selectedEdge===id} aria-describedby={(hoveredEdge||focusedEdge)===id&&tooltipPosition&&!inspector&&!connection&&!edgeChoices?"relation-compact-tooltip":undefined} aria-label={`选择关系：${from.title} 到 ${to.title}（${RELATION_TYPES[type]}）${value.label?`，${value.label}`:""}`} onClick={event => clickRelation(event,id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); chooseEdge(id); } }} />
                 <foreignObject className="relation-label-wrap" transform={`translate(${geometry.label.x} ${geometry.label.y}) scale(${1 / camera.zoom})`} x={-geometry.labelWidth / 2} y={-14} width={geometry.labelWidth} height={28}>
@@ -733,11 +878,19 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
                 </foreignObject>
               </g>;
             })}
-            {connection && (() => { const from = live.find(node => node.id === connection.source); return from ? <path className="relation-line relation-draft" d={relationCurve({ x: from.layout.x + from.layout.width, y: from.layout.y + from.layout.height / 2 }, connection.point)} /> : null; })()}
+            {connection && (() => {
+              const from = nodeById.get(connection.source), to = connection.target && nodeById.get(connection.target.id);
+              const toPort = connection.target?.toPort;
+              if (!from) return null;
+              const end = to && toPort ? portPoint(shownLayout(to), toPort) : connection.point;
+              return <path className="relation-line relation-draft" d={relationDraft(portPoint(shownLayout(from), connection.fromPort), end, connection.fromPort, toPort, camera.zoom)}/>;
+            })()}
           </svg>
-          {live.filter(node => selection.has(node.id) || node.id === preview?.id || overlaps(area, node.layout, 200 / camera.zoom)).map(node => {
+          {live.filter(node => selection.has(node.id) || node.id === preview?.id || overlaps(area, shownLayout(node), 200 / camera.zoom)).map(node => {
             const { id, layout, title, summary } = node;
-            const Glyph = KIND_ICONS[layout.kind];
+            const custom = typeFor(layout);
+            const label = typeLabel(layout);
+            const Glyph = custom ? (TYPE_ICONS[custom.icon]?.glyph ?? StickyNote) : KIND_ICONS[layout.kind];
             const bodySync = client.saveState(node.sourceId), layoutSync = client.saveState(id);
             const sync = bodySync.tone === 'error' || layoutSync.tone === 'saved' ? bodySync : layoutSync;
             const position = shownLayout(node);
@@ -748,17 +901,17 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
             const relationFocus = focusedRelation && (focusedRelation.value.fromNodeId === id || focusedRelation.value.toNodeId === id);
             const actionsBelow = size.height / 2 + (position.y - camera.y) * camera.zoom < 60;
             return <article className="topology-node" key={id} tabIndex={0} data-topology-node={id}
-              onMouseEnter={() => setHoveredNode(id)} onMouseLeave={() => setHoveredNode("")} data-connectable={connectTarget===id?"true":undefined} data-kind={layout.kind} data-created={newNode === id || undefined} data-dragging={!!preview?.positions?.[id] || preview?.id === id || undefined}
+              onMouseEnter={() => setHoveredNode(id)} onMouseLeave={() => setHoveredNode("")} data-connectable={connection?.target?.id === id?"true":undefined} data-kind={custom?.id ?? layout.kind} data-custom-type={!!custom || undefined} data-created={newNode === id || undefined} data-dragging={!!preview?.positions?.[id] || preview?.id === id || undefined}
               data-relation-focus={relationFocus || undefined} data-compact={camera.zoom < .55 || undefined} data-display={compactCards ? "compact" : "detailed"} data-node-color={layout.color}
               data-tight={position.width < 200 || undefined} data-short={position.height < 104 || undefined}
-              aria-label={`${NODE_KINDS[layout.kind]}，${title}${node.missing?'，原内容不可用':sync.tone==='error'?`，${sync.label}`:''}`} title={`${title} · 双击或使用编辑按钮查看正文`} data-selected={selection.has(id) || undefined}
+              aria-label={`${label}，${title}${node.missing?'，原内容不可用':sync.tone==='error'?`，${sync.label}`:''}`} title={`${title} · 双击或使用编辑按钮查看正文`} data-selected={selection.has(id) || undefined}
               style={{ left: position.x, top: position.y, width: position.width, height: position.height,
-                '--node-preview-lines': previewLines, '--node-kind-color': `var(--kind-${layout.kind}, var(--ui-text-secondary))`, '--node-accent': layout.color,
+                '--node-preview-lines': previewLines, '--node-kind-color': custom?.color ?? `var(--kind-${layout.kind}, var(--ui-text-secondary))`, '--node-accent': layout.color,
                 '--node-footer-inset': compactCards ? '0px' : `${10 / camera.zoom}px`,
                 '--node-title-size': `${Math.max(16,11/camera.zoom)}px`, '--node-title-line': `${Math.max(22,15/camera.zoom)}px`,
                 ...(relationFocus ? relationTokens(focusedRelation.value.relationType ?? "related") : {}) } as CSSProperties}
-              onClick={event => { if (space.current || composing || performance.now() < suppressClick.current) return; if (connection && connection.source !== id) { connect(connection.source, id); setConnection(null); return; } setRecoveryOpen(false); if (event.shiftKey) selectNodes(selection.has(id) ? [...selection].filter(key => key !== id) : [...selection, id]); else selectOnly(id); setSelectedEdge(""); setInspector(previous => previous === id ? previous : ""); }}
-              onKeyDown={event => { if (event.key === "Enter" && !(event.target as Element).closest("button")) { selectOnly(id); setSelectedEdge(""); setInspector(""); } }}
+              onClick={event => { if (space.current || composing || performance.now() < suppressClick.current) return; if (connection?.keyboard && finishKeyboardConnection(node)) return; setRecoveryOpen(false); if (event.shiftKey) selectNodes(selection.has(id) ? [...selection].filter(key => key !== id) : [...selection, id]); else selectOnly(id); setSelectedEdge(""); setInspector(previous => previous === id ? previous : ""); }}
+              onKeyDown={event => { if (event.key === "Enter" && !(event.target as Element).closest("button")) { if (connection?.keyboard && finishKeyboardConnection(node)) return; selectOnly(id); setSelectedEdge(""); setInspector(""); } }}
               onDoubleClick={event => { if (composing || performance.now() < suppressClick.current || (event.target as Element).closest("button, .topology-node-actions")) return; event.stopPropagation(); focusEditor.current = true; selectOnly(id); setInspector(id); }}
               onAnimationEnd={() => setNewNode(previous => previous === id ? "" : previous)}>
               <strong data-drag-handle>{title}</strong>
@@ -772,7 +925,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
 
               {camera.zoom < .55 && (node.missing||sync.tone==='error'||sync.tone==='pending') && <span className="topology-compact-status" data-tone={node.missing?'error':sync.tone} role="img" aria-label={node.missing?'原内容不可用':sync.label} title={node.missing?'原内容不可用':sync.label} style={{fontSize:12/camera.zoom}}>{node.missing||sync.tone==='error'?'!':'…'}</span>}
               {previewLines > 0 && <span className="topology-node-summary">{summary}</span>}
-              <span className="topology-node-footer topology-node-meta"><span className="topology-node-kind"><Glyph size={13} aria-hidden="true"/>{NODE_KINDS[layout.kind]}</span>
+              <span className="topology-node-footer topology-node-meta"><span className="topology-node-kind"><Glyph size={13} aria-hidden="true"/><span title={label}>{label}</span></span>
                 {(layout.kind==='task'||layout.kind==='question'||layout.status!=='open')&&<span className="topology-node-status" data-status={layout.status}>{layout.kind === "question" && layout.status === "done" ? "已解决" : NODE_STATUSES[layout.status]}</span>}
                 {!compactCards && attachmentCount > 0 && <span className="topology-node-attachments" aria-label={`${attachmentCount} 个附件`} title={`${attachmentCount} 个附件`}><Paperclip size={13} aria-hidden="true"/>{attachmentCount}</span>}
                 {(!compactCards || node.missing || sync.tone === "error" || sync.tone === "pending") && <span className="node-sync" data-tone={node.missing ? "error" : sync.tone}>
@@ -780,11 +933,10 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
                     : <span className="topology-node-sync-label" title={node.missing ? "原内容不可用" : sync.label}>{node.missing ? "原内容不可用" : sync.label}</span>}
                 </span>}
               </span>
-              {(id === selected || id === hoveredNode) && <div className="topology-node-actions" role="group" aria-label="节点操作" data-below={actionsBelow || undefined} style={{ scale: 1 / camera.zoom, right: actionInset }}
+              {(id === selected || id === hoveredNode) && <div className="topology-node-actions" role="group" aria-label="节点操作" data-below={actionsBelow || undefined} style={{ scale: 1 / camera.zoom, right: actionInset, '--node-action-gap': `${18 / camera.zoom}px` } as CSSProperties}
                 onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
                 <button className="topology-action-edit" aria-label="编辑节点" onClick={() => { selectOnly(id); setSelectedEdge(""); focusEditor.current = true; setInspector(id); }}><Pencil size={15}/>编辑</button>
                 {id === selected && <>
-                  <button aria-label="连接节点" aria-pressed={connection?.source === id} onClick={() => { setConnection(connection?.source === id ? null : { source: id, point: { x: layout.x + layout.width + 40, y: layout.y + layout.height / 2 } }); setMoreNode(""); }}><Link2 size={15}/>连接</button>
                   <button aria-label="更多节点操作" aria-expanded={moreNode === id} onClick={() => setMoreNode(moreNode === id ? "" : id)}><MoreHorizontal size={16}/></button>
                   {moreNode === id && <div className="topology-node-menu">
                     <button onClick={() => { setInspector(id); setMoreNode(""); }}>节点属性</button>
@@ -793,21 +945,30 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
                   </div>}
                 </>}
               </div>}
-              <button style={{ scale: 1 / camera.zoom }} className="relation-anchor relation-anchor-in" aria-label={`连接到 ${title}`} data-anchor onPointerDown={event => { if (event.button === 0 && !space.current) event.stopPropagation(); }} onClick={event => event.stopPropagation()} />
-              <button style={{ scale: 1 / camera.zoom }} className="relation-anchor relation-anchor-out" aria-label={`从 ${title} 创建连接`} data-anchor onClick={event => event.stopPropagation()} onPointerDown={event => {
-                if (event.button !== 0 || space.current) return;
-                event.stopPropagation(); event.preventDefault();
-                viewport.current?.focus({ preventScroll: true });
-                viewport.current?.setPointerCapture(event.pointerId);
-                connecting.current = { source: id, pointer: event.pointerId };
-                setConnection({ source: id, point: { x: layout.x + layout.width + 40, y: layout.y + layout.height / 2 } });
-              }} />
+              {(selection.has(id) || connection?.target?.id === id) && PORT_SIDES.map(side => {
+                const target = connection?.target?.id === id;
+                const highlighted = target ? connection.target?.toPort === side : connection?.source === id && connection.fromPort === side;
+                return <button key={side} type="button" style={{ scale: 1 / camera.zoom }} className="relation-anchor"
+                  aria-label={`${title} · ${PORT_LABEL[side]}连接点`} data-anchor data-port={side} data-highlighted={highlighted || undefined}
+                  tabIndex={target ? -1 : 0} onPointerDown={event => {
+                    if (event.button !== 0 || space.current || connecting.current || arrangementFrame.current || target || busy) return;
+                    event.stopPropagation(); event.preventDefault();
+                    viewport.current?.focus({ preventScroll: true });
+                    viewport.current?.setPointerCapture(event.pointerId);
+                    connecting.current = { source: id, fromPort: side, pointer: event.pointerId };
+                    setConnection({ source: id, fromPort: side, point: portPoint(position, side) });
+                  }} onClick={event => {
+                    event.stopPropagation();
+                    if (event.detail !== 0 || (arrangementFrame.current || connecting.current || busy)) return;
+                    setConnection({ source: id, fromPort: side, point: portPoint(position, side), keyboard: true });
+                  }}/>;
+              })}
             </article>;
           })}
         </div>
         {marquee && <div className="topology-marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.width, height: marquee.height }} aria-hidden="true"/>}
         {edgeChoices && <div className="relation-choice" role="dialog" aria-label="选择交叉连接" style={{left:Math.max(8,Math.min(edgeChoices.x,size.width-268)),top:Math.max(8,Math.min(edgeChoices.y,size.height-228))}} onPointerDown={event=>event.stopPropagation()}>
-          <header><strong>选择连接</strong><button aria-label="关闭连接选择" onClick={()=>setEdgeChoices(undefined)}><X size={14}/></button></header>
+          <header><strong>选择连接</strong><IconButton hitArea="compact" aria-label="关闭连接选择" onClick={()=>setEdgeChoices(undefined)}><X size={14}/></IconButton></header>
           <div>{edgeChoices.ids.map((id,index)=>{const edge=edges.find(e=>e.id===id);if(!edge)return null;const from=nodeById.get(edge.value.fromNodeId),to=nodeById.get(edge.value.toNodeId);return <button key={id} autoFocus={index===0} onFocus={()=>setHoveredEdge(id)} onPointerEnter={()=>setHoveredEdge(id)} onClick={()=>chooseEdge(id)} style={relationTokens(edge.value.relationType??'related') as CSSProperties}><span>{from&&from.title} → {to&&to.title}</span><small>{RELATION_TYPES[edge.value.relationType??'related']}{edge.value.label?` · ${edge.value.label}`:''}</small></button>;})}</div>
         </div>}
         {!live.length && <div className="topology-empty"><StickyNote size={24} /><strong>从一个节点开始</strong><span>双击空白处，或用「节点」把想法放到画布上。</span></div>}
@@ -816,7 +977,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       {popup && <div className="topology-popup" role={popup.create ? "dialog" : "menu"} aria-label={popup.create ? "快捷创建节点" : "画布上下文菜单"} style={{ left: Math.max(8, Math.min(popup.screen.x, size.width - 258)), top: Math.max(8, Math.min(popup.screen.y, size.height - 260)) }} onKeyDown={event => { if (event.key === "Escape") { setFocusedEdge("");setHoveredEdge(""); event.stopPropagation(); setPopup(undefined); } }}>
         {popup.create ? <form onSubmit={event => { event.preventDefault(); const point = popup.point; setPopup(undefined); void create(point, createText); }}>
           <strong>快捷创建节点</strong><input autoFocus className="topology-select" aria-label="新节点内容" placeholder="输入内容…" value={createText} onChange={event => setCreateText(event.target.value)} maxLength={10000}/>
-          <AppSelect<typeof kind> label="快捷节点类型" value={kind} onValueChange={setKind} options={kindOptions} />
+          <AppSelect<typeof kind> label="快捷节点类型" value={typesById.has(kind) || builtinOptions.some(option => option.value === kind) ? kind : "note"} onValueChange={next => { if (!typeAction(next)) setKind(next); }} options={[...kindOptions, ...typeActions]} />
           <button className="button topology-primary" type="submit" disabled={busy}>创建节点</button><button type="button" onClick={() => setPopup(undefined)}>取消</button>
         </form> : <>
           {popup.node && <><button role="menuitem" onClick={() => { selectOnly(popup.node!); setInspector(popup.node!); focusEditor.current = true; setPopup(undefined); }}>编辑节点</button><button role="menuitem" onClick={() => { copyNodes(); setPopup(undefined); }}>复制节点</button><button role="menuitem" onClick={() => { layouts([...selection].map(id => ({ id, patch: { hidden: true } }))); setPopup(undefined); }}>移除选中节点</button></>}
@@ -828,7 +989,7 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
       </div>}
       <div className="topology-navigation">
         {selection.size > 1 && <span role="status">已选 {selection.size} 个节点 · 拖动批量移动 · Delete 移除</span>}
-        {connection && <span role="status">点击目标节点完成连接 · Esc 取消</span>}
+        {connection && <span role="status">{connection.keyboard ? "选择目标节点并按 Enter · Esc 取消" : "拖到目标节点并松开 · Esc 取消"}</span>}
         <div className="topology-zoom" role="group" aria-label="画布视图">
           <Button iconOnly className="icon-button" aria-label="缩小画布" title={camera.zoom <= MIN_ZOOM ? "已达最小缩放比例" : "缩小画布"} disabled={camera.zoom <= MIN_ZOOM} onClick={() => zoomBy(0.8)}><Minus size={16} /></Button>
           <Button iconOnly className="button topology-reset" aria-label="复位视图" title="复位视图" onClick={() => showCamera(DEFAULT_CAMERA)}>{Math.round(camera.zoom * 100)}%</Button>
@@ -865,9 +1026,9 @@ export function TopologyWorkspace({ active, client, items, savedViewport, onView
         {current ? <>
           <div className="topology-fields">
             <label><input type="checkbox" aria-label="整理时保留位置" checked={!!current.layout.locked} onChange={e=>editLayout(current.id,{locked:e.target.checked})}/>整理时保留位置</label>
-            <label>类型<AppSelect label="节点类型" value={current.layout.kind}
-              onValueChange={kind => editLayout(current.id, {kind})}
-              options={current.layout.kind === 'file' ? [...kindOptions,{value:'file' as const,label:'文件',tone:'var(--kind-file)'}] : kindOptions} /></label>
+            <label>类型<AppSelect label="节点类型" value={typeFor(current.layout)?.id ?? current.layout.kind}
+              onValueChange={id => { if (!typeAction(id)) editLayout(current.id, typePatch(id)); }}
+              options={[...kindOptions, ...(current.layout.kind === "file" ? [{ value: "file", label: "文件", tone: "var(--kind-file)" }] : []), ...typeActions]} /></label>
             <label>状态<AppSelect label="处理状态" value={current.layout.status} onValueChange={next => editLayout(current.id, { status: next as TopologyLayout["status"] })} options={Object.entries(NODE_STATUSES).map(([value, label]) => ({ value, label }))} /></label>
             <Button className="topology-color-button" disabled={composing}
               onClick={() => setColorDialog({ id: current.id, color: current.layout.color })}>

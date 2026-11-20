@@ -9,7 +9,6 @@
 :root :is(.xigra-record-filters, .record-pane-switch) button { border: 1px solid transparent; }
 :root :is(.xigra-record-filters, .record-pane-switch) button:hover:not(:disabled) { background: var(--ui-hover); color: var(--ink); }
 :root :is(.xigra-record-list, .xigra-record-filters, .record-pane-switch, .file-station) button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
-:root :is(.lagoon-rail .space, .xigra-record-list button, .xigra-record-filters button, .record-pane-switch button, .file-station button):active:not(:disabled) { box-shadow: inset 0 0 0 1px var(--ui-focus); }
 :root .xigra-record-workspace { grid-template-columns: clamp(260px, 26%, 320px) minmax(0, 1fr); gap: 0; border-color: var(--ui-border-subtle); background: var(--ui-surface-card); border-radius: 10px; }
 :root .xigra-record-index { padding: 20px 12px 12px; gap: 12px; background: var(--ui-surface-nav); border-color: var(--ui-border-subtle); }
 :root .record-index-heading { padding: 0 8px 4px; }
@@ -31,7 +30,7 @@
 :root .file-station .file-compact-more { display: none; }
 .file-row-compact-action { display: flex; }
 :root .file-station .file-row:has(input:checked) { background: var(--ui-nav-active); border-color: var(--ui-focus); }
-:root .file-station .file-row:hover { border-color: var(--ui-border-control); }
+:root .file-station .file-row:hover { border-color: var(--ui-border-field); }
 :root .file-workspace-heading { padding-block: 12px 16px; }
 :root .file-workspace-heading h1 { font-size: 22px; margin-bottom: 6px; }
 :root .file-workspace .file-station { gap: 12px; scrollbar-width: thin; scrollbar-color: var(--ui-border-control) transparent; }
@@ -51,7 +50,7 @@
   :root .xigra-record-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .record-pane-switch { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--ui-border-subtle); background: var(--ui-surface-nav); }
   .record-pane-switch button { min-height: 36px; padding: 6px 14px; border-radius: 7px; background: transparent; color: var(--muted); }
-  .record-pane-switch button[aria-pressed="true"] { background: var(--ui-nav-active); color: var(--ui-nav-on-active); border-color: var(--ui-border-control); }
+  .record-pane-switch button[aria-pressed="true"] { background: var(--ui-nav-active); color: var(--ui-nav-on-active); border-color: var(--ui-border-field); }
   :root .xigra-record-workspace[data-pane="editor"] .xigra-record-index,
   :root .xigra-record-workspace[data-pane="list"] .xigra-record-paper { display: none; }
   :root .xigra-record-index { border: 0; padding: 16px; }

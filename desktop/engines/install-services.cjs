@@ -1,4 +1,5 @@
 const path = require("node:path");
+const fs = require("node:fs/promises");
 const { FileEngine } = require("./file-engine.cjs");
 const { RecoveryService } = require("./recovery-service.cjs");
 const { ClipboardService } = require("./clipboard-service.cjs");
@@ -12,18 +13,54 @@ function installServices(
     clipboard,
     root,
     beforeRestore,
+    canvasTrashed,
     nativeImage,
+    previews,
   },
 ) {
-  const { ThumbnailService } = require("./thumbnail-service.cjs");
-  const thumbnails = new ThumbnailService(storage, root, nativeImage);
+  handle("canvas:catalog", async (action, args = {}) => {
+    const filters = [{ name: "Arasn 画布包", extensions: ["arasn-canvas"] }];
+    if (action === "export") {
+      const { catalog, pack } = await storage.call("canvasCatalog", { ...args, action });
+      const name = pack.canvas.name.replace(/[<>:"/\\|?*]/g, "_");
+      const result = await dialog.showSaveDialog(window, { filters, defaultPath: name + ".arasn-canvas" });
+      if (result.canceled) return null;
+      await fs.writeFile(result.filePath, JSON.stringify(pack), "utf8");
+      return catalog;
+    }
+    if (action === "import") {
+      const result = await dialog.showOpenDialog(window, { filters, properties: ["openFile"] });
+      if (result.canceled) return null;
+      const file = await fs.open(result.filePaths[0], "r");
+      try {
+        const stat = await file.stat();
+        if (!stat.isFile() || stat.size > 48 * 1024 * 1024) throw new Error("画布包大小超过限制");
+        const buffer = Buffer.alloc(stat.size + 1);
+        let offset = 0;
+        while (offset < buffer.length) {
+          const { bytesRead } = await file.read(buffer, offset, buffer.length - offset, null);
+          if (!bytesRead) break;
+          offset += bytesRead;
+        }
+        if (offset !== stat.size) throw new Error("画布包正在变化，请重试");
+        let pack;
+        try { pack = JSON.parse(buffer.subarray(0, offset).toString("utf8")); }
+        catch { throw new Error("画布包格式无效"); }
+        return store.catalog(action, { pack });
+      } finally { await file.close(); }
+    }
+    const result = await store.catalog(action, args);
+    if (action === "trash") await canvasTrashed?.(args.id);
+    return result;
+  });
   handle("canvas:create", (options) => store.createCanvasRecord(options));
   handle("canvas:migrate", (options = {}) => {
     if (!options || typeof options !== "object" ||
         (options.dryRun !== undefined && typeof options.dryRun !== "boolean")) throw new Error("迁移参数无效");
     return store.migrateCanvas({ dryRun: options.dryRun !== false, roomId: options.roomId, revision: options.revision });
   });
-  handle("files:thumbnail", (id) => thumbnails.get(id));
+  handle("files:thumbnail", async id => (await previews.get(id, "small"))?.image ?? null);
+  handle("files:preview", (id, mode, page) => previews.get(id, mode, page));
   handle("files:originalImage", id => require("./export-image.cjs").originalImage(storage,id));
   const files = new FileEngine(storage),
     recovery = new RecoveryService(storage),
@@ -50,7 +87,21 @@ function installServices(
     }
     if (action === "audit") return recovery.audit();
     if (action === "retryFailed") return storage.call("retryFailed");
-    if (action === "purge") return recovery.empty();
+    if (action === "purge") {
+      const result = await recovery.empty();
+      await previews.prune(true).catch(() => {});
+      return result;
+    }
+    if (action === "clearPreviews") return previews.clear();
+    if (action === "invalidatePreview") return previews.invalidate(args.id);
+    if (action === "openOriginal" || action === "locateOriginal") {
+      const { shell } = require("electron");
+      if (action === "openOriginal") return previews.openOriginal(args.id, shell);
+      const source = await storage.call("previewSource", { id: args.id });
+      if (!source) throw new Error("原文件不可用");
+      shell.showItemInFolder(source.path);
+      return true;
+    }
     if (action === "backup") {
       const r = await dialog.showOpenDialog(window, {
         properties: ["openDirectory", "createDirectory"],
@@ -68,6 +119,7 @@ function installServices(
       if (r.canceled) return false;
       await beforeRestore();
       await recovery.restore(r.filePaths[0]);
+      await previews.clear().catch(() => {});
       await store.init();
       window.webContents.reload();
       return true;

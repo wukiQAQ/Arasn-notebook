@@ -7,6 +7,7 @@ const crypto = require("node:crypto");
 const { pipeline } = require("node:stream/promises");
 const { Transform } = require("node:stream");
 const { createStore, localTopologyItem } = require("../server.cjs");
+const canvasLibrary = require("./canvas-catalog.cjs");
 const { planCanvasMigration } = require("./canvas-migration.cjs");
 const root = path.resolve(workerData.root);
 fs.mkdirSync(path.join(root, "objects"), { recursive: true });
@@ -16,7 +17,7 @@ db.exec(
   "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA trusted_schema=OFF; PRAGMA busy_timeout=5000;",
 );
 const schemaVersion = db.prepare("PRAGMA user_version").get().user_version;
-if (schemaVersion > 2)
+if (schemaVersion > 3)
   throw new Error("数据库版本较新，禁止降级打开");
 db.exec(`BEGIN IMMEDIATE;
 CREATE TABLE IF NOT EXISTS panels(id TEXT PRIMARY KEY,state TEXT NOT NULL);
@@ -114,6 +115,7 @@ function syncFileOwner(id, value, allowDeleted = false) {
   db.prepare("DELETE FROM canvas_file_refs WHERE owner_id=?").run(id);
   const ref = ["canvas-node","free-file"].includes(value?.type) ? value.contentRef : value?.type === "content-link" ? value.targetRef : null;
   if (ref?.kind !== "file") return;
+  if (allowDeleted && !db.prepare("SELECT 1 FROM files WHERE id=?").get(ref.id)) return;
   const file = getFile(ref.id);
   if (!allowDeleted && (file.status !== "ready" || file.deleted_at)) throw new Error("文件已删除或未就绪");
   db.prepare("INSERT INTO canvas_file_refs VALUES(?,?)").run(id, ref.id);
@@ -141,13 +143,13 @@ const nameOf = (name) => {
 };
 const category = (name) => {
   const ext = path.extname(name).toLowerCase();
-  return /\.(png|jpe?g|gif|webp|bmp)$/.test(ext)
+  return /\.(png|jpe?g|gif|webp|bmp|svg|ico|tiff?|psd|psb)$/.test(ext)
     ? "图片"
     : /\.(mp3|wav|flac|ogg|m4a)$/.test(ext)
       ? "音频"
       : /\.(mp4|mkv|mov|avi|webm)$/.test(ext)
         ? "视频"
-        : /\.(docx?|xlsx?|pptx?|pdf|txt|md|csv)$/.test(ext)
+        : /\.(docx?|xlsx?|pptx?|pdf|txt|md|csv|json|log|xml|ya?ml|jsx?|tsx?|py|html?|css)$/.test(ext)
           ? "文档"
           : "其他";
 };
@@ -349,7 +351,248 @@ async function makeBackup(target, notify) {
   );
   return target;
 }
+function persistCanvasState(next, ids, catalog, syncOwners = true, files = []) {
+  transaction(() => {
+    for (const file of files) db.prepare("INSERT INTO files VALUES(?,?,?,?,?,?,?,NULL)").run(file.id, file.name, category(file.name), file.bytes.length, file.sha256, "ready", new Date().toISOString());
+    db.prepare("UPDATE panels SET state=? WHERE id='default'").run(JSON.stringify(next));
+    const write = db.prepare("INSERT INTO elements VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET version=excluded.version,value=excluded.value");
+    for (const id of ids) {
+      const item = next.items[id];
+      if (item) write.run(id, "default", item.version, JSON.stringify(item.value));
+      else db.prepare("DELETE FROM elements WHERE id=?").run(id);
+      if (syncOwners) syncFileOwner(id, item?.value, true);
+    }
+    setSetting("canvas-catalog", catalog);
+    if (catalog.backup && getSetting("canvas-migration")?.roomId !== next.roomId)
+      setSetting("canvas-migration", { version: 1, roomId: next.roomId, backup: catalog.backup });
+    db.exec("PRAGMA user_version=3");
+  });
+  state = next;
+}
+
+async function canvasCatalog({ action, id, type, name, camera, options, pack, includeNotes, includeFiles }, notify) {
+  let catalog = getSetting("canvas-catalog");
+  if (catalog?.roomId !== state.roomId) {
+    if (action !== "list") throw new Error("请先加载画布库");
+    if (activeImports) throw new Error("请等待文件导入完成后再迁移");
+    checkRecoveryBeforeMigration();
+    maintenance = true;
+    try {
+      const backupPath = await makeBackup(path.join(root, "backups", "before-multi-canvas-" + crypto.randomUUID()), notify);
+      checkRecoveryBeforeMigration();
+      const legacy = getSetting("settings") || {};
+      const workspace = canvasLibrary.metadata("workspace", "默认工作页");
+      const relation = canvasLibrary.metadata("relation", "默认关系图", state.roomId);
+      const freeViewport = canvasLibrary.viewportFor("workspace", legacy.freeViewport, state.roomId);
+      const relationViewport = canvasLibrary.viewportFor("relation", legacy.topologyViewport, state.roomId);
+      if (freeViewport) workspace.viewport = freeViewport;
+      if (relationViewport) relation.viewport = relationViewport;
+      if (canvasLibrary.validCanvasOptions(legacy.canvasOptions)) relation.options = { ...legacy.canvasOptions, roomId: state.roomId };
+      catalog = { version: 1, roomId: state.roomId, backup: backupPath, boards: [workspace, relation] };
+
+      const candidate = createStore(undefined, state);
+      const updated = [];
+      if (getSetting("canvas-migration")?.roomId !== state.roomId) {
+        for (const operation of planCanvasMigration(state).operations) {
+          candidate.apply(operation);
+          updated.push(operation.id);
+        }
+      }
+      for (const [recordId, { value }] of Object.entries(state.items)) {
+        if ((value?.type !== "text" && value?.type !== "node") || (value.localOnly || value.type === "node") && !value.freePlacement) continue;
+        const { x, y, width, height, color = "#263449", opacity, bold, fontSize } = { ...value, ...value.freePlacement };
+        const placement = crypto.randomUUID();
+        candidate.apply({ id: placement, opId: crypto.randomUUID(), expected: 0, value: {
+          type: "free-note", canvasId: workspace.id, recordId, x, y, width, height, color, opacity, bold, fontSize,
+        } });
+        updated.push(placement);
+      }
+      const next = candidate.dump();
+      for (const [key, item] of Object.entries(next.items)) {
+        if ((item.value?.type === "stroke" || item.value?.type === "free-file") && !item.value.canvasId) {
+          item.value.canvasId = workspace.id;
+          updated.push(key);
+        }
+      }
+      next.receipts = state.receipts;
+      next.revision++;
+      createStore(undefined, next);
+      persistCanvasState(next, updated, catalog, false);
+      return { catalog, state };
+    } finally { maintenance = false; }
+  }
+  if (action === "list") return { catalog };
+  const entry = catalog.boards.find(board => board.id === id);
+  if (action !== "create" && action !== "import" && !entry) throw new Error("找不到此画布");
+  if (entry?.deletedAt && !["restore", "purge"].includes(action)) throw new Error("请先恢复画布");
+  if (action === "export") {
+    const objects = canvasLibrary.valuesOf(state, id);
+    const records = [];
+    const files = [];
+    let size = 0;
+    for (const { kind, id: key } of canvasLibrary.references(objects)) {
+      const record = state.items[key]?.value;
+      if (includeNotes === true && kind === "record" && (record?.type === "text" || record?.type === "node"))
+        records.push({ id: key, text: record.text, title: record.title });
+      if (includeFiles !== true || kind !== "file") continue;
+      const row = db.prepare("SELECT * FROM files WHERE id=? AND status='ready' AND deleted_at IS NULL").get(key);
+      if (!row || !fs.existsSync(object(key))) continue;
+      size += row.size;
+      if (size > 24 * 1024 * 1024) throw new Error("画布包附件上限为 24 MiB");
+      const bytes = fs.readFileSync(object(key));
+      if (bytes.length !== row.size || crypto.createHash("sha256").update(bytes).digest("hex") !== row.sha256)
+        throw new Error("附件内容与文件中心校验不符");
+      files.push({ id: key, name: row.name, sha256: row.sha256, data: bytes.toString("base64") });
+    }
+    return { catalog, pack: { version: 1, format: "arasn-canvas", canvas: entry, objects, records, files } };
+  }
+
+  if (action === "create") catalog.boards.push(canvasLibrary.metadata(type, name));
+  else if (action === "rename") entry.name = canvasLibrary.cleanName(name, entry.type);
+  else if (action === "open") entry.openedAt = new Date().toISOString();
+  else if (action === "trash") entry.deletedAt = new Date().toISOString();
+  else if (action === "restore") delete entry.deletedAt;
+  else if (action === "viewport") {
+    entry.viewport = canvasLibrary.viewportFor(entry.type, camera, state.roomId);
+    if (!entry.viewport) throw new Error("视口无效");
+  } else if (action === "options") {
+    if (entry.type !== "relation" || !canvasLibrary.validCanvasOptions(options)) throw new Error("画布设置无效");
+    entry.options = { ...options, roomId: state.roomId };
+  } else if (action === "duplicate" || action === "import") {
+    if (action === "import" && (pack?.version !== 1 || pack.format !== "arasn-canvas" || !pack.canvas))
+      throw new Error("画布包格式或版本无效");
+    const source = entry ?? pack.canvas;
+    const canvas = canvasLibrary.metadata(source.type, entry ? (entry.name + " 副本").slice(0, 100) : source.name);
+    const viewport = canvasLibrary.viewportFor(canvas.type, source.viewport, state.roomId);
+    if (viewport) canvas.viewport = viewport;
+    if (source.options !== undefined && canvas.type === "relation") {
+      if (!canvasLibrary.validCanvasOptions(source.options)) throw new Error("画布设置无效");
+      canvas.options = { ...source.options, roomId: state.roomId };
+    }
+    const objects = canvasLibrary.duplicate(entry ? canvasLibrary.valuesOf(state, entry.id) : pack.objects, canvas, state.roomId);
+    const candidate = createStore(undefined, state);
+    const references = canvasLibrary.references(objects);
+    const records = entry ? new Map() : canvasLibrary.packageResources(pack.records, references, "record");
+    const files = entry ? new Map() : canvasLibrary.packageResources(pack.files, references, "file");
+    const mapped = new Map();
+    const newRecords = [];
+    const newFiles = [];
+    let size = 0;
+    for (const [key, record] of records) {
+      const existing = state.items[key]?.value;
+      if (["text", "node"].includes(existing?.type) && existing.text === record.text && existing.title === record.title) continue;
+      const newId = crypto.randomUUID();
+      candidate.apply({ id: newId, opId: crypto.randomUUID(), expected: 0, value: {
+        type: "text", text: record.text, title: record.title, x: 0, y: 0, color: "#263449", localOnly: true,
+      } });
+      mapped.set("record:" + key, newId);
+      newRecords.push(newId);
+    }
+    for (const [key, file] of files) {
+      if (typeof file.data !== "string" || typeof file.name !== "string" || !/^[a-f0-9]{64}$/.test(file.sha256))
+        throw new Error("附件格式无效");
+      const bytes = Buffer.from(file.data, "base64");
+      size += bytes.length;
+      if (size > 24 * 1024 * 1024 || crypto.createHash("sha256").update(bytes).digest("hex") !== file.sha256)
+        throw new Error("附件超出容量限制或校验失败");
+      const existing = db.prepare("SELECT id FROM files WHERE sha256=? AND status='ready' AND deleted_at IS NULL ORDER BY id LIMIT 1").get(file.sha256);
+      if (existing) mapped.set("file:" + key, existing.id);
+      else {
+        const id = crypto.randomUUID();
+        mapped.set("file:" + key, id);
+        newFiles.push({ id, name: nameOf(file.name), sha256: file.sha256, bytes });
+      }
+    }
+    let missing = 0;
+    for (const { id: key, value } of objects) {
+      const ref = value.type === "free-note" ? { kind: "record", id: value.recordId } : value.contentRef;
+      const replacement = ref && mapped.get(ref.kind + ":" + ref.id);
+      if (replacement) {
+        if (value.type === "free-note") value.recordId = replacement;
+        else value.contentRef = { kind: ref.kind, id: replacement };
+      } else {
+        if (ref?.kind === "record" && !["text", "node"].includes(state.items[ref.id]?.value?.type)) missing++;
+        if (ref?.kind === "file" && !db.prepare("SELECT 1 FROM files WHERE id=? AND status='ready' AND deleted_at IS NULL").get(ref.id)) missing++;
+      }
+      candidate.apply({ id: key, opId: crypto.randomUUID(), expected: 0, value });
+    }
+    if (missing) canvas.missingReferences = missing;
+    catalog.boards.push(canvas);
+    const next = candidate.dump();
+    const written = [];
+    try {
+      for (const file of newFiles) {
+        const out = fs.openSync(object(file.id), "wx", 0o600);
+        written.push(file.id);
+        try { fs.writeFileSync(out, file.bytes); fs.fsyncSync(out); } finally { fs.closeSync(out); }
+      }
+      persistCanvasState(next, [...newRecords, ...objects.map(object => object.id)], catalog, true, newFiles);
+    } catch (error) {
+      for (const key of written) fs.rmSync(object(key), { force: true });
+      throw error;
+    }
+    return { catalog, state };
+  } else if (action === "purge" && entry.deletedAt) {
+    const next = structuredClone(state);
+    const ids = canvasLibrary.valuesOf(next, id).map(object => object.id);
+    for (const key of ids) next.items[key] = { version: next.items[key].version + 1, value: null, scope: "topology" };
+    next.revision++;
+    catalog.boards = catalog.boards.filter(board => board.id !== id);
+    persistCanvasState(next, ids, catalog);
+    return { catalog, state };
+  } else throw new Error("画布操作无效");
+  setSetting("canvas-catalog", catalog);
+  return { catalog };
+}
+
+function sharedCanvas({ action, id, roomId, mode, includeNotes, includeFiles, operation, objectId }) {
+  const catalog = getSetting("canvas-catalog");
+  const board = catalog?.boards.find(entry => entry.id === id && !entry.deletedAt);
+  if (state.roomId !== roomId || catalog?.roomId !== roomId || !board)
+    throw Object.assign(new Error("共享画布已不可用"), { status: 410 });
+  const unavailable = () => Object.assign(new Error("对象不在共享范围内"), { status: 404 });
+  if (action === "edit") {
+    if (mode !== "edit") throw Object.assign(new Error("此链接仅供查看"), { status: 403 });
+    const item = state.items[operation?.id];
+    const value = item?.value;
+    if (value?.canvasId !== id || value.type === "stroke" || value.type === "canvas-edge" || value.layout?.hidden || value.layout?.locked)
+      throw unavailable();
+    if (!Number.isFinite(operation.x) || !Number.isFinite(operation.y) || !Number.isSafeInteger(operation.expected))
+      throw Object.assign(new Error("位置格式无效"), { status: 400 });
+    const position = { x: operation.x, y: operation.y };
+    const next = value.type === "canvas-node" ? { ...value, layout: { ...value.layout, ...position } } : { ...value, ...position };
+    methods.board({ operation: { id: operation.id, opId: operation.opId, expected: operation.expected, value: next } });
+    return { state, view: sharedCanvas({ action: "view", id, roomId, mode, includeNotes, includeFiles }) };
+  }
+  if (action === "file") {
+    const value = state.items[objectId]?.value;
+    if (includeFiles !== true || value?.canvasId !== id || value.contentRef?.kind !== "file" || value.layout?.hidden) throw unavailable();
+    const row = db.prepare("SELECT name,size FROM files WHERE id=? AND status='ready' AND deleted_at IS NULL").get(value.contentRef.id);
+    if (!row || !fs.existsSync(object(value.contentRef.id))) throw unavailable();
+    return { ...row, path: object(value.contentRef.id) };
+  }
+  const objects = canvasLibrary.valuesOf(state, id).flatMap(({ id: key, value }) => {
+    if (value.layout?.hidden) return [];
+    const version = state.items[key].version;
+    if (value.type === "stroke") return [{ id: key, type: value.type, points: value.points, width: value.width, color: value.color, opacity: value.opacity }];
+    if (value.type === "canvas-edge") return [{ id: key, type: value.type, from: value.fromNodeId, to: value.toNodeId, label: value.label }];
+    const ref = value.type === "free-note" ? { kind: "record", id: value.recordId } : value.contentRef;
+    const record = includeNotes === true && ref.kind === "record" ? state.items[ref.id]?.value : undefined;
+    const file = includeFiles === true && ref.kind === "file" ?
+      db.prepare("SELECT name FROM files WHERE id=? AND status='ready' AND deleted_at IS NULL").get(ref.id) : undefined;
+    const { x, y, width = 280, height = 140, locked } = value.layout ?? value;
+    return [{ id: key, type: value.type, x, y, width, height, version, locked: !!locked,
+      title: record?.title ?? file?.name ?? (ref.kind === "file" ? "附件" : "便签"),
+      text: record?.text ?? (ref.kind === "file" ? (file ? "" : "附件未共享") : "正文未共享"),
+      download: Boolean(file),
+    }];
+  });
+  return { roomId: id, revision: state.revision, name: board.name, mode, objects };
+}
+
 const methods = {
+  canvasCatalog,
+  sharedCanvas,
   metadata: ({ id, recordId }) => {
     const file = getFile(id);
     return { id: file.id, name: file.name, category: file.category, size: file.size, sha256: file.sha256, deleted_at: file.deleted_at, status: file.status, importOrigin: file.importOrigin,
@@ -361,9 +604,10 @@ const methods = {
     setSetting(`attachment-origin:${uuid(recordId)}:${file.id}`, origin);
     return true;
   },
-  canvasCreate: ({ roomId, recordId, nodeId, opId, layout, text = "" }) => {
+  canvasCreate: ({ roomId, canvasId = roomId, recordId, nodeId, opId, layout, text = "" }) => {
     if (roomId !== state.roomId || getSetting("canvas-migration")?.roomId !== roomId)
       throw new Error("请先完成当前工作页的关系画布兼容升级");
+    canvasLibrary.scope(getSetting("canvas-catalog"), { type: "canvas-node", canvasId });
     uuid(recordId); uuid(nodeId); uuid(opId);
     if (recordId === nodeId) throw new Error("记录和引用必须使用不同编号");
     const candidate = createStore(undefined, state);
@@ -371,7 +615,7 @@ const methods = {
       type: "text", text, x: 100, y: 100, color: "#263449", localOnly: true,
     } });
     candidate.apply({ id: nodeId, opId: crypto.createHash("sha256").update(`${opId}:node`).digest("hex").slice(0, 32), expected: 0, value: {
-      type: "canvas-node", roomId, canvasId: roomId, contentRef: { kind: "record", id: recordId }, layout,
+      type: "canvas-node", roomId, canvasId, contentRef: { kind: "record", id: recordId }, layout,
     } });
     const next = candidate.dump();
     transaction(() => {
@@ -424,6 +668,19 @@ const methods = {
       ...db.prepare("SELECT id, 'panel' AS kind FROM file_refs WHERE file_id=?").all(id),
     ];
   },
+  previewSource: async ({ id }) => {
+    const row = getFile(id);
+    if (row.status !== "ready" || row.deleted_at) return null;
+    const file = object(id);
+    const stat = await fsp.lstat(file);
+    if (!stat.isFile()) return null;
+    const [dataRoot, resolved] = await Promise.all([fsp.realpath(root), fsp.realpath(file)]);
+    if (path.relative(path.join(dataRoot, "objects"), resolved) !== path.basename(file)) return null;
+    return {
+      path: resolved, name: row.name, size: stat.size, sha256: row.sha256,
+      mtime: stat.mtimeMs, ctime: stat.ctimeMs,
+    };
+  },
   thumbnailSource: async ({ id }) => {
     const row = getFile(id);
     if (row.status !== "ready" || row.deleted_at || row.size > 20 * 1024 * 1024)
@@ -470,6 +727,11 @@ const methods = {
   board: ({ operation, receipt, legacyOnly }) => {
     if (receipt && receipt.roomId !== state.roomId) throw new Error("接收工作页已更换");
     const candidate = createStore(undefined, state);
+    const catalog = getSetting("canvas-catalog");
+    const scopedValue = operation.value ?? state.items[operation.id]?.value;
+    canvasLibrary.scope(catalog, scopedValue);
+    if (operation.value?.type === "free-note" && operation.value.recordId !== state.items[operation.id]?.value?.recordId && !["text", "node"].includes(state.items[operation.value.recordId]?.value?.type))
+      throw new Error("原始便签不存在");
     const snapshot = candidate.apply(operation, { legacyOnly });
     const next = candidate.dump();
     // File attachments belong to records and do not require enabling the relation canvas.
@@ -494,6 +756,11 @@ const methods = {
       const oldRef = previous?.contentRef ?? previous?.targetRef;
       const newRef = item.value?.contentRef ?? item.value?.targetRef;
       syncFileOwner(operation.id, item.value, oldRef?.kind === "file" && newRef?.kind === "file" && oldRef.id === newRef.id);
+      const canvas = catalog?.boards.find(entry => entry.id === scopedValue?.canvasId);
+      if (canvas && next.revision > state.revision) {
+        canvas.updatedAt = new Date().toISOString();
+        setSetting("canvas-catalog", catalog);
+      }
       if (receipt) setSetting(receipt.key, receipt.hash);
     });
     state = next;
@@ -657,7 +924,7 @@ const methods = {
         )
           throw new Error("备份数据库损坏");
         const incomingVersion = incoming.prepare("PRAGMA user_version").get().user_version;
-        if (![1, 2].includes(incomingVersion))
+        if (![1, 2, 3].includes(incomingVersion))
           throw new Error("备份数据库版本不兼容");
         const allRows = incoming.prepare("SELECT * FROM files").all();
         const rows = allRows.filter((row) => row.status === "ready");
@@ -736,7 +1003,10 @@ const methods = {
           db.prepare("DELETE FROM canvas_file_refs").run();
           for (const [id, item] of Object.entries(saved.items)) syncFileOwner(id, item.value, true);
           // Restoring old data must not make a previously upgraded database writable by old binaries.
-          if (incomingVersion === 2) db.exec("PRAGMA user_version=2");
+          const catalogRow = incoming.prepare("SELECT value FROM settings WHERE key='canvas-catalog'").get();
+          setSetting("canvas-catalog", catalogRow ? JSON.parse(catalogRow.value) : null);
+          const currentVersion = db.prepare("PRAGMA user_version").get().user_version;
+          if (incomingVersion > currentVersion) db.exec("PRAGMA user_version=" + incomingVersion);
         });
         state = saved;
         return true;

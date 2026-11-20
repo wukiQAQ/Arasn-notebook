@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { Button, IconButton } from "./Button";
+import { useEffect, useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import { X, Upload } from "lucide-react";
+import { X, Upload, List, LayoutGrid } from "lucide-react";
 import type { BoardClient, ManagedFile } from "./board";
 import { FileMedia } from "./FileStation";
 import { fileOriginLabel } from './record-attachments';
+import { FilePickerRow, QuickFilePreview, type QuickPreviewAnchor, type RequestFilePreview } from "./FilePickerPreview";
+import type { FilePreviewData } from "./FilePreviewContent";
 
 export function FilePicker({ open, onOpenChange, onChoose }: { open: boolean; onOpenChange(open: boolean): void; onChoose(files: ManagedFile[]): Promise<void> }) {
   const [query, setQuery] = useState("");
@@ -15,7 +18,51 @@ export function FilePicker({ open, onOpenChange, onChoose }: { open: boolean; on
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [revision, refresh] = useState(0);
-  useEffect(() => { if (open) { setSelection([]); setQuery(""); setPage(0); setError(""); } }, [open]);
+  const [layout, setLayout] = useState<"list" | "grid">("list");
+  const [quick, setQuick] = useState<(QuickPreviewAnchor & { keyboard: boolean }) | null>(null);
+  const popup = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const delay = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const quickTrigger = useRef<HTMLElement | null>(null);
+  const previews = useRef(new Map<string, Promise<FilePreviewData | null>>());
+  const request = useRef<RequestFilePreview>((id, refresh = false) => {
+    const cache = previews.current;
+    const saved = cache.get(id);
+    if (saved && !refresh) return saved;
+    const oldest = cache.keys().next().value;
+    if (cache.size >= 75 && oldest) cache.delete(oldest);
+    const result = window.desktop!.files.preview(id).catch(() => null).then(value => {
+      if (!value && cache.get(id) === result) cache.delete(id);
+      return value;
+    });
+    cache.set(id, result);
+    return result;
+  }).current;
+  function hideQuick() {
+    clearTimeout(delay.current);
+    quickTrigger.current = null;
+    setQuick(null);
+  }
+  function showQuick(anchor: QuickPreviewAnchor, keyboard = false) {
+    if (!keyboard && quickTrigger.current === anchor.row) return;
+    hideQuick();
+    quickTrigger.current = anchor.row;
+    const active = { ...anchor, keyboard };
+    if (keyboard) setQuick(active);
+    else delay.current = setTimeout(() => setQuick(active), 240);
+  }
+  useEffect(() => {
+    if (open) {
+      setSelection([]); setQuery(""); setPage(0); setError(""); setLayout("list");
+    }
+    return () => {
+      clearTimeout(delay.current);
+      quickTrigger.current = null;
+      previews.current.clear();
+      setQuick(null);
+    };
+  }, [open]);
+  useEffect(() => { if (list.current) list.current.scrollTop = 0; }, [query, page, layout]);
   useEffect(() => {
     if (!open) return;
     let live = true;
@@ -42,12 +89,38 @@ export function FilePicker({ open, onOpenChange, onChoose }: { open: boolean; on
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
-  return <Dialog.Root open={open} onOpenChange={value => { if (!busy) onOpenChange(value); }}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="file-picker">
-    <header><div><Dialog.Title>选择附件</Dialog.Title><Dialog.Description>选择已有文件或导入，添加到当前内容。文件整理请进入文件页。</Dialog.Description></div><Dialog.Close aria-label="关闭文件选择" disabled={busy}><X size={20}/></Dialog.Close></header>
-    <div className="file-picker-controls"><input aria-label="搜索附件" placeholder="搜索文件名" value={query} onChange={e => { setQuery(e.target.value); setPage(0); }}/><button disabled={busy} onClick={() => void importFiles()}><Upload size={16}/>导入文件</button></div>
+  return <Dialog.Root open={open} onOpenChange={value => { if (!busy) onOpenChange(value); }}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup ref={popup} className="file-picker"
+    onKeyDown={event => {
+      if (event.key === "Escape" && quick) {
+        event.preventDefault();
+        event.stopPropagation();
+        hideQuick();
+      }
+    }}>
+    <header><Dialog.Title>选择附件</Dialog.Title><Dialog.Close render={<IconButton />} aria-label="关闭文件选择" disabled={busy}><X size={20}/></Dialog.Close></header>
+    <div className="file-picker-controls">
+      <input className="ui-field" aria-label="搜索附件" placeholder="搜索文件名" value={query} onChange={e => { hideQuick(); setQuery(e.target.value); setPage(0); }}/>
+      <Button disabled={busy} onClick={() => { hideQuick(); void importFiles(); }}><Upload size={16}/>导入文件</Button>
+      <div className="file-picker-layout" role="group" aria-label="文件显示方式">
+        <IconButton aria-label="列表视图" aria-pressed={layout === "list"} onClick={() => { hideQuick(); setLayout("list"); }}><List size={17}/></IconButton>
+        <IconButton aria-label="网格视图" aria-pressed={layout === "grid"} onClick={() => { hideQuick(); setLayout("grid"); }}><LayoutGrid size={17}/></IconButton>
+      </div>
+    </div>
     {error && <p role="alert" className="xigra-notice" data-tone="error">{error}</p>}
-    <div className="file-picker-list" aria-busy={loading}>{rows.map(file => <label key={file.id}><input type="checkbox" aria-label={`选择附件 ${file.name}`} checked={selection.some(item => item.id === file.id)} disabled={busy || loading} onChange={e => setSelection(current => e.target.checked ? [...current, file] : current.filter(item => item.id !== file.id))}/><span>{file.name}</span><small>{file.category}</small></label>)}{!loading && !rows.length && <p>没有可选文件，可先导入。</p>}</div>
-    <footer><button disabled={busy || loading || !page} onClick={() => setPage(page - 1)}>上一页</button><span>{page + 1} 页</span><button disabled={busy || loading || (page + 1) * 25 >= total} onClick={() => setPage(page + 1)}>下一页</button><button className="file-primary" disabled={busy || !selection.length} onClick={() => void choose(selection)}>{busy ? "正在添加…" : `添加所选（${selection.length}）`}</button></footer>
+    <div ref={list} className="file-picker-list" data-layout={layout} aria-busy={loading}>
+      {open && rows.map(file => <FilePickerRow key={file.id} file={file} request={request} disabled={busy || loading}
+        checked={selection.some(item => item.id === file.id)} quickOpen={quick?.file.id === file.id}
+        showQuick={showQuick} hideQuick={hideQuick}
+        onChange={checked => setSelection(current => checked ? [...current, file] : current.filter(item => item.id !== file.id))}/>)}
+      {!loading && !rows.length && <p className="file-picker-empty">{query ? "未找到匹配的文件" : "没有可选文件，可先导入。"}</p>}
+    </div>
+    <footer>
+      <Button disabled={busy || loading || !page} onClick={() => { hideQuick(); setPage(page - 1); }}>上一页</Button>
+      <span>{page + 1} / {Math.max(1, Math.ceil(total / 25))} 页</span>
+      <Button disabled={busy || loading || (page + 1) * 25 >= total} onClick={() => { hideQuick(); setPage(page + 1); }}>下一页</Button>
+      <Button variant="primary" className="file-primary" disabled={busy || !selection.length} onClick={() => { hideQuick(); void choose(selection); }}>{busy ? "正在添加…" : `添加所选（${selection.length}）`}</Button>
+    </footer>
+    {open && quick && <QuickFilePreview key={quick.file.id} anchor={quick} request={request} popup={popup} list={list} />}
   </Dialog.Popup></Dialog.Portal></Dialog.Root>;
 }
 

@@ -24,7 +24,9 @@ async function verify() {
     }, name === 'sender' ? '发送测试机' : '接收测试机');
     const page = await app.firstWindow();
     const window = await app.browserWindow(page);
+    page.setDefaultTimeout(8000);
     await window.evaluate(window => { window.show(); window.focus(); });
+    await expect(page.getByRole('textbox', { name: '便签标题' })).toBeVisible();
     return { page, window };
   }
 
@@ -32,7 +34,6 @@ async function verify() {
     const sender = await launch('sender', 'Control+Alt+F13');
     const receiver = await launch('receiver', 'Control+Alt+F14');
     for (const { page } of [sender, receiver]) {
-      await page.getByRole('button', { name: '打开工作区', exact: true }).click();
       await page.getByRole('button', { name: '设备互传', exact: true }).click();
       await page.getByRole('button', { name: '打开便签互传', exact: true }).click();
       await page.getByRole('button', { name: '开启局域网', exact: true }).click();
@@ -52,11 +53,10 @@ async function verify() {
     await receiver.window.evaluate(window => window.setSize(740, 526));
     await receiver.page.waitForFunction(() => innerWidth < 760 && innerHeight < 530);
     await expect.poll(() => receiver.page.locator('.sidebar-bottom').evaluate(element => element.getBoundingClientRect().bottom <= innerHeight)).toBe(true);
-    await receiver.page.getByRole('button', { name: '切换到便签区', exact: true }).click();
-    const editor = page => page.getByRole('textbox', { name: '便笺文字', exact: true });
+    const editor = page => page.locator('.xigra-record-editor');
     const note = '会后确认\n周三前发出版本。';
     await editor(sender.page).fill(note);
-    await expect(sender.page.locator('.xigra-save-state')).toHaveText('已保存');
+    await expect(sender.page.locator('.xigra-record-workspace .save-state')).toHaveText('已保存');
     await sender.page.getByRole('button', { name: '管理当前便笺' }).click();
     await sender.page.getByRole('menuitem', { name: '发送到局域网设备' }).click();
     await sender.page.getByRole('button', { name: '发送便签', exact: true }).click();
@@ -65,12 +65,12 @@ async function verify() {
     await receiver.window.evaluate(window => window.focus());
     const inboxButton = receiver.page.getByRole('button', { name: '待接收便签，1 条', exact: true });
     await expect(inboxButton).toBeVisible();
-    await expect.poll(() => receiver.page.locator('.quick-header').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await expect.poll(() => receiver.page.locator('.window-navigation').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
     await inboxButton.click();
     const inbox = receiver.page.getByRole('region', { name: '待接收便签' });
     await expect(inbox.getByText('文字便签')).toBeVisible();
     await expect(inbox).not.toContainText('会后确认');
-    await expect(receiver.page.getByRole('textbox', { name: '便笺文字', includeHidden: true })).toHaveValue('');
+    await expect(editor(receiver.page)).toHaveValue('');
     if (output) {
       await fs.mkdir(output, { recursive: true });
       await receiver.page.screenshot({ path: path.join(output, 'incoming.png'), animations: 'disabled' });
@@ -79,8 +79,9 @@ async function verify() {
     await expect(receiver.page.getByText('已保存到便签')).toBeVisible({ timeout: 10000 });
     await expect(sender.page.getByText('对方已保存')).toBeVisible({ timeout: 10000 });
     await receiver.page.getByRole('button', { name: '关闭便签互传', exact: true }).click();
-    await receiver.page.getByRole('button', { name: '打开工作区', exact: true }).click();
-    await receiver.page.getByRole('button', { name: /会后确认.*周三前发出版本/ }).click();
+    const openLibrary = receiver.page.getByRole('button', { name: '展开便签库', exact: true });
+    if (await openLibrary.isVisible()) await openLibrary.click();
+    await receiver.page.locator('#record-library').getByRole('button', { name: /^会后确认/ }).click();
     await expect(editor(receiver.page)).toHaveValue(note);
     console.log('PASS two Electron processes: DPAPI identities, paired send, explicit accept, durable ACK and received text');
   } finally {

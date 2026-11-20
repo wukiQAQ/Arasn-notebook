@@ -1,3 +1,4 @@
+import { IconButton } from "../Button";
 import { useEffect, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "../LagoonIcons";
@@ -93,7 +94,7 @@ export function LanNotesDialog({ lan, request, close, onIncoming }: {
     <Dialog.Portal>
       <Dialog.Backdrop className="desk-backdrop" />
       <Dialog.Popup className="modal xigra-lan-dialog">
-        <Dialog.Close className="icon-button modal-close" aria-label="关闭便签互传"><X size={18} /></Dialog.Close>
+        <Dialog.Close render={<IconButton hitArea="roomy" />} className="modal-close" aria-label="关闭便签互传"><X size={18} /></Dialog.Close>
         <div className="network-help-heading lan-notes-heading">
           <Dialog.Title>便签互传</Dialog.Title>
           <HelpPopover topic="devices" />

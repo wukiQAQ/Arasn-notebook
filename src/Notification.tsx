@@ -1,3 +1,4 @@
+import { IconButton } from "./Button";
 import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, CircleAlert } from 'lucide-react';
@@ -66,6 +67,6 @@ export function Notification({ notice, onDismiss }: { notice: Notice | null; onD
       setRetrying(true);
       try { await notice.retry?.(); setClosing(true); } catch (error) { setRetryError(error instanceof Error ? error.message : String(error)); } finally { setRetrying(false); }
     }}>{retrying ? '重试中…' : '重试'}</button>}
-    <button type="button" className="app-notification-close" aria-label="关闭通知" onClick={() => setClosing(true)}>×</button>
+    <IconButton hitArea="compact" className="app-notification-close" aria-label="关闭通知" onClick={() => setClosing(true)}>×</IconButton>
   </div>, document.body);
 }

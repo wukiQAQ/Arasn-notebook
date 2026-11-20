@@ -1,0 +1,296 @@
+{
+  "checks": [
+    "free resize preserves position",
+    "card keyboard resize bounded",
+    {
+      "theme": "light",
+      "window": "normal",
+      "width": 1160,
+      "height": 820,
+      "overflow": false,
+      "panel": {
+        "left": 192,
+        "top": 60,
+        "right": 304,
+        "bottom": 608
+      },
+      "canvas": {
+        "left": 180,
+        "top": 48,
+        "right": 1136,
+        "bottom": 820
+      },
+      "drag": "drag",
+      "world": "translate(-290px, -110px) scale(0.96)",
+      "cardRect": {
+        "x": 485.20001220703125,
+        "y": 274,
+        "width": 403.199951171875,
+        "height": 268.79998779296875,
+        "top": 274,
+        "right": 888.3999633789062,
+        "bottom": 542.7999877929688,
+        "left": 485.20001220703125
+      },
+      "scrolls": [
+        {
+          "class": "",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "hidden"
+        },
+        {
+          "class": "workspace xigra-workspace-view free-workspace",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "hidden"
+        },
+        {
+          "class": "paper-scroll",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "clip"
+        },
+        {
+          "class": "xigra-canvas-frame",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "clip"
+        },
+        {
+          "class": "paper tool-select",
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "window": "minimum",
+      "width": 720,
+      "height": 520,
+      "overflow": false,
+      "panel": {
+        "left": 88,
+        "top": 60,
+        "right": 146,
+        "bottom": 442
+      },
+      "canvas": {
+        "left": 76,
+        "top": 48,
+        "right": 704,
+        "bottom": 520
+      },
+      "drag": "drag",
+      "world": "translate(-454px, -260px) scale(0.96)",
+      "cardRect": {
+        "x": 217.20001220703125,
+        "y": 124,
+        "width": 403.199951171875,
+        "height": 268.79998779296875,
+        "top": 124,
+        "right": 620.3999633789062,
+        "bottom": 392.79998779296875,
+        "left": 217.20001220703125
+      },
+      "scrolls": [
+        {
+          "class": "",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "hidden"
+        },
+        {
+          "class": "workspace xigra-workspace-view free-workspace",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "hidden"
+        },
+        {
+          "class": "paper-scroll",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "clip"
+        },
+        {
+          "class": "xigra-canvas-frame",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "clip"
+        },
+        {
+          "class": "paper tool-select",
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "window": "normal",
+      "width": 1160,
+      "height": 820,
+      "overflow": false,
+      "panel": {
+        "left": 192,
+        "top": 60,
+        "right": 304,
+        "bottom": 608
+      },
+      "canvas": {
+        "left": 180,
+        "top": 48,
+        "right": 1136,
+        "bottom": 820
+      },
+      "drag": "drag",
+      "world": "translate(-290px, -110px) scale(0.96)",
+      "cardRect": {
+        "x": 485.20001220703125,
+        "y": 274,
+        "width": 403.199951171875,
+        "height": 268.79998779296875,
+        "top": 274,
+        "right": 888.3999633789062,
+        "bottom": 542.7999877929688,
+        "left": 485.20001220703125
+      },
+      "scrolls": [
+        {
+          "class": "",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "hidden"
+        },
+        {
+          "class": "workspace xigra-workspace-view free-workspace",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "hidden"
+        },
+        {
+          "class": "paper-scroll",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "clip"
+        },
+        {
+          "class": "xigra-canvas-frame",
+          "x": 0,
+          "y": 0,
+          "width": 956,
+          "overflow": "clip"
+        },
+        {
+          "class": "paper tool-select",
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "window": "minimum",
+      "width": 720,
+      "height": 520,
+      "overflow": false,
+      "panel": {
+        "left": 88,
+        "top": 60,
+        "right": 146,
+        "bottom": 442
+      },
+      "canvas": {
+        "left": 76,
+        "top": 48,
+        "right": 704,
+        "bottom": 520
+      },
+      "drag": "drag",
+      "world": "translate(-454px, -260px) scale(0.96)",
+      "cardRect": {
+        "x": 217.20001220703125,
+        "y": 124,
+        "width": 403.199951171875,
+        "height": 268.79998779296875,
+        "top": 124,
+        "right": 620.3999633789062,
+        "bottom": 392.79998779296875,
+        "left": 217.20001220703125
+      },
+      "scrolls": [
+        {
+          "class": "",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "hidden"
+        },
+        {
+          "class": "workspace xigra-workspace-view free-workspace",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "hidden"
+        },
+        {
+          "class": "paper-scroll",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "clip"
+        },
+        {
+          "class": "xigra-canvas-frame",
+          "x": 0,
+          "y": 0,
+          "width": 628,
+          "overflow": "clip"
+        },
+        {
+          "class": "paper tool-select",
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "overflow": "visible"
+        }
+      ]
+    },
+    "relation resize undo/redo",
+    {
+      "relationStyles": {
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "titleHeight": 40,
+        "footerMargin": "60px"
+      }
+    },
+    {
+      "relationStyles": {
+        "font": "\"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif",
+        "titleHeight": 40,
+        "footerMargin": "60px"
+      }
+    },
+    "new note opens focused editor",
+    "SQLite restart: full text, sizes, positions and attachment reference"
+  ],
+  "errors": []
+}

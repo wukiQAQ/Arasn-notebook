@@ -75,11 +75,16 @@
   flex-shrink: 0; color: var(--ui-text-secondary); font-size: 12px; line-height: 18px;
 }
 :root .relation-workbench .topology-node .topology-node-kind {
-  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 65%;
   border-radius: 6px; padding: 1px 6px;
   color: var(--node-kind-color);
   background: color-mix(in srgb, var(--node-kind-color) 11%, transparent);
   white-space: nowrap;
+}
+.topology-node-kind > span { overflow: hidden; text-overflow: ellipsis; }
+:root .relation-workbench .topology-node[data-custom-type] .topology-node-kind {
+  color: color-mix(in srgb, var(--ui-text-primary) 76%, var(--node-kind-color));
+  background: color-mix(in srgb, var(--node-kind-color) 15%, transparent);
 }
 .topology-node-footer svg { flex: none; }
 .topology-node-footer .topology-node-status { font-size: inherit; line-height: 18px; padding: 1px 5px; border-radius: 6px; }

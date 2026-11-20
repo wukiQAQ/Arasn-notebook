@@ -1,3 +1,4 @@
+import { IconButton } from "../../Button";
 import { useEffect, useRef, useState, type Ref } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Search, X } from "../../LagoonIcons";
@@ -41,7 +42,7 @@ export function GlobalRecordSearch({ session, open, setOpen, onSelect, blocked }
         }
       }}>
         <Dialog.Title>查找便笺</Dialog.Title>
-        <Dialog.Close className="modal-close icon-button" aria-label="关闭查找"><X size={18} /></Dialog.Close>
+        <Dialog.Close render={<IconButton hitArea="roomy" />} className="modal-close" aria-label="关闭查找"><X size={18} /></Dialog.Close>
         <RecordSearch query={query} setQuery={setQuery} inputRef={input} activeResult={rows[active] ? `search-result-${rows[active].id}` : undefined} />
         {rows.length ? <RecordList rows={rows} current={session.id} disabled={blocked || session.volatile || session.composing} onSelect={select} activeIndex={active} />
           : <p className="xigra-empty">{query.trim() ? "没有找到匹配的便笺。" : "写下第一张便笺后，会在这里看到它。"}</p>}

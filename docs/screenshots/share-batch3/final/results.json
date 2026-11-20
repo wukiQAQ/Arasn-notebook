@@ -1,0 +1,95 @@
+{
+  "checks": [
+    "off/active hierarchy and no overflow at 1440/820/390 in both themes",
+    "explicit starting state, disabled busy controls, shared service, native clipboard and refresh",
+    "start/stop failure reason and retry, running service truth, lost address and no-network safety",
+    "keyboard focus/reduced motion and close/Esc/back/native-switch preserve canvas DOM without settings frame"
+  ],
+  "contrasts": [
+    {
+      "theme": "light",
+      "state": "off",
+      "text": "rgb(38, 41, 50)",
+      "background": "rgb(232, 236, 242)",
+      "ratio": 12.251610554079166
+    },
+    {
+      "theme": "light",
+      "state": "primary",
+      "text": "rgb(255, 255, 255)",
+      "background": "rgb(93, 75, 210)",
+      "ratio": 6.171949337931806
+    },
+    {
+      "theme": "dark",
+      "state": "off",
+      "text": "rgb(238, 240, 244)",
+      "background": "rgb(34, 38, 46)",
+      "ratio": 13.292137745355774
+    },
+    {
+      "theme": "dark",
+      "state": "primary",
+      "text": "rgb(255, 255, 255)",
+      "background": "rgb(105, 84, 216)",
+      "ratio": 5.439914752504339
+    },
+    {
+      "theme": "light",
+      "state": "starting",
+      "text": "rgb(98, 69, 14)",
+      "background": "rgb(232, 236, 242)",
+      "ratio": 7.451438352479396
+    },
+    {
+      "theme": "dark",
+      "state": "starting",
+      "text": "rgb(245, 214, 156)",
+      "background": "rgb(34, 38, 46)",
+      "ratio": 10.818980905127402
+    },
+    {
+      "theme": "light",
+      "state": "active",
+      "text": "rgb(37, 96, 67)",
+      "background": "rgb(232, 236, 242)",
+      "ratio": 6.252161198784919
+    },
+    {
+      "theme": "dark",
+      "state": "active",
+      "text": "rgb(169, 226, 194)",
+      "background": "rgb(34, 38, 46)",
+      "ratio": 10.359226203718281
+    },
+    {
+      "theme": "light",
+      "state": "failed",
+      "text": "rgb(152, 43, 66)",
+      "background": "rgb(232, 236, 242)",
+      "ratio": 6.4188385100799685
+    },
+    {
+      "theme": "dark",
+      "state": "failed",
+      "text": "rgb(255, 196, 206)",
+      "background": "rgb(34, 38, 46)",
+      "ratio": 10.138720729172835
+    },
+    {
+      "theme": "light",
+      "state": "failed",
+      "text": "rgb(152, 43, 66)",
+      "background": "rgb(232, 236, 242)",
+      "ratio": 6.4188385100799685
+    },
+    {
+      "theme": "dark",
+      "state": "failed",
+      "text": "rgb(255, 196, 206)",
+      "background": "rgb(34, 38, 46)",
+      "ratio": 10.138720729172835
+    }
+  ],
+  "errors": []
+}

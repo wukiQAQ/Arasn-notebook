@@ -16,6 +16,7 @@ const {
 const { StorageEngine } = require("./engines/storage-engine.cjs");
 const { PanelEngine } = require("./engines/panel-engine.cjs");
 const { WindowManager, WORKBENCH_WINDOW } = require("./engines/window-manager.cjs");
+const { startCanvasShare } = require("./engines/canvas-share.cjs");
 const { installServices } = require("./engines/install-services.cjs");
 const { LanNotes } = require("./engines/lan-notes.cjs");
 const { listNetworks } = require("./engines/network-interfaces.cjs");
@@ -41,6 +42,7 @@ let window,
   tray,
   local,
   shared,
+  canvasShare,
   lanNotes,
   lanNotification,
   store,
@@ -54,12 +56,7 @@ let revealRequested = false;
 let windowIntent;
 let nextWindowIntent = 0;
 let triggerRevealVersion = 0;
-const validCanvasOptions = value => value && typeof value === "object" && !Array.isArray(value) &&
-  Object.keys(value).every(key => ["roomId", "grid", "snap", "minimap", "wheel", "nodeDisplay"].includes(key)) &&
-  typeof value.roomId === "string" && value.roomId.length > 0 &&
-  ["grid", "snap", "minimap"].every(key => typeof value[key] === "boolean") &&
-  ["auto", "zoom", "pan"].includes(value.wheel) &&
-  (value.nodeDisplay === undefined || ["detailed", "compact"].includes(value.nodeDisplay));
+const { validCanvasOptions } = require("./engines/canvas-catalog.cjs");
 const validSidebar = value => value && ['full', 'compact', 'hidden'].includes(value.mode) && Number.isFinite(value.width) && value.width >= 180 && value.width <= 280;
 const { validAppearance } = require("./engines/appearance.cjs");
 let preferences = {
@@ -153,6 +150,7 @@ app.on("will-quit", () => {
   edgeFeedback?.dispose();
   local?.server.close();
   shared?.server.close();
+  void canvasShare?.close().catch(() => {});
   void lanNotes?.stop().catch(() => {});
 });
 
@@ -187,6 +185,7 @@ if (lock)
           preferences.freeViewport = migrated.settings.freeViewport;
         if (validTopologyViewport(migrated.settings.topologyViewport))
           preferences.topologyViewport = migrated.settings.topologyViewport;
+        if (validBrushPresets(migrated.settings.brushPreferences)) preferences.brushPreferences = migrated.settings.brushPreferences;
         if (validBrushPresets(migrated.settings.brushPresets)) preferences.brushPresets = migrated.settings.brushPresets;
         if (validCanvasOptions(migrated.settings.canvasOptions))
           preferences.canvasOptions = migrated.settings.canvasOptions;
@@ -204,8 +203,11 @@ if (lock)
       store = await new PanelEngine(storage, () =>
         window?.webContents.send("board:changed"),
       ).init();
-      local = await startServer({ store, token, staticDir });
+      const { ThumbnailService } = require("./engines/thumbnail-service.cjs");
+      const previews = new ThumbnailService(storage, app.getPath("userData"), BrowserWindow);
+      local = await startServer({ store, token, staticDir, preview: previews.serve.bind(previews) });
       const origin = `http://127.0.0.1:${local.port}`;
+      previews.origin = origin;
       // Pending edits also have a main-process recovery file because the HTTP origin changes on restart.
       const session =
         require("electron").session.fromPartition("persist:arasn");
@@ -344,7 +346,34 @@ if (lock)
         shareTask = shareTask.catch(() => {}).then(action);
         return shareTask;
       };
+      const stopCanvasShare = async () => {
+        const previous = canvasShare;
+        canvasShare = undefined;
+        await previous?.close();
+      };
+      secureHandle("canvas:share", (action, args = {}) => changeNetworkMode(async () => {
+        if (action === "status") {
+          if (canvasShare && !listNetworks().some(entry => entry.address === canvasShare.host)) await stopCanvasShare();
+          return canvasShare?.status() ?? null;
+        }
+        if (action === "stop") {
+          if (canvasShare?.id === args.id) await stopCanvasShare();
+          return null;
+        }
+        if (action !== "start" || !["view", "edit"].includes(args.mode) ||
+            !listNetworks().some(entry => entry.address === args.host)) throw new Error("请选择可用的私有 IPv4 网卡和共享权限");
+        if (canvasShare) throw new Error("请先停止当前画布的局域网分享");
+        canvasShare = await startCanvasShare(store, {
+          id: args.id, host: args.host, roomId: store.snapshot().roomId, mode: args.mode,
+          includeNotes: args.includeNotes === true, includeFiles: args.includeFiles === true,
+        });
+        return canvasShare.status();
+      }));
       installServices(secureHandle, {
+        canvasTrashed: id => changeNetworkMode(async () => {
+          if (canvasShare?.id === id) await stopCanvasShare();
+        }),
+        previews,
         storage,
         store,
         window,
@@ -354,6 +383,7 @@ if (lock)
         nativeImage,
         beforeRestore: () => changeNetworkMode(async () => {
           await lanNotes?.stop();
+          await stopCanvasShare();
           if (shared) {
             await shared.close();
             shared = null;
@@ -423,6 +453,7 @@ if (lock)
           "freeViewport",
           "topologyViewport",
           "canvasOptions",
+          "brushPreferences",
           "brushPresets",
           "sidebar",
         ];
@@ -467,6 +498,11 @@ if (lock)
         const next = { ...preferences };
         if (patch.appearance !== undefined) next.appearance = patch.appearance;
         if (patch.sidebar !== undefined) next.sidebar = { ...patch.sidebar };
+        if(patch.brushPreferences !== undefined) {
+          if(!validBrushPresets(patch.brushPreferences) || patch.brushPreferences.length > 6 ||
+             new Set(patch.brushPreferences.map(v=>v.brush)).size !== patch.brushPreferences.length) throw new Error('画笔设置无效');
+          next.brushPreferences=patch.brushPreferences.map(v=>({...v}));
+        }
         if(patch.brushPresets !== undefined) {
           if(!validBrushPresets(patch.brushPresets))throw new Error('画笔方案无效');
           next.brushPresets=patch.brushPresets.map(v=>({...v}));

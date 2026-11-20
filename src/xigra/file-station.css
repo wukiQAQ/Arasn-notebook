@@ -4,7 +4,7 @@
   gap: var(--xigra-space-3);
 }
 .file-station button,
-.file-preview button {
+.file-preview button:not(.arasn-icon-action) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -144,7 +144,7 @@
 }
 .file-preview header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .file-preview h2 { margin: 0; overflow-wrap: anywhere; font-size: 16px; }
-.file-preview button { background: var(--xigra-subtle); color: var(--ink); }
+.file-preview button:not(.arasn-icon-action) { background: var(--xigra-subtle); color: var(--ink); }
 .file-preview > img { display: block; width: min(100%, 320px); height: auto; max-height: 55dvh; object-fit: contain; margin: 16px auto; }
 .file-preview p { margin: 0; color: var(--muted); font-size: 12px; }
 

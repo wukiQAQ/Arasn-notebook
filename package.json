@@ -8,7 +8,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build && node scripts/bundle-lan.cjs",
     "start": "npm run build && electron .",
-    "test": "node --test tests/capture-export.test.cjs tests/relation-hit.test.cjs tests/theme-init.test.cjs tests/interaction-batch4.test.cjs tests/erase-path.test.cjs tests/correctness-batch1.test.cjs tests/brush-properties.test.cjs tests/quality-guards.test.cjs tests/free-content.test.cjs tests/drawing-tools.test.cjs tests/free-canvas.test.cjs tests/server.test.cjs tests/storage.test.cjs tests/storage-boundaries.test.cjs tests/board-client.test.cjs tests/canvas-references.test.cjs tests/canvas-storage.test.cjs tests/file-area-safety.test.cjs tests/lan-notes.test.cjs tests/window-manager.test.cjs tests/trigger-registry.test.cjs tests/smart-triggers.test.cjs",
+    "test": "node --test tests/capture-export.test.cjs tests/relation-hit.test.cjs tests/theme-init.test.cjs tests/interaction-batch4.test.cjs tests/erase-path.test.cjs tests/correctness-batch1.test.cjs tests/brush-properties.test.cjs tests/quality-guards.test.cjs tests/free-content.test.cjs tests/drawing-tools.test.cjs tests/free-canvas.test.cjs tests/server.test.cjs tests/storage.test.cjs tests/storage-boundaries.test.cjs tests/board-client.test.cjs tests/canvas-references.test.cjs tests/canvas-storage.test.cjs tests/canvas-catalog.test.cjs tests/file-area-safety.test.cjs tests/lan-notes.test.cjs tests/window-manager.test.cjs tests/trigger-registry.test.cjs tests/smart-triggers.test.cjs",
     "test:ui": "playwright test",
     "test:free-quality": "node tests/free-quality-desktop.cjs",
     "pack": "npm run build && node scripts/pack.cjs",
@@ -32,10 +32,15 @@
     "@playwright/test": "1.64.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "ag-psd": "34.2.2",
     "electron": "45.2.1",
     "electron-builder": "26.18.0",
+    "fflate": "0.8.3",
+    "pdfjs-dist": "6.5.438",
     "resedit": "1.7.2",
     "typescript": "7.0.2",
-    "vite": "8.3.5"
+    "utif": "3.1.0",
+    "vite": "8.3.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

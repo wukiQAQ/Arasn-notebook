@@ -144,7 +144,7 @@
 
 .modal, [data-theme="dark"] .modal, .command-popup, .lagoon-files {
   border-radius: var(--xigra-radius-window);
-  box-shadow: var(--xigra-shadow-floating);
+  box-shadow: var(--ui-shadow-modal);
 }
 .desk-backdrop { background: var(--xigra-scrim); }
 .modal h2, .lagoon-drawer-title h2 { font-size: var(--xigra-type-title); font-weight: var(--xigra-weight-emphasis); }

@@ -1,3 +1,107 @@
+# Arasn 交接单 · 2026-11-20 · 多画布系统
+
+- **当前状态**　自由工作页库和关系画布库、视口恢复、真实预览、回收站、画布包、范围明确的局域网分享已接入。97 项单元测试、真实 Electron 多画布测试和桌面冒烟通过。Portable 与 Setup 已生成，实际启动 Portable 与 Setup 解包应用均验证了历史数据迁移。
+- **已定决策（不要重新讨论这些）**　SQLite 工作站内以不可变画布 ID 限定布局。便签和文件为全局引用。首次迁移带完整备份并使用单事务。关系复制重映射连线。撤销栈按画布隔离，切换清空当前编辑历史。浏览器分享默认只读，正文和附件由发布者另行授权。
+- **下一步**　新版迁移、打包和可见交互证据见交付记录。多台实体设备与安装向导仍需对应环境。
+- **关键文件**　`docs/MULTI-CANVAS-2026-11-20.md`、`desktop/engines/canvas-catalog.cjs`、`desktop/engines/storage-worker.cjs`、`desktop/engines/canvas-share.cjs`、`src/CanvasLibrary.tsx`、`src/main.tsx`、`tests/canvas-catalog.test.cjs`、`tests/canvas-library-desktop.cjs`、`docs/screenshots/multi-canvas/`。
+
+---
+
+# Arasn 交接单 · 2026-11-20
+
+## 附件选择器预览 · 2026-11-20
+
+- **当前状态**　64 px 列表行、48 px 缩略图、封面网格、240 ms 悬停或键盘快速预览，以及独立的完整预览均已接入。构建、93 项单元测试与真实 Electron 综合专项通过，覆盖 34 个批量导入文件、分页滚动、搜索、添加及 390 px 窄窗避让。
+- **已定决策（不要重新讨论这些）**　默认紧凑列表，列表与网格共用选择状态。可见项和快速预览复用 `desktop.files.preview` 同一请求及后端缓存。完整预览复用 `FilePreviewDialog`。浮层只能展示内容，不接管指针和滚动。
+- **下一步**　无本轮待办。用 `node tests/file-preview-desktop.cjs` 回归，设置 `ARASN_PREVIEW_SHOTS` 可复拍截图。附带的请求没有可用参考截图，本轮按现有 Electron UI 校对。
+- **关键文件**　`src/FilePicker.tsx`、`src/FilePickerPreview.tsx`、`src/FileStation.tsx`、`src/file-workspace.css`、`tests/file-preview-desktop.cjs`。四张交付截图位于 `.runtime/file-picker-shots/`。
+
+## 便签库列表密度与排版 · 2026-11-20
+
+- **当前状态**　便签库单行 46 px、带摘要 58 px、条目间距 4 px。1440×820 隔离 Electron 同一组 28 条便签，浅色和深色的完整可见条目均从 6 条增至 11 条。390 px 窄窗已查看。构建、93 项单元测试和 Electron 便签库专项通过。
+- **已定决策（不要重新讨论这些）**　置顶和普通列表沿用共享 `RecordList`，标题单行省略并通过原生 Tooltip 查看全文。搜索保留全宽，范围和关联筛选在空间足够时同行。只有列表滚动。选中态读取现有强调色令牌。便签数据、顺序、置顶与搜索逻辑保持原样。
+- **区分度复调**　条目使用主题卡片底色和 1 px 细边线，选中态叠加粉色边框。深浅主题和 390 px 窄窗已复核，46/58 px 行高、4 px 间距和 11 条可见密度保持。新截图在 `docs/screenshots/record-library-separation/`。
+- **下一步**　无本轮待办。回归用 `node tests/record-library-density-desktop.cjs after`，在 Windows Codex 沙箱将 TEMP/TMP 指向工作区 `.runtime` 并允许 Electron 启动。
+- **关键文件**　`src/xigra/records/RecordList.tsx`、`src/xigra/records/RecordWorkspace.tsx`、`src/xigra/records/workspace.css`。真实 Electron 前后截图和测量结果在 `docs/screenshots/record-library-density/`。
+
+---
+
+## 自由工作页画笔升级 · 2026-11-20
+
+- **当前状态**　自由工作页已支持 0.5–40 px、六种笔刷、每种笔刷独立参数、预设管理、实时预览、压力/速度动态宽度及 PNG 导出。构建、93 项单元测试及隔离 Electron 专项通过。专项覆盖新旧数据、重启、两种擦除、撤销重做、2× 导出、缩放平移、附件/便签、390/820/1440 px 面板。物理数位板尚未实测，CDP 模拟 pen 压力已通过。需求消息未附可见参考截图，视觉以当前界面为基准。
+- **已定决策（不要重新讨论这些）**　沿用 SVG 画布和 Canvas 2D 导出，共享笔迹图层几何。新笔画使用可选的 `inkVersion: 1`，坐标第三项可存归一化压力，虚线参数可选。旧数据直接读取并走原渲染。保留现有 BoardClient 操作、历史记录及 Electron 设置机制。荧光笔独立叠加于卡片上方。未引入绘画依赖。
+- **下一步**　有真机可用时补数位板和触控笔验证。继续开发前先读本交接单，按需运行 `node tests/brush-upgrade-desktop.cjs`。在 Windows 应用沙箱中将 TEMP/TMP 指向工作区内的 `.runtime`，Electron 需要能启动桌面窗口。
+- **关键文件**　`src/BrushProperties.tsx`、`src/brush.ts`、`src/ink-renderer.ts`、`src/InkStroke.tsx`、`src/useDrawingTools.ts`、`src/render-export.ts`、`desktop/server.cjs`、`tests/brush-upgrade-desktop.cjs`。截图、导出和本机性能数据位于 `docs/screenshots/brush-upgrade/`。
+
+---
+
+# Arasn 交接单 · 2026-11-20 · 全局文件预览
+
+## 当前状态
+
+自由工作页、文件中心、便签附件和详情共用文件预览。已通过构建、92 项单元测试和 Electron 专项，覆盖旧 20 MiB 上限之外的有效 PNG、签名识别、PSD/PSB 合成、MP4 封面与时长、PDF 翻页、Office 摘要、音频波形、拖动和缓存重启。原始测试文件的字节校验一致。已生成根目录 Portable 和 Setup，单文件 Portable 实际启动并生成 PSD 缩略图，Setup 解包后的应用通过主要格式专项。附件目录只有需求文本，视觉以实际应用为基准，截图在 `.runtime/file-preview-shots/`。
+
+## 已定决策（不要重新讨论这些）
+
+存储和引用继续使用托管文件 ID。Electron 隔离渲染进程读取经校验的本地流，SVG 按图片加载并栅格化，办公与代码内容按数据或文本显示。可见卡片优先请求，解码单任务运行，`previews-v1` 按文件标识和文件状态缓存，容量上限 96 MiB。视频复用 Electron 的解码能力。缺少合成图的 PSD/PSB、旧 DOC/PPT 和无法解码的媒体显示回退。
+
+## 下一步
+
+复测运行 `npm run build`、`npm test` 和 `node tests/file-preview-desktop.cjs`。设置 `ARASN_PREVIEW_STAGE=1` 至 `4` 可按批次运行。打包使用 `npm run pack:exe`，运行 `node tests/file-preview-package.cjs` 验证单文件 Portable。新线程从本交接单开始，按有问题的真实文件样本排查。
+
+## 关键文件
+
+`desktop/engines/thumbnail-service.cjs`、`desktop/engines/storage-worker.cjs`、`src/file-preview-worker.js`、`src/file-preview-office.js`、`src/FilePreviewCard.tsx`、`src/ImagePreview.tsx`、`vite.config.mjs`、`tests/file-preview-desktop.cjs`、`tests/file-preview-package.cjs`。
+
+### 本次复验
+
+- 构建、93 项单元测试与四阶段真实 Electron 专项通过。已审阅浅色和深色桌面画布、文件中心及 390 px 深色 PDF 详情截图。
+- PDF 卡片始终请求首页，详情独立翻页。预览缓存键版本已更新，避免复用历史错页。自由工作页卡片复用现有尺寸手柄，支持拖动与方向键调整。
+- 当卡片显示尺寸不超过 160 物理像素时优先请求小图，放大后升到标准缩略图。同次挂载保留标准图，避免来回缩放时反复解码。继续沿用现有文件引用与权限机制，无需重议。
+- 已重新生成项目根目录的 Portable 和 Setup。Portable 单文件实际启动并通过 PSD、MP4 封面、时长与流式读取专项，Setup 解包后通过四阶段 Electron 专项。Setup 安装向导与注册表操作未验证。真实故障 PNG 样本和参考截图未随附件提供，现有复验使用旧体积上限与签名识别样本。
+
+---
+
+# Arasn 交接单 · 2026-11-20 · 关系画布交互升级
+
+## 当前状态
+
+已接入整理浮层和同步布局动画、选中态四向端口、关系端点持久化、自定义类型管理和迁移撤销。规格和截图索引见 `docs/RELATION-CANVAS-UPGRADE-2026-11-20.md`。构建、92 项单元测试、关系升级专项以及 120 节点和 227 条旧关系的 Electron 密集场景均已通过。
+
+## 已定决策（不要重新讨论这些）
+
+新关系可保存一对 `fromPort` / `toPort`，缺省仍走历史自动路由。按现有规则禁止自连接和重复同向连接。类型定义按顺序保存在本机画布选项 `nodeTypes`，节点以可选 `customTypeId` 引用，`layout.kind` 作为兼容回退。类型删除与节点迁移共用一次撤销。整理沿用现有布局算法，曲线和卡片每帧读取同一套坐标。
+
+## 下一步
+
+需要复验时运行 `npm run build`、`npm test`、`node tests/relation-ports-types-desktop.cjs`。设置 `ARASN_RELATION_DENSE=1` 可复测密集画布。旧 `relation-canvas-desktop.cjs` 的最后一段仍依赖已移除的「切换到便签区」，现行 `unified-notes-desktop.cjs` 已通过。当前工作区另有之前的 UI 改动。
+
+## 关键文件
+
+`src/xigra/TopologyWorkspace.tsx`、`src/xigra/NodeTypeDialog.tsx`、`src/topology.ts`、`desktop/server.cjs`、`desktop/main.cjs`、`tests/relation-ports-types-desktop.cjs`、`docs/screenshots/relation-ports-types/`。
+
+---
+
+# Arasn 交接单 · 2026-11-20 · 全局 UI 与微交互
+
+## 当前状态
+
+共享控件、设置、设备互传、工作页工具属性、关系菜单、文件与便签页面已适配。审计、令牌说明、测试和真实 Windows Electron 截图索引见 `docs/GLOBAL-UI-2026-11-20.md`。
+
+## 已定决策（不要重新讨论这些）
+
+保持现有布局和主题机制，用表面明度、留白及弱边界区分层级。常用浮窗的关闭命中区为 44 px，悬停反馈为 28 px，保留单一键盘焦点与系统窗口控件。设置保留独立滚动，极矮窗口把返回和标题排在同一行。画笔预览依据笔色选择中性亮底或暗底。
+
+## 下一步
+
+当前改动的复验入口为 `npm run build`、`npm test`、`npm run test:desktop`、`node tests/global-ui-desktop.cjs`、`node tests/unified-notes-desktop.cjs` 和 `node tests/lan-notes-desktop.cjs`。实体触控和多显示器 DPI 切换仍需相应设备。
+
+## 关键文件
+
+`src/Button.tsx`、`src/ui-system.css`、`src/xigra/tokens.css`、`src/xigra/controls.css`、`src/five-fixes.css`、`tests/global-ui-desktop.cjs`、`docs/screenshots/global-ui/`。
+
+---
+
 # Arasn 交接单 · 2026-11-20 · 工作页导航闪动
 
 ## 当前状态

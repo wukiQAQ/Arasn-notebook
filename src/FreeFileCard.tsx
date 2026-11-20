@@ -1,11 +1,12 @@
 import {useEffect,useRef,useState} from 'react';
-import {File,Download,X,GripHorizontal} from 'lucide-react';
-import {ImagePreview} from './ImagePreview';
+import {Download,X,GripHorizontal} from 'lucide-react';
+import {FilePreviewCard} from './FilePreviewCard';
+import {CardResizeHandle} from './CardResizeHandle';
 import type {FreeFileValue} from './board';
-export function FreeFileCard({value,selected,select,change,remove,point,notify,interactive=true}:{interactive?:boolean;value:FreeFileValue;selected:boolean;select():void;change(v:FreeFileValue):void;remove():void;point(x:number,y:number):[number,number];notify(s:string):void}) {
- const [url,setUrl]=useState<string|null>(null),[loaded,setLoaded]=useState(false),[preview,setPreview]=useState<FreeFileValue|null>(null);
+const FILE_CARD_LIMITS = {minWidth:120,minHeight:96,maxWidth:1200,maxHeight:1200};
+export function FreeFileCard({value,selected,select,change,remove,point,notify,scale,interactive=true}:{interactive?:boolean;value:FreeFileValue;selected:boolean;select():void;change(v:FreeFileValue):void;remove():void;point(x:number,y:number):[number,number];notify(s:string):void;scale:number}) {
+ const [preview,setPreview]=useState<FreeFileValue|null>(null);
  const drag=useRef<{pointer:number;start:number[];value:FreeFileValue}|null>(null);
- useEffect(()=>{let active=true;if(value.category==='图片')void window.desktop?.files.thumbnail(value.contentRef.id).then(u=>{if(active){setUrl(u);setLoaded(true);if(!u)notify("图片预览不可用，可导出原文件");}}).catch(()=>{if(active)notify('图片预览不可用，可尝试导出原文件');});return()=>{active=false;};},[value.contentRef.id]);
  useEffect(()=>{const cancel=()=>{drag.current=null;setPreview(null);};window.addEventListener('blur',cancel);return()=>window.removeEventListener('blur',cancel);},[]);
  const v=preview??value;
  return <article inert={!interactive} className={`free-file-card ${selected?'focused':''}`} data-free-file={value.contentRef.id} style={{left:v.x,top:v.y,width:v.width,height:v.height,opacity:v.opacity??1}} onPointerDown={e=>{e.stopPropagation();select();}}>
@@ -17,7 +18,12 @@ export function FreeFileCard({value,selected,select,change,remove,point,notify,i
     <button aria-label={`导出附件 ${value.name}`} onPointerDown={e=>e.stopPropagation()} onClick={()=>void window.desktop?.files.action('export',{id:value.contentRef.id,name:value.name}).catch(e=>notify(String(e)))}><Download size={15}/></button>
     <button aria-label={`移除附件 ${value.name}`} onPointerDown={e=>e.stopPropagation()} disabled={!selected || !interactive} onClick={remove}><X size={15}/></button>
   </header>
-  {url?<ImagePreview id={value.contentRef.id} name={value.name} trigger={<button className="free-image-preview" aria-label={`预览 ${value.name}`} onPointerDown={e=>e.stopPropagation()}><img src={url} alt={value.name} draggable={false}/></button>}/> :<div className="free-file-body"><File size={30}/><strong>{value.name}</strong><small>{value.category==='图片'?(loaded?'预览不可用，可导出原文件':'正在加载预览…'):`${value.category} · 本机托管副本`}</small></div>}
- {url&&<span className="free-image-caption">点击查看原图</span>}
+  <FilePreviewCard key={value.contentRef.id} id={value.contentRef.id} name={value.name} category={value.category} canvas
+    small={Math.max(value.width, value.height) * scale * window.devicePixelRatio <= 160} disabled={!interactive} />
+  {selected && interactive && <CardResizeHandle width={value.width} height={value.height} zoom={scale}
+    label={`调整附件 ${value.name} 尺寸`} limits={FILE_CARD_LIMITS}
+    onPreview={size => setPreview({...value, ...size})}
+    onCommit={size => {setPreview(null); if (size.width !== value.width || size.height !== value.height) change({...value, ...size});}}
+    onCancel={() => setPreview(null)} />}
  </article>;
 }

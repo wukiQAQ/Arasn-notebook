@@ -1,3 +1,4 @@
+import { IconButton } from "./Button";
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import { X, Copy, Download, ScanLine } from 'lucide-react';
@@ -30,9 +31,15 @@ export function ExportDialog({ target, snapshot, close, notify }: {
     const id = ++generation.current; setBusy(true); setError(''); setResult(undefined); setPhase('preview');
     try {
       const frozen = source.current ?? snapshot(); source.current = frozen;
-      const output = await renderCanvasExport(frozen, request, id => {
+      const output = await renderCanvasExport(frozen, request, async (id, name) => {
         if (!window.desktop) throw new Error('当前环境不能读取本机原图，请在桌面应用导出');
-        return window.desktop.files.originalImage(id);
+        const files = window.desktop.files;
+        if (/\.(png|jpe?g)$/i.test(name)) {
+          try { return await files.originalImage(id); }
+          catch (error) { if (!String(error).includes('原图不可用')) throw error; }
+        }
+        const preview = await files.preview(id);
+        return preview?.image;
       });
       if (id === generation.current) setResult(output);
     } catch (failure) { if (id === generation.current) setError((failure as Error).message); }
@@ -74,7 +81,7 @@ export function ExportDialog({ target, snapshot, close, notify }: {
   if (phase === 'select' && target()) return <CaptureRegion target={target()!} cancel={close} select={selected} />;
   return <Dialog.Root open onOpenChange={open => { if (!open) close(); }}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop" />
     <Dialog.Popup className="modal capture-dialog" data-phase={phase} onKeyDown={event => event.stopPropagation()}>
-      <header className="capture-heading"><div><Dialog.Title>截图 / 导出</Dialog.Title><Dialog.Description>按画布内容合成 PNG，不包含顶栏、侧栏及操作控件。</Dialog.Description></div><button className="icon-button" aria-label="关闭截图导出" onClick={close}><X size={18} /></button></header>
+      <header className="capture-heading"><div><Dialog.Title>截图 / 导出</Dialog.Title><Dialog.Description>按画布内容合成 PNG，不包含顶栏、侧栏及操作控件。</Dialog.Description></div><IconButton aria-label="关闭截图导出" onClick={close}><X size={18} /></IconButton></header>
       <div className="capture-content"><fieldset className="capture-modes" disabled={busy || copying}><legend className="sr-only">截图范围</legend>{MODES.map(mode => <label key={mode.id}>
         <input type="radio" name="capture-mode" value={mode.id} checked={options.mode === mode.id} onChange={() => update({ mode: mode.id })} />
         <span><strong>{mode.label}</strong><small>{mode.help}</small></span>

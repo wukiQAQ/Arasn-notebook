@@ -12,8 +12,8 @@
 }
 .share-heading { display: flex; align-items: center; gap: 12px; padding-right: 24px; }
 .xigra-share .share-heading h2 { margin: 0; line-height: 26px; }
-.share-device-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border: 1px solid var(--line); border-radius: var(--xigra-radius-control); color: var(--ink); background: var(--rail); }
-.share-status { padding: 14px 16px; background: var(--rail); border: 1px solid var(--line); border-radius: var(--xigra-radius-panel); }
+.share-device-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: var(--ui-radius-control); color: var(--ink); background: var(--rail); }
+.share-status { padding: 14px 16px; background: var(--ui-surface-field); border-radius: var(--ui-radius-content); }
 .share-status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; }
 .share-status-line > strong { font-weight: 600; }
 .share-status-line > span:last-child:not(.share-status-dot) { color: var(--muted); font-size: 12px; }
@@ -31,7 +31,7 @@
 .share-actions .primary { min-width: 112px; }
 .share-addresses { min-width: 0; border-top: 1px solid var(--line); padding-top: 16px; }
 .xigra-share .share-addresses h3, .xigra-share .share-privacy h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
-.xigra-share .share-link { display: flex; min-width: 0; margin: 6px 0 0; background: var(--surface); border: 1px solid var(--xigra-control-border); border-radius: var(--xigra-radius-control); overflow: visible; }
+.xigra-share .share-link { display: flex; min-width: 0; margin: 6px 0 0; background: var(--surface); border: 1px solid var(--ui-border-field); border-radius: var(--ui-radius-control); overflow: visible; }
 .xigra-share .share-link input { min-width: 0; flex: 1; width: 0; border: 0; background: transparent; padding: 8px 10px; font-size: 12px; color: var(--ink); border-radius: inherit; }
 .xigra-share .share-link .button { flex-shrink: 0; margin: 3px; min-height: 32px; padding: 4px 8px; }
 .share-privacy { border-top: 1px solid var(--line); padding-top: 14px; }

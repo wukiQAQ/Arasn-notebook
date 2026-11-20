@@ -20,7 +20,7 @@
 :root .capture-dialog .capture-footnote { font-size: 11px; margin: 0; }
 .capture-actions { display: flex; gap: 8px; justify-content: end; flex-wrap: wrap; flex-shrink: 0; }
 .capture-actions .button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.capture-dialog :is(button,input):focus-visible, .capture-overlay button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.capture-dialog :is(button,input):focus-visible:not(.arasn-icon-action), .capture-overlay button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .capture-overlay { position: fixed; inset: 0; z-index: 1200; touch-action: none; }
 .capture-outside { position: absolute; background: #0004; pointer-events: none; }
 .capture-stage { position: fixed; cursor: crosshair; overflow: hidden; touch-action: none; background: #0003; outline: none; }
