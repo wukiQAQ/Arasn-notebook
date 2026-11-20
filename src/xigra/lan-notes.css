@@ -5,7 +5,8 @@
   padding: var(--xigra-space-6);
 }
 
-.xigra-lan-dialog h2 { margin: 0 40px 8px 0; }
+.lan-notes-heading { margin: 0 40px 12px 0; }
+.xigra-lan-dialog .lan-notes-heading h2 { margin: 0; }
 .xigra-lan-dialog h3 { margin: 0 0 8px; font-size: var(--xigra-type-control); }
 .xigra-lan-dialog p, .xigra-lan-dialog small { color: var(--muted); }
 .xigra-lan-dialog .xigra-notice { color: var(--xigra-error); }
@@ -26,7 +27,7 @@
 .network-picker > .field-label { margin: 0; }
 .network-picker .app-select { width: 100%; min-width: 0; }
 :root .network-picker .app-select:disabled { opacity: 1; color: var(--muted); background: var(--rail); }
-.network-picker small, .network-status { color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.network-status { color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .network-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .network-status { width: 100%; margin: 4px 0; text-align: left; }
 .startup-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }

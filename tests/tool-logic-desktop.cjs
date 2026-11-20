@@ -32,7 +32,7 @@ const { createStore } = require('../desktop/server.cjs');
     const rect=await page.locator('.paper-scroll').boundingBox(),start={x:rect.x+rect.width*.75,y:rect.y+80};
     await b('选择与拖动').click();const originalCamera=await camera();await drag(start.x,start.y,-100,40);
     assert(Math.abs((await camera()).x-originalCamera.x)>90,'smart select must pan blank space');await b('重置视图为100%').click();
-    await expect(page.getByRole('group',{name:'导航工具',exact:true})).toBeVisible();
+    await expect(page.getByRole('group',{name:'导航工具',exact:true})).toHaveCount(0);
     await expect(b('删除选中对象')).toBeDisabled();
     await b('选择与拖动').click();const panBase=await camera();await drag(start.x,start.y,90,40);const pan=await camera();
     assert(Math.abs((pan.x-panBase.x)*pan.zoom+90)<1.2&&Math.abs((pan.y-panBase.y)*pan.zoom+40)<1.2);
@@ -71,12 +71,12 @@ const { createStore } = require('../desktop/server.cjs');
     await b('选择与拖动').click();await noteEl.locator('textarea').click();await b('删除选中对象').click();
     await expect(page.locator(`[data-note-id="${note}"]`)).toHaveCount(0);await b('撤销上次操作').click();
     await expect.poll(async()=>Object.values((await board()).items).filter(i=>i.value?.type==='text'&&i.value.text===noteValue.text).length).toBe(1);
-    await b('图形工具').click();await expect(b('图形工具')).toHaveAttribute('aria-pressed','true');await expect(b('自由绘图')).toHaveAttribute('aria-pressed','false');await expect(page.locator('.free-tool-section [aria-pressed="true"]')).toHaveCount(1);await b('关闭工具属性').click();
+    await b('图形工具').click();await expect(b('图形工具')).toHaveAttribute('aria-pressed','true');await expect(b('自由绘图')).toHaveAttribute('aria-pressed','false');await expect(page.locator('.free-tool-rail .tool[aria-pressed="true"]')).toHaveCount(1);await b('关闭工具属性').click();
     await capture('toolbar-1440');
     for(const [w,h] of [[820,590],[390,700]]){await size(w,h);if(await b('画布总览').isVisible())await b('画布总览').click();await b('适配内容').click();const rail=page.locator('.free-tool-rail');await expect(rail).toBeVisible();await rail.evaluate(el=>{el.scrollTop=0});await capture(`toolbar-${w}`);const box=await rail.boundingBox();assert(box.x>=0&&box.x+box.width<=w&&box.y>=0&&box.y+box.height<=h);await rail.evaluate(el=>{el.scrollTop=el.scrollHeight});await expect(b('删除选中对象')).toBeInViewport();await capture(`toolbar-bottom-${w}`);}
     assert.deepEqual((await board()).items[fileId].value,fileItem.value);assert.deepEqual(errors,[]);
     await b('橡皮擦').click();await b('工具属性').click();const panel=await page.locator('.free-properties').boundingBox();assert(panel.x>=0&&panel.x+panel.width<=391);await capture('eraser-panel-390');
-    await fs.writeFile(path.join(shots,'result.json'),JSON.stringify({status:'passed',errors,scope:'CDP isolated Electron; not physical hardware'},null,2));console.log('PASS smart selection/pan and temporary middle pan, grouped toolbar, eraser/undo/object protection, selected-only deletion and responsive controls');
+    await fs.writeFile(path.join(shots,'result.json'),JSON.stringify({status:'passed',errors,scope:'CDP isolated Electron; not physical hardware'},null,2));console.log('PASS smart selection/pan and temporary middle pan, eraser/undo/object protection, selected-only deletion and responsive controls');
   }catch(e){if(page&&!page.isClosed()){await page.screenshot({path:path.join(shots,'failure.png'),scale:'css'}).catch(()=>{});await fs.writeFile(path.join(shots,'events.json'),JSON.stringify(await page.evaluate(()=>window.__toolEvents),null,2));}throw e;}
   finally{if(app)await app.close();const target=await fs.realpath(data);assert.equal(path.dirname(target),await fs.realpath(os.tmpdir()));await fs.rm(target,{recursive:true,force:true,maxRetries:20,retryDelay:100});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

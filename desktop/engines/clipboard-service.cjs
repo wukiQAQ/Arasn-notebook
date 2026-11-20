@@ -31,7 +31,7 @@ class ClipboardService {
           if (paths.length)
             return {
               kind: "files",
-              results: await this.storage.call("import", { paths }),
+              results: await this.storage.call("import", { paths, origin: "paste" }),
             };
         }
       for (const format of ["CF_HDROP", "FileNameW"]) {
@@ -54,7 +54,7 @@ class ClipboardService {
           if (paths.length)
             return {
               kind: "files",
-              results: await this.storage.call("import", { paths }),
+              results: await this.storage.call("import", { paths, origin: "paste" }),
             };
         }
       }
@@ -73,7 +73,7 @@ class ClipboardService {
             return {
               kind: "files",
               results: await this.storage.call("import", {
-                paths: [temp],
+                paths: [temp], origin: "paste",
                 names: [
                   `剪贴板图片-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.png`,
                 ],

@@ -6,7 +6,7 @@ const isRecord = (value: unknown): value is TextValue | NodeValue => Boolean(val
 export type Selection = { start: number; end: number; direction: "forward" | "backward" | "none" };
 export type RecordRow = { id: string; text: string; title?: string };
 
-export function useRecordSession(client: BoardClient, items: Record<string, Item>) {
+export function useRecordSession(client: BoardClient, items: Record<string, Item>, restoreInitial = true) {
   const [id, setId] = useState("");
   const [buffer, setBuffer] = useState("");
   const [composition, setComposition] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function useRecordSession(client: BoardClient, items: Record<string, Item
     focus();
   }
 
-  function write(text: string, selection?: Selection, title?: string) {
+  function write(text: string, selection?: Selection, title?: string, allowEmpty = false) {
     const key = active.current;
     if (selection) carets.current.set(key, selection);
     if (composing.current) {
@@ -52,7 +52,7 @@ export function useRecordSession(client: BoardClient, items: Record<string, Item
       return;
     }
     const current = key ? client.view()[key]?.value : null;
-    if (!client.ready || (!isRecord(current) && (!text.trim() && !title?.trim()))) {
+    if (!client.ready || (!allowEmpty && !isRecord(current) && (!text.trim() && !title?.trim()))) {
       draft.current = text;
       setBuffer(text);
       return;
@@ -78,7 +78,10 @@ export function useRecordSession(client: BoardClient, items: Record<string, Item
     if (!client.ready || initialized.current) return;
     initialized.current = true;
     if (draft.current.trim()) write(draft.current);
-    else if (!draft.current && !active.current && client.restoredRecordId) open(client.restoredRecordId);
+    else if (restoreInitial && !draft.current && !active.current) {
+      const previous = [client.restoredRecordId, ...client.recentRecords].find(key => byId.has(key));
+      if (previous) open(previous);
+    }
   }, [client.ready]);
 
   function remove(key: string) {
@@ -103,6 +106,7 @@ export function useRecordSession(client: BoardClient, items: Record<string, Item
     volatile: Boolean(!client.ready && buffer.trim()), composing: composition !== null,
     hasVolatileText: () => Boolean(draft.current.trim()),
     focusVersion, focus, open, write, remove,
+    ensureRecord() { if (!isRecord(client.view()[active.current]?.value)) write(buffer, undefined, undefined, true); return active.current; },
     deletion: lastDeletion && deletionState !== "failed" ? { text: lastDeletion.value.text, confirmed: deletionState === "deleted" } : undefined,
     restoreDeleted, dismissDeletion: () => setLastDeletion(undefined),
     rememberSelection: (selection: Selection) => carets.current.set(active.current, selection),

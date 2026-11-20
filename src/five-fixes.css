@@ -1,0 +1,90 @@
+/* Local refinements. World coordinates, canvas transforms and theme tokens stay intact. */
+.adaptive-tooltip-position { pointer-events:none; }
+:root body .app-shell :is(.free-view-controls,.topology-zoom) {
+  display:flex; align-items:center; gap:2px; padding:3px;
+  border:1px solid color-mix(in srgb,var(--line) 65%,transparent);
+  border-radius:10px; background:var(--ui-surface-floating,var(--surface));
+  box-shadow:0 2px 9px #00000012;
+}
+:root body .app-shell :is(.free-view-controls,.topology-zoom) button.arasn-button[data-ui-button] {
+  height:34px; min-height:34px; min-width:34px; width:auto; padding:0 9px;
+  border:0; border-radius:6px; background:transparent; box-shadow:none;
+  font:400 13px/20px var(--ui-font); color:var(--muted); transition:background .12s,color .12s;
+}
+:root body .app-shell :is(.free-view-controls,.topology-zoom) button.arasn-button[data-ui-button]:hover { background:var(--ui-nav-hover,var(--line)); color:var(--ink); }
+:root body .app-shell :is(.free-view-controls,.topology-zoom) button.arasn-button[data-ui-button]:active { background:var(--ui-nav-active); }
+:root body .app-shell :is(.free-view-controls,.topology-zoom) button svg { width:16px; height:16px; }
+:root body .app-shell .free-view-controls .free-zoom { min-width:54px; }
+:root[data-theme="dark"] body .app-shell :is(.free-view-controls,.topology-zoom) { box-shadow:0 2px 10px #0003; }
+
+/* Keep handles, content and actions in separate areas inside the same world box. */
+:root .free-workspace .spatial-note { display:flex; flex-direction:column; padding:0; overflow:visible; }
+:root .free-workspace .spatial-note .note-handle { position:relative; inset:auto; display:flex; align-items:center; flex:none; min-height:30px; padding:4px 10px; gap:6px; margin:0; }
+:root .free-workspace .spatial-note .note-handle>div { display:flex; align-items:center; margin-left:auto; gap:4px; }
+:root .free-workspace .spatial-note .note-handle button { display:grid; place-items:center; width:24px; height:24px; padding:0; flex:none; }
+.canvas-note-preview { flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:7px; padding:5px 14px 10px; }
+.canvas-note-title { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; font:600 17px/22px var(--ui-font); color:var(--ink); flex-shrink:0; }
+.canvas-note-summary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; overflow-wrap:anywhere; white-space:pre-line; margin:0; color:var(--ui-text-secondary,var(--muted)); font:400 14px/20px var(--ui-font); min-height:0; }
+.canvas-note-preview-footer { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:24px; flex-shrink:0; padding-right:14px; font:400 12px/18px var(--ui-font); color:var(--muted); }
+:root body .app-shell .canvas-note-preview button.note-detail-button.arasn-button[data-ui-button] { margin-left:auto; height:28px; min-height:28px; padding:0 6px; gap:5px; background:transparent; border-color:transparent; font-size:13px; font-weight:400; }
+:root body .app-shell .canvas-note-preview button.note-detail-button.arasn-button[data-ui-button]:hover { background:var(--ui-nav-hover,var(--line)); }
+:root body .app-shell .canvas-note-preview button.note-detail-button svg { width:14px; height:14px; }
+:root body .app-shell button.card-resize-handle { position:absolute; right:0; bottom:0; width:24px; height:24px; min-height:0; min-width:0; padding:0; border:0; border-radius:5px; background:transparent; color:var(--muted); display:grid; place-items:center; cursor:nwse-resize; touch-action:none; transform-origin:bottom right; z-index:3; opacity:.6; }
+:root body .app-shell button.card-resize-handle:hover { opacity:1; background:var(--ui-nav-hover,var(--line)); }
+.card-resize-handle:focus-visible { outline:1px solid var(--ui-focus); outline-offset:1px; opacity:1; }
+:root .relation-workbench .topology-node-actions { bottom:calc(100% + 8px); right:0; margin:0; gap:2px; padding:3px; z-index:5; }
+:root .relation-workbench .topology-node-actions[data-below] { top:calc(100% + 8px); bottom:auto; }
+:root .relation-workbench .topology-node-actions button { min-height:30px; padding:3px 7px; font-size:13px; }
+:root .modal.canvas-note-detail { width:min(640px,calc(100vw - 32px)); max-height:calc(100dvh - 80px); top:calc(50% + 24px); padding:22px; display:flex; flex-direction:column; gap:18px; overflow:auto; }
+.canvas-note-detail header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.canvas-note-detail header h2 { margin:0 0 4px; font:600 20px/28px var(--ui-font); }
+.canvas-note-detail header p { margin:0; color:var(--muted); font-size:13px; }
+.canvas-note-detail label { display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--muted); }
+.canvas-note-detail textarea { width:100%; min-height:220px; height:42dvh; resize:vertical; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:400 15px/1.7 var(--ui-font); }
+.canvas-note-detail .record-attachments { overflow:visible; max-height:none; }
+:root .relation-workbench .topology-inspector:has(.topology-body) { width:min(400px,calc(100% - 24px)); }
+:root .relation-workbench .topology-inspector .topology-body textarea { min-height:200px; max-height:42dvh; font:400 15px/1.6 var(--ui-font); }
+
+:root .free-workspace .toolbar { max-height:calc(100% - 24px); overflow:auto; overscroll-behavior:contain; }
+
+/* One visible category, a stable navigation column and one independent scroll region. */
+:root .modal.xigra-settings { box-sizing:border-box; width:min(1080px,calc(100vw - 40px)); top:calc(50% + 24px); height:min(740px,calc(100dvh - 80px)); max-height:calc(100dvh - 80px); display:flex; flex-direction:column; padding:0; overflow:hidden; }
+:root .xigra-settings .settings-header { flex:none; padding:8px 24px; margin:0; border-bottom:1px solid var(--line); }
+.settings-layout { display:grid; grid-template-columns:200px minmax(0,1fr); flex:1; min-height:0; overflow:hidden; }
+.settings-categories { display:flex; flex-direction:column; gap:6px; padding:18px 12px; background:var(--ui-surface-app,var(--surface)); border-right:1px solid var(--line); overflow:auto; }
+:root body .modal .settings-categories button.arasn-button[data-ui-button] { min-height:62px; height:auto; padding:10px 12px; gap:10px; justify-content:flex-start; border-color:transparent; background:transparent; text-align:left; flex:none; }
+.settings-categories button span { display:block; }
+.settings-categories button small { display:block; margin-top:4px; font:400 12px/18px var(--ui-font); color:var(--muted); }
+:root body .modal .settings-categories button[aria-current="page"].arasn-button[data-ui-button] { background:var(--ui-nav-active); color:var(--ui-nav-on-active,var(--ink)); }
+.settings-category-content { min-width:0; min-height:0; flex:1; display:flex; flex-direction:column; }
+.settings-detail-header, .settings-detail-footer { flex:none; padding:16px 26px; overflow:hidden; scrollbar-gutter:stable; }
+.settings-detail-footer { border-top:1px solid var(--line); }
+.settings-detail-heading, .settings-category, .settings-detail-actions { max-width:800px; margin-inline:auto; }
+.settings-detail-actions { text-align:end; }
+.settings-detail-scroll { min-height:0; flex:1; overflow:auto; padding:0 26px 20px; scrollbar-gutter:stable; }
+:root .modal .settings-category-title { margin:0; font:600 24px/1.35 var(--ui-font); }
+.settings-detail-heading p { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+.settings-category .settings-preferences-heading { display:none; }
+@media(prefers-reduced-motion:no-preference) {
+  .settings-category { animation:settings-category-in 160ms ease-out; }
+  @keyframes settings-category-in { from { opacity:0; } to { opacity:1; } }
+}
+.settings-category>p { font-size:13px; line-height:1.7; color:var(--muted); }
+.settings-category .trigger-settings { padding:0; border:0; background:transparent; margin:0; }
+.settings-category .trigger-heading h3 { display:none; }
+.settings-category .trigger-group { border:0; border-radius:0; padding:14px 0; background:transparent; border-top:1px solid var(--line); }
+.settings-category .trigger-row { padding:12px 0; gap:12px; align-items:flex-start; }
+.settings-category .setting-toggle { padding:16px 0; background:transparent; border:0; border-bottom:1px solid var(--line); border-radius:0; }
+:root body .modal .settings-category-back.arasn-button[data-ui-button] { display:none; }
+@media(max-width:760px) {
+  :root .modal.xigra-settings { width:calc(100vw - 24px); height:calc(100dvh - 80px); max-height:calc(100dvh - 80px); }
+  :root .xigra-settings .settings-header { padding:6px 18px; }
+  .settings-layout { display:flex; flex-direction:column; }
+  .settings-categories { flex:1; border-right:0; padding:14px; }
+  .settings-layout:not([data-detail]) .settings-category-content { display:none; }
+  .settings-layout[data-detail] .settings-categories { display:none; }
+  .settings-detail-header, .settings-detail-footer { padding:12px 18px; }
+  .settings-detail-scroll { padding-inline:18px; }
+  :root body .modal .settings-category-back.arasn-button[data-ui-button] { display:inline-flex; margin-bottom:8px; }
+}
+@media(prefers-reduced-motion:reduce) { :root body .app-shell :is(.free-view-controls,.topology-zoom) button { transition:none; } }

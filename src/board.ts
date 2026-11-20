@@ -1,9 +1,11 @@
 import type { LanBridge } from "./xigra/LanNotesDialog";
 import type { TriggerAction, TriggerBridge, TriggerConfig } from "./xigra/TriggerSettings";
 import type { TopologyLayout, TopologyViewport } from "./topology";
-import { enclosingBounds, noteLayout, vacantLayout } from "./topology.ts";
+import { centeredNodeLayout, enclosingBounds, vacantLayout } from "./topology.ts";
 
 export type ManagedFile = {
+  importOrigin?: 'local' | 'paste' | 'device' | 'unknown';
+  attachmentOrigin?: string;
   id: string;
   name: string;
   category: string;
@@ -18,6 +20,7 @@ export type ImportResult = {
   name?: string;
   error?: string;
 };
+export type FreePlacement = { x: number; y: number; width?: number; height?: number };
 export type TextValue = {
   type: "text";
   text: string;
@@ -30,8 +33,9 @@ export type TextValue = {
   width?: number; height?: number; opacity?: number;
   topology?: TopologyLayout;
   localOnly?: true;
+  freePlacement?: FreePlacement;
 };
-export type NodeValue = { type: "node"; text: string; title?: string; topology: TopologyLayout };
+export type NodeValue = { type: "node"; text: string; title?: string; topology: TopologyLayout; freePlacement?: FreePlacement };
 export type ContentRef = { kind: "record" | "file"; id: string };
 export type CanvasNodeValue = { type: "canvas-node"; roomId: string; canvasId: string; contentRef: ContentRef; layout: TopologyLayout };
 export type CanvasEdgeValue = { type: "canvas-edge"; roomId: string; canvasId: string; fromNodeId: string; toNodeId: string; label: string; relationType?: "related" | "reference" | "dependency" | "resolves" | "source" | "attachment"; direction: "none" | "forward" | "both" };
@@ -72,7 +76,7 @@ export type Recovery = {
   pinnedRecords?: string[];
 };
 export type DesktopInfo = {
-  expanded: boolean;
+  sidebar?: { mode: "full" | "compact" | "hidden"; width: number };
   shortcut: string;
   shortcutOk: boolean;
   triggers: TriggerConfig;
@@ -88,6 +92,7 @@ export type DesktopInfo = {
   shareAddressAvailable: boolean;
   dataPath: string;
   theme: "system" | "light" | "dark";
+  appearance?: import('./appearance').Appearance;
   alwaysOnTop: boolean;
   startMinimized: boolean;
   startHidden: boolean;
@@ -104,6 +109,7 @@ declare global {
   interface Window {
     desktop?: {
       readonly initialTheme: DesktopInfo["theme"];
+      readonly initialAppearance: DesktopInfo["appearance"] | null;
       canvas: {
         migrate(options?: { dryRun?: boolean; roomId?: string; revision?: number }): Promise<CanvasMigrationResult>;
         create(options: { roomId: string; recordId: string; nodeId: string; opId: string; layout: TopologyLayout; text?: string }): Promise<Snapshot>;
@@ -137,8 +143,7 @@ declare global {
       };
       onBoard(callback: () => void): () => void;
       info(): Promise<DesktopInfo>;
-      layout(value: boolean): Promise<DesktopInfo>;
-      onLayout(callback: (value: boolean) => void): () => void;
+      reveal(focus: boolean, version: number): Promise<void>;
       onFocus(callback: () => void): () => void;
       share(enabled: boolean, host?: string): Promise<DesktopInfo>;
       hide(): Promise<void>;
@@ -146,6 +151,7 @@ declare global {
       shortcut(value: string): Promise<DesktopInfo>;
       triggers: TriggerBridge;
       copyText(text: string): Promise<void>;
+      copyImage(bytes: Uint8Array): Promise<void>;
       settings(value: Partial<DesktopInfo>): Promise<DesktopInfo>;
       recovery(): Promise<Recovery | null>;
       saveRecovery(value: string): Promise<void>;
@@ -486,7 +492,7 @@ export class BoardClient {
       if (!status.migrated) throw new Error("请先在工作站备份并启用关系画布，再加入记录");
       if (this.base.roomId !== roomId) throw new Error("工作页已更换，请重试");
       const items = this.view(), source = items[recordId]?.value;
-      if ((source?.type !== "text" && source?.type !== "node") || !source.text.trim()) throw new Error("请先保存一条有效记录");
+      if ((source?.type !== "text" && source?.type !== "node") || (!source.text.trim() && !source.title?.trim())) throw new Error("请先保存一条有效记录");
       const found = Object.entries(items).find(([, item]) => item.value?.type === "canvas-node" && item.value.roomId === roomId &&
         item.value.canvasId === roomId && item.value.contentRef.kind === "record" && item.value.contentRef.id === recordId);
       const nodeId = found?.[0] ?? uid();
@@ -494,7 +500,7 @@ export class BoardClient {
         item.value.canvasId === roomId && !item.value.layout.hidden ? [item.value.layout] : []));
       const center = viewport?.roomId === roomId ? viewport : { x: bounds ? bounds.x + bounds.width / 2 : 0, y: bounds ? bounds.y + bounds.height / 2 : 0 };
       const value: CanvasNodeValue = found ? found[1].value as CanvasNodeValue : { type: "canvas-node", roomId, canvasId: roomId,
-        contentRef: { kind: "record", id: recordId }, layout: vacantLayout(noteLayout(center.x - 140, center.y - 70), items, roomId) };
+        contentRef: { kind: "record", id: recordId }, layout: vacantLayout(centeredNodeLayout(center), items, roomId) };
       if (!found || value.layout.hidden) this.edit(nodeId, { ...value, layout: { ...value.layout, hidden: false } });
       await this.flush();
       const saved = this.base.items[nodeId]?.value;

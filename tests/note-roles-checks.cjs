@@ -56,7 +56,7 @@ module.exports = async ({ page, b, board, capture, size, record, other, stroke, 
   const card = page.locator(`[data-topology-node="${nodeId}"]`);
   await expect(card).toContainText('展示角色已经清楚');
   await expect(card.locator('textarea')).toHaveCount(0);
-  await expect(card.locator('.node-sync')).toHaveText('已保存');
+  await expect(card.locator('.node-sync').getByRole('img', { name: '已保存' })).toBeVisible();
   await card.dblclick();
   await page.getByRole('combobox', { name: '节点类型', exact: true }).click();
   await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(4);

@@ -1,0 +1,5 @@
+{
+  "presets": ["arasn", "graphite", "ocean", "minimal"],
+  "fonts": ["system", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "Arial", "Tahoma"],
+  "scales": ["compact", "standard", "comfortable"]
+}

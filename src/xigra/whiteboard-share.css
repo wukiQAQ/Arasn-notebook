@@ -1,0 +1,56 @@
+.modal.xigra-share {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  text-align: left;
+  scroll-padding: 16px;
+}
+.whiteboard-share { display: grid; gap: 20px; min-width: 0; }
+:root .xigra-share .share-back {
+  justify-self: start; padding: 0 4px; min-height: 30px; margin: -4px 36px -8px -4px;
+  background: transparent; border-color: transparent; color: var(--muted);
+}
+.share-heading { display: flex; align-items: center; gap: 12px; padding-right: 24px; }
+.xigra-share .share-heading h2 { margin: 0; line-height: 26px; }
+.share-device-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border: 1px solid var(--line); border-radius: var(--xigra-radius-control); color: var(--ink); background: var(--rail); }
+.share-status { padding: 14px 16px; background: var(--rail); border: 1px solid var(--line); border-radius: var(--xigra-radius-panel); }
+.share-status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; }
+.share-status-line > strong { font-weight: 600; }
+.share-status-line > span:last-child:not(.share-status-dot) { color: var(--muted); font-size: 12px; }
+.share-status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--muted); }
+.share-status[data-share-state="active"] .share-status-line { color: var(--xigra-success); }
+.share-status[data-share-state="active"] .share-status-dot { background: var(--xigra-success); }
+.share-status:is([data-share-state="starting"], [data-share-state="stopping"], [data-share-state="loading"]) .share-status-line { color: var(--xigra-warning); }
+.share-status:is([data-share-state="starting"], [data-share-state="stopping"], [data-share-state="loading"]) .share-status-dot { background: var(--xigra-warning); }
+.share-status[data-share-state="failed"] .share-status-line { color: var(--xigra-error); }
+.share-status[data-share-state="failed"] .share-status-dot { background: var(--xigra-error); }
+.xigra-share .share-status p { margin: 6px 0 0; line-height: 20px; color: var(--muted); overflow-wrap: anywhere; }
+.share-setup { display: grid; gap: 10px; min-width: 0; }
+.share-actions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+.share-actions .button { min-height: 36px; }
+.share-actions .primary { min-width: 112px; }
+.share-addresses { min-width: 0; border-top: 1px solid var(--line); padding-top: 16px; }
+.xigra-share .share-addresses h3, .xigra-share .share-privacy h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.xigra-share .share-link { display: flex; min-width: 0; margin: 6px 0 0; background: var(--surface); border: 1px solid var(--xigra-control-border); border-radius: var(--xigra-radius-control); overflow: visible; }
+.xigra-share .share-link input { min-width: 0; flex: 1; width: 0; border: 0; background: transparent; padding: 8px 10px; font-size: 12px; color: var(--ink); border-radius: inherit; }
+.xigra-share .share-link .button { flex-shrink: 0; margin: 3px; min-height: 32px; padding: 4px 8px; }
+.share-privacy { border-top: 1px solid var(--line); padding-top: 14px; }
+.xigra-share .share-privacy p { margin: 0; line-height: 20px; color: var(--muted); }
+.xigra-share .share-privacy .share-scope { color: var(--ink); margin-bottom: 6px; }
+.share-error { display: flex; align-items: start; justify-content: space-between; gap: 10px; margin-top: 10px; color: var(--xigra-error); font-size: 12px; line-height: 20px; overflow-wrap: anywhere; }
+.xigra-share .share-status .share-error { color: var(--xigra-error); }
+.share-error .button { flex-shrink: 0; min-height: 30px; padding: 2px 10px; }
+.xigra-share .button { transition: background-color 120ms ease-out, border-color 120ms ease-out; }
+:root .xigra-share .share-back:hover { background: var(--xigra-hover); color: var(--ink); }
+.xigra-share .button:hover:not(:disabled):not(.primary) { background: var(--xigra-hover); }
+.xigra-share .button:active:not(:disabled):not(.primary) { background: var(--xigra-pressed); }
+.xigra-share .button:focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 2px; }
+@media (max-width: 480px) {
+  .modal.xigra-share { padding: 20px; }
+  .whiteboard-share { gap: 16px; }
+  .share-heading { gap: 10px; padding-right: 0; }
+  .share-device-icon { flex-basis: 34px; height: 34px; }
+  .share-status { padding: 12px; }
+  .share-actions .button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .xigra-share .button { transition: none; } }

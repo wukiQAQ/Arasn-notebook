@@ -1,0 +1,121 @@
+/* Shared state rail: one layout owns both state and actions. */
+.quick-panel,.xigra-record-paper { container-type:inline-size; }
+:root .app-shell .note-status-bar {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px 12px;
+  width:max-content; max-width:calc(100% - 32px); padding:5px 8px 5px 12px; min-height:40px;
+  border:1px solid color-mix(in srgb,var(--line) 65%,transparent); border-radius:999px;
+  background:var(--surface); box-shadow:0 2px 10px #0000000d; font:400 12px/18px var(--ui-font);
+}
+:root .app-shell .note-status-bar .note-state-copy { display:flex; flex:none; align-items:center; flex-wrap:nowrap; gap:10px; min-width:0; overflow:hidden; }
+:root .app-shell .note-status-bar .save-state { flex:none; white-space:nowrap; }
+:root .app-shell .note-status-bar .save-state[data-tone="saved"] .dot { background:var(--feedback-success); }
+.note-word-count { color:var(--muted); white-space:nowrap; }
+.note-status-actions { display:flex; align-items:center; gap:4px; flex:none; }
+.note-status-progress { grid-column:1/-1; max-width:100%; overflow-wrap:anywhere; color:var(--muted); }
+:root body .app-shell .note-status-bar button.arasn-button[data-ui-button] { height:30px; min-height:30px; padding:0 8px; gap:5px; background:transparent; border-color:transparent; border-radius:20px; font:500 12px/18px var(--ui-font); }
+:root body .app-shell .note-status-bar button.arasn-button.arasn-icon-button[data-ui-button] { width:30px; min-width:30px; padding:0; }
+:root body .app-shell .note-status-bar button.arasn-button[data-ui-button] svg { width:15px; height:15px; }
+:root body .app-shell .note-status-bar button.arasn-button[data-ui-button]:hover { background:var(--secondary-button-hover-bg); }
+:root .xigra-record-workspace .xigra-record-paper>.note-status-bar { align-self:flex-end; flex:none; margin:8px 16px 12px; }
+@container(max-width:560px) { .note-status-bar .note-word-count { display:none; } }
+:root .quick-panel .note-status-bar .note-word-count { display:inline; }
+@container(max-width:560px) { .quick-panel .note-count-limit { display:none; } }
+
+/* One quiet surface rather than nested fully bordered panels. */
+/* Recorder footer is a document row, never window chrome. */
+:root .xigra-compact .xigra-shell .quick-content { display:flex; flex-direction:column; min-height:0; }
+:root .xigra-compact .quick-panel .quick-input { flex:1 1 0; min-height:60px; padding-bottom:18px; scroll-padding-bottom:18px; }
+:root .xigra-compact .quick-panel .quick-content > .note-status-bar {
+  position:static; flex:none; width:auto; max-width:none; align-self:stretch;
+  margin:0; min-height:38px; padding:3px var(--recorder-editor-inset); border:0; border-top:1px solid color-mix(in srgb,var(--line) 45%,transparent);
+  border-radius:0; box-shadow:none; background:transparent;
+}
+:root .quick-panel .note-status-bar .save-state[data-tone="neutral"] { color:var(--muted); }
+:root .quick-panel .note-status-bar .save-state[data-tone="neutral"] .dot { display:none; }
+/* Dialog dismiss controls retain a generous target without a permanent frame. */
+:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button],
+:root body .modal button.modal-close {
+  min-width:44px; min-height:44px; width:44px; height:44px; padding:0;
+  border-color:transparent; background:transparent; box-shadow:none;
+}
+:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button]:hover,
+:root body .modal button.modal-close:hover { background:var(--secondary-button-hover-bg); border-color:transparent; }
+:root body .modal :is(.device-page-header,.settings-header) button.icon-button.arasn-button[data-ui-button]:active,
+:root body .modal button.modal-close:active { background:var(--secondary-button-pressed-bg); }
+:root body .modal button.modal-close:focus-visible { outline:1px solid var(--ui-focus); outline-offset:2px; }
+:root .xigra-record-search { border-color:color-mix(in srgb,var(--line) 55%,transparent); }
+:root .xigra-record-search:hover { border-color:var(--line); }
+:root .xigra-record-search:focus-within { border-color:var(--ui-focus); }
+:root .xigra-record-search input { border:0; box-shadow:none; }
+:root .xigra-record-workspace .xigra-record-filters button { border-color:transparent; }
+:root body .app-shell .xigra-record-workspace .xigra-record-filters button.arasn-button[data-ui-button][aria-pressed="true"] { color:var(--ui-action); background:var(--tint); border-color:color-mix(in srgb,var(--ui-action) 45%,transparent); }
+:root .xigra-compact .xigra-shell .quick-content { border-color:color-mix(in srgb,var(--line) 65%,transparent); border-radius:14px; box-shadow:0 2px 12px #00000008; }
+:root .xigra-shell .quick-title { border-bottom:0; padding-top:18px; padding-bottom:8px; }
+:root .xigra-compact .xigra-shell .quick-header { min-height:60px; padding-block:8px; }
+:root .xigra-record-workspace { margin-top:10px; border:0; background:transparent; }
+:root .xigra-record-workspace .xigra-record-paper { border:0; border-radius:14px; background:var(--surface); box-shadow:0 2px 12px #00000008; }
+:root .xigra-record-workspace .xigra-note-heading { padding:16px 20px 12px; border-bottom:0; gap:14px; }
+:root .xigra-record-workspace .xigra-record-index { border:0; padding-inline-start:0; background:transparent; }
+:root .xigra-record-workspace .record-index-heading { padding-inline-start:0; }
+:root .xigra-record-workspace .xigra-record-list button { border-radius:13px; border-color:color-mix(in srgb,var(--line) 65%,transparent); }
+:root .free-workspace .note.spatial-note { border-radius:13px; border:1px solid var(--line); border-inline-start:2px solid var(--note-ink); box-shadow:var(--ui-shadow-card,0 2px 10px #0000000c); }
+:root .free-workspace .note.spatial-note::after { display:none; }
+:root .free-workspace .note.spatial-note:is(.focused,:focus-within) {
+  border: 1px solid var(--ui-action); outline: none; box-shadow: inset 0 0 0 1px var(--ui-action);
+}
+:root .free-workspace .note.spatial-note.focused .note-handle { background: color-mix(in srgb,var(--ui-action) 7%,var(--surface)); }
+:root .xigra-record-workspace .xigra-record-list button[aria-current="true"],
+:root .xigra-record-workspace .xigra-record-list button[aria-current="true"]:hover:not(:disabled) {
+  --control-hover-border: var(--ui-action);
+  --control-selected-bg: color-mix(in srgb,var(--ui-action) 10%,var(--surface));
+  --control-selected-text: var(--ui-text-primary);
+  --control-hover-bg: var(--control-selected-bg);
+  background: color-mix(in srgb,var(--ui-action) 10%,var(--surface));
+  color: var(--ui-text-primary); border-color: var(--ui-action); box-shadow: none; outline: none;
+}
+:root body .app-shell button.page-new-note.arasn-button[data-ui-button="secondary"] {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; min-height: 36px; padding: 0 8px; border-radius: 8px;
+  font-size: 13px; font-weight: 400; background: transparent; border-color: transparent; color: var(--ui-action);
+}
+:root body .app-shell button.page-new-note.arasn-button[data-ui-button="secondary"]:hover:not(:disabled) { background: var(--ui-hover); }
+.free-tool-rail .page-new-note { width: 100%; flex: none; }
+:root .record-index-heading { flex-wrap: wrap; }
+@media(max-width:1000px) {
+  .free-tool-rail:not([data-mode="full"]) .page-new-note span { display: none; }
+}
+:root .free-workspace .spatial-note .note-handle { height:28px; min-height:28px; border:0; padding:0 10px; border-radius:12px 12px 0 0; background:color-mix(in srgb,var(--note-ink) 4%,var(--surface)); }
+.canvas-note-preview { gap:4px; padding:4px 12px 8px; }
+.canvas-note-preview-footer { padding-right:var(--card-control-inset,26px); }
+:root body .app-shell .canvas-note-preview button.note-detail-button.arasn-button[data-ui-button] { height:26px; min-height:26px; }
+:root .modal.canvas-note-detail { border-radius:16px; border-color:color-mix(in srgb,var(--line) 65%,transparent); }
+.canvas-note-detail textarea { border-color:color-mix(in srgb,var(--line) 55%,transparent); border-radius:12px; }
+.attachment-popover { padding:16px; border-radius:16px; border-color:color-mix(in srgb,var(--line) 65%,transparent); box-shadow:0 6px 24px #0002; }
+:root body .attachment-popover button.arasn-button[data-ui-button] { min-height:34px; height:auto; border-radius:10px; border-color:transparent; background:transparent; padding:6px 10px; font-size:13px; color:var(--ink); }
+:root body .attachment-popover button.arasn-button[data-ui-button]:hover { background:var(--secondary-button-hover-bg); }
+.attachment-popover .record-attachments { margin:8px 0 12px; padding:0; border:0; max-height:none; }
+.attachment-popover .record-attachments>div { padding:12px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
+.attachment-popover footer { padding-top:12px; border-top:1px solid var(--line); }
+.attachment-popover .record-attachment-source { font-size:12px; }
+.record-attachment-popover .record-attachments>div { display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; }
+.record-attachment-popover .record-attachments>div>span { min-width:0; overflow-wrap:anywhere; }
+.record-attachment-popover .record-attachments button { padding:4px 8px; border-color:transparent; border-radius:10px; background:transparent; font-size:13px; }
+.record-attachment-popover .record-attachments button:hover { background:var(--secondary-button-hover-bg); }
+.record-attachment-popover .record-attachments button:focus-visible { outline:1px solid var(--ui-focus); outline-offset:2px; }
+
+/* Same operation columns for empty and configured bindings; capture logic unchanged. */
+.settings-category-content { container-type:inline-size; }
+:root .modal .trigger-group { gap:8px; padding:16px 0; }
+:root .modal .trigger-group .trigger-heading { display:flex; justify-content:flex-start; gap:10px; }
+:root .modal .trigger-group .trigger-heading h4 { font:600 15px/22px var(--ui-font); }
+:root .modal .trigger-group .trigger-row { display:grid; grid-template-columns:minmax(0,1fr) 256px; align-items:center; gap:16px; min-height:44px; padding:0; background:transparent; border-radius:0; }
+.trigger-identity { min-width:0; overflow-wrap:anywhere; }
+:root .modal .trigger-group .trigger-row-actions { display:grid; grid-template-columns:112px 64px 64px; gap:8px; flex-wrap:nowrap; }
+:root body .modal .trigger-row-actions button.arasn-button[data-ui-button] { width:100%; min-width:0; height:36px; min-height:36px; padding:0 8px; border-radius:10px; font:500 13px/20px var(--ui-font); }
+:root body .modal .trigger-add-binding.arasn-button[data-ui-button] { justify-self:start; min-height:30px; height:30px; border-color:transparent; background:transparent; font-size:13px; padding:0 4px; }
+.trigger-empty-row .trigger-identity>span { font-size:13px; color:var(--muted); }
+.trigger-row small { margin-top:4px; }
+@container(max-width:520px) {
+  :root .modal .trigger-group .trigger-row { grid-template-columns:minmax(0,1fr); gap:8px; }
+  :root .modal .trigger-group .trigger-row-actions { justify-content:start; }
+}

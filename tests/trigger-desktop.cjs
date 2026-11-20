@@ -51,6 +51,12 @@ async function verify() {
     await fs.writeFile(path.join(data, "settings.json"), JSON.stringify({ shortcut: "Control+Alt+F14" }));
     app = await launch();
     const page = await app.firstWindow();
+    // Text is seeded with fill(). Unrelated physical typing must not edit the
+    // foreground fixture while the native helper exercises function keys.
+    await page.addInitScript(() => document.addEventListener('keydown', event => {
+      if (!event.ctrlKey && !event.altKey && !event.metaKey &&
+          (event.key.length === 1 || ['Backspace', 'Delete'].includes(event.key))) event.preventDefault();
+    }, true));
     const win = await app.browserWindow(page);
     const visible = () => win.evaluate(window => window.isVisible());
     const getInfo = () => page.evaluate(() => window.desktop.info());
@@ -89,7 +95,7 @@ async function verify() {
     const editor = page.getByRole("textbox", { name: "便笺文字", exact: true });
     await expect(editor).toBeFocused();
     await editor.fill("不同全局动作共用这份草稿");
-    await expect(page.locator(".xigra-save-state")).toHaveText("已保存");
+    await expect(page.locator(".xigra-save-state:visible")).toHaveText("已保存");
     await hide();
     await fromOtherWindow(15);
     await expect(editor).toHaveValue("不同全局动作共用这份草稿");
@@ -97,8 +103,8 @@ async function verify() {
     await send("f15", source);
     await expect.poll(visible).toBe(false);
     await fromOtherWindow(17);
-    await expect(page.getByRole("dialog", { name: "文件" })).toBeVisible();
-    await button("关闭文件").click();
+    await expect(page.locator(".file-workspace")).toBeVisible();
+    await page.keyboard.press("Escape");
     await hide();
     await fromOtherWindow(16);
     await expect(button("打开工作区")).toBeVisible();
@@ -221,8 +227,8 @@ async function verify() {
       assert.deepEqual(await mouseCounts(), before.map(count => count + 2));
       await hide();
       await mouse("mouse4");
-      await expect(page.getByRole("dialog", { name: "文件" })).toBeVisible();
-      await button("关闭文件").click();
+      await expect(page.locator(".file-workspace")).toBeVisible();
+      await page.keyboard.press("Escape");
       await hide();
       await mouse("mouse5");
       await expect(button("切换到便签区")).toBeVisible();

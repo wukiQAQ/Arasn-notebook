@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 contextBridge.exposeInMainWorld("desktop", {
   initialTheme: ipcRenderer.sendSync("app:theme"),
+  initialAppearance: ipcRenderer.sendSync("app:appearance"),
   canvas: {
     create: (options) => ipcRenderer.invoke("canvas:create", options),
     migrate: (options) => ipcRenderer.invoke("canvas:migrate", options),
@@ -51,12 +52,7 @@ contextBridge.exposeInMainWorld("desktop", {
     return () => ipcRenderer.removeListener("board:changed", listener);
   },
   info: () => ipcRenderer.invoke("app:info"),
-  layout: (value) => ipcRenderer.invoke("app:layout", value),
-  onLayout: (callback) => {
-    const listener = (_event, value) => callback(value);
-    ipcRenderer.on("app:layout", listener);
-    return () => ipcRenderer.removeListener("app:layout", listener);
-  },
+  reveal: (focus, version) => ipcRenderer.invoke("app:reveal", focus, version),
   onFocus: (callback) => {
     const listener = () => callback();
     ipcRenderer.on("app:focus", listener);
@@ -101,12 +97,13 @@ contextBridge.exposeInMainWorld("desktop", {
       return () => ipcRenderer.removeListener("app:trigger-capture-ended", listener);
     },
     onAction: (callback) => {
-      const listener = (_event, action) => callback(action);
+      const listener = (_event, action, focus, version) => callback(action, focus, version);
       ipcRenderer.on("app:trigger-action", listener);
       return () => ipcRenderer.removeListener("app:trigger-action", listener);
     },
   },
   copyText: (text) => ipcRenderer.invoke("clipboard:copyText", text),
+  copyImage: bytes => ipcRenderer.invoke("clipboard:copyImage", bytes),
   settings: (value) => ipcRenderer.invoke("app:settings", value),
   recovery: () => ipcRenderer.invoke("app:recovery"),
   saveRecovery: (value) => ipcRenderer.invoke("app:saveRecovery", value),

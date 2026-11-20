@@ -2,19 +2,8 @@
 .xigra-recent-records {
   display: flex;
   align-items: center;
-  gap: var(--xigra-space-2);
   margin-top: var(--xigra-space-2);
   min-width: 0;
-}
-.xigra-recent-label {
-  flex-shrink: 0;
-  border: 0;
-  border-radius: var(--xigra-radius-control);
-  background: transparent;
-  color: var(--muted);
-  min-height: 36px;
-  padding-inline: 6px;
-  font-size: var(--xigra-type-meta);
 }
 .xigra-record-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; min-width: 0; }
 .xigra-record-list li { min-width: 0; }
@@ -154,7 +143,6 @@
 .xigra-record-dialog-actions { display: flex; justify-content: flex-end; gap: var(--xigra-space-2); }
 .modal .xigra-delete-button { color: var(--xigra-error); background: var(--xigra-error-bg); }
 @media (max-height: 490px) {
-  .xigra-record-list.compact li:nth-child(n+2),
   .xigra-shell:has(.xigra-shell-notices [data-tone="error"]) .xigra-recent-records .xigra-record-list { display: none; }
 }
 @media (max-width: 640px) {

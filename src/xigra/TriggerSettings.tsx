@@ -1,3 +1,4 @@
+import { Button } from "../Button";
 import { AppSelect } from "./AppSelect";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
@@ -34,7 +35,7 @@ export type TriggerBridge = {
   onDetected(callback: (binding: Binding) => void): () => void;
   onCaptured(callback: (input: TriggerInput) => void): () => void;
   onCaptureEnded(callback: () => void): () => void;
-  onAction(callback: (action: TriggerAction) => void): () => void;
+  onAction(callback: (action: TriggerAction, focus?: boolean, version?: number) => void): () => void;
 };
 
 const keyNames: Record<string, string> = {
@@ -275,33 +276,33 @@ export function TriggerSettings({ info, onApplied }: { info: DesktopInfo; onAppl
   const recordLabel = category === "gesture" ? "录制手势" : category === "edge" ? "添加热区" : "录制快捷键";
   return <section className="trigger-settings" aria-label="全局触发器">
     <div className="trigger-heading"><h3>快捷触发</h3>
-      <button className="button" type="button" disabled={busy || !!editing} onClick={() => setReset(true)}>恢复默认</button>
+      <Button className="button" type="button" disabled={busy || !!editing} onClick={() => setReset(true)}>恢复默认</Button>
     </div>
     <p>一个动作可设置多个触发器，保存后立即生效。</p>
     {info.mouseTriggersSupported && <p>鼠标触发会保留前台应用的原有点击行为。</p>}
     <div className="trigger-controls">
-      <button className="button" type="button" disabled={busy || !!editing || testing}
+      <Button className="button" type="button" disabled={busy || !!editing || testing}
         onClick={() => void apply(() => desktop.settings({ triggers: { ...info.triggers, paused: !info.triggers.paused } }))}>
         {info.triggers.paused ? "恢复快捷触发" : "暂停所有触发器"}
-      </button>
-      <button className="button" type="button" disabled={busy || !!editing || info.triggers.paused}
+      </Button>
+      <Button className="button" type="button" disabled={busy || !!editing || info.triggers.paused}
         onClick={async () => {
           setHit(undefined);
           if (await api.test(!testing)) setTesting(!testing);
-        }}>{testing ? "结束测试" : "测试触发器"}</button>
+        }}>{testing ? "结束测试" : "测试触发器"}</Button>
     </div>
     {testing && <p role="status">{hit ? `已识别 ${label(hit.input)} · ${info.triggerActions[hit.action]}` : "等待触发。测试期间只显示识别结果。"}</p>}
     <nav className="trigger-controls trigger-categories" aria-label="快捷触发分类">
-      {categories.map(([value, title]) => <button key={value} className="button" aria-pressed={category === value}
+      {categories.map(([value, title]) => <Button key={value} className="button" aria-pressed={category === value}
         disabled={busy || !!editing || (value === "edge" && !info.edgeTriggersSupported) ||
-          (value === "mouse" && !info.mouseTriggersSupported)} onClick={() => { setCategory(value); setStatus(""); }}>{title}</button>)}
+          (value === "mouse" && !info.mouseTriggersSupported)} onClick={() => { setCategory(value); setStatus(""); }}>{title}</Button>)}
     </nav>
     {info.triggerWarning && <p role="alert">{info.triggerWarning}</p>}
     {!editing && <p className="trigger-status" role="status">{status}</p>}
     {reset && <div className="trigger-editor">
       <p>恢复后只保留 Ctrl + Alt + N 用于显示或隐藏主面板。</p>
-      <button className="button primary" disabled={busy} onClick={() => void apply(api.defaults)}>确认恢复</button>
-      <button className="button" disabled={busy} onClick={() => setReset(false)}>取消</button>
+      <Button className="button primary" disabled={busy} onClick={() => void apply(api.defaults)}>确认恢复</Button>
+      <Button className="button" disabled={busy} onClick={() => setReset(false)}>取消</Button>
     </div>}
     {category === "advanced" && <>
       <p>暂停会释放所有全局监听。恢复时重新检查可用性。</p>
@@ -323,30 +324,34 @@ export function TriggerSettings({ info, onApplied }: { info: DesktopInfo; onAppl
       const rows = bindings.filter(binding => binding.action === action && binding.input.device === category);
       return <section className="trigger-group" aria-label={title} key={action}>
         <div className="trigger-heading"><h4>{title}</h4>
-          <button className="button" disabled={busy || !!editing || reset}
-            aria-label={`${recordLabel} · ${title}`} onClick={event => void begin(action as TriggerAction, event.currentTarget)}>
-            {recordLabel}
-          </button>
+          {rows.length > 0 && <Button className="button trigger-add-binding" disabled={busy || !!editing || reset} aria-label={`${recordLabel} · ${title}`} onClick={event => void begin(action as TriggerAction, event.currentTarget)}>新增</Button>}
         </div>
+        {!rows.length && <div className="trigger-row trigger-empty-row">
+          <div className="trigger-identity"><span>未设置</span><small>尚未配置触发器</small></div>
+          <div className="trigger-controls trigger-row-actions">
+            <Button className="button trigger-record" disabled={busy || !!editing || reset}
+              aria-label={`${recordLabel} · ${title}`} onClick={event => void begin(action as TriggerAction, event.currentTarget)}>{recordLabel}</Button>
+            <Button className="button" disabled>禁用</Button><Button className="button" disabled>删除</Button>
+          </div>
+        </div>}
         {rows.map(binding => <div className="trigger-row" key={binding.id}>
-          <div className={binding.input.device === "gesture" ? "trigger-gesture-identity" : undefined}>
+          <div className={binding.input.device === "gesture" ? "trigger-identity trigger-gesture-identity" : "trigger-identity"}>
             {binding.input.device === "gesture" && <GestureVisualizer path={binding.input.path} />}
             <div>{binding.input.device === "gesture" ? <strong>{binding.name || `${binding.input.path.length} 段手势`}</strong>
               : binding.name && <strong>{binding.name} · </strong>}
             <kbd>{label(binding.input)}</kbd><small>{Object.hasOwn(info.triggerFailures, binding.id)
             ? info.triggerFailures[binding.id] : binding.enabled ? "已启用" : "已禁用"}</small></div>
           </div>
-          <div className="trigger-controls">
-            <button className="button" disabled={busy || !!editing || reset} onClick={event => void begin(binding.action, event.currentTarget, binding)}>修改</button>
-            <button className="button" disabled={busy || !!editing || reset} onClick={() => void apply(() =>
+          <div className="trigger-controls trigger-row-actions">
+            <Button className="button" disabled={busy || !!editing || reset} onClick={event => void begin(binding.action, event.currentTarget, binding)}>修改</Button>
+            <Button className="button" disabled={busy || !!editing || reset} onClick={() => void apply(() =>
               update(bindings.map(row => row.id === binding.id ? { ...row, enabled: !row.enabled } : row)))}>
               {binding.enabled ? "禁用" : "启用"}
-            </button>
-            <button className="button" disabled={busy || !!editing || reset} onClick={() => void apply(() =>
-              update(bindings.filter(row => row.id !== binding.id)))}>删除</button>
+            </Button>
+            <Button className="button" disabled={busy || !!editing || reset} onClick={() => void apply(() =>
+              update(bindings.filter(row => row.id !== binding.id)))}>删除</Button>
           </div>
         </div>)}
-        {!rows.length && (!editing || editOrigin.current !== action) && <small>未设置</small>}
         {editing && editOrigin.current === action && <div className="trigger-editor" onKeyDownCapture={event => {
           if (event.key !== "Escape" || event.ctrlKey || event.altKey || event.shiftKey || event.metaKey || event.nativeEvent.isComposing) return;
           event.preventDefault();
@@ -474,9 +479,9 @@ export function TriggerSettings({ info, onApplied }: { info: DesktopInfo; onAppl
           <p>{category === "gesture" ? "建议用修饰键区分手势与普通拖动。仅窗口手势在标题工具区生效。"
             : category === "edge" ? "在工作区内侧停留。跨屏接缝、任务栏和按住鼠标拖动时跳过。"
               : "Esc 取消录制。普通字母和数字须搭配修饰键。"}</p>
-          <button className="button primary" disabled={busy || !candidate || checked !== candidate || (plainMiddle && !accepted)}
-            onClick={() => candidate && void apply(() => desktop.settings({ triggers: candidateConfig(editing, candidate) }))}>确认保存</button>
-          <button className="button" disabled={busy} onClick={() => { endCapture(); setStatus("录制已取消。"); }}>取消</button>
+          <Button className="button primary" disabled={busy || !candidate || checked !== candidate || (plainMiddle && !accepted)}
+            onClick={() => candidate && void apply(() => desktop.settings({ triggers: candidateConfig(editing, candidate) }))}>确认保存</Button>
+          <Button className="button" disabled={busy} onClick={() => { endCapture(); setStatus("录制已取消。"); }}>取消</Button>
         </div>}
       </section>;
     })}

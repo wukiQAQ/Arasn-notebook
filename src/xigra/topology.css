@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  margin-bottom: var(--xigra-space-4);
+  margin-bottom: 0;
   border: 1px solid var(--xigra-border);
   border-radius: var(--xigra-radius-panel);
   overflow: hidden;
@@ -66,13 +66,13 @@
 .relation-anchor:hover, .relation-anchor:focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 3px; }
 .relation-anchor-in { left: -10px; } .relation-anchor-out { right: -10px; }
 .relation-edges { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; color: var(--relation-line); }
-.relation-line { fill: none; stroke: currentColor; stroke-width: calc(2px / var(--relation-zoom, 1)); stroke-dasharray: none; }
-.relation-hit { fill: none; stroke: transparent; stroke-width: calc(18px / var(--relation-zoom, 1)); pointer-events: stroke; cursor: pointer; }
+.relation-line { fill: none; stroke: currentColor; stroke-width: 2px; stroke-dasharray: none; }
+.relation-hit { fill: none; stroke: transparent; stroke-width: 18px; pointer-events: stroke; cursor: pointer; }
 .relation-hit:focus-visible { outline: none; stroke: transparent; }
 .relation-edges g[data-edge] { color: var(--relation-color); }
-.relation-edges g[data-peer] { color: var(--relation-emphasis); }
-.relation-edges g[data-selected], .relation-edges g:hover, .relation-edges g:focus-within { color: var(--relation-emphasis); }
-.relation-edges [data-selected] .relation-line, .relation-edges g:hover .relation-line, .relation-edges g:focus-within .relation-line { stroke-width: calc(2.5px / var(--relation-zoom, 1)); }
+.relation-edges g[data-selected], .relation-edges g[data-hovered] { color: var(--relation-emphasis); }
+.relation-vertical-anchor { fill: currentColor; opacity: .8; }
+.relation-edges [data-selected] .relation-line, .relation-edges g[data-hovered] .relation-line { stroke-width: 3.5px; }
 .relation-edges text { fill: var(--xigra-text); font: 12px var(--xigra-font); text-anchor: middle; paint-order: stroke; stroke: var(--xigra-window); stroke-width: 5px; stroke-linejoin: round; }
 .relation-label-wrap { overflow: visible; pointer-events: none; }
 .relation-label-position { display: flex; justify-content: center; align-items: center; height: 28px; }
@@ -82,7 +82,7 @@
   border-color: color-mix(in srgb, currentColor 38%, var(--xigra-border));
   font: 12px/20px var(--xigra-font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.relation-edges [data-selected] .relation-label, .relation-edges g:hover .relation-label, .relation-edges g:focus-within .relation-label {
+.relation-edges [data-selected] .relation-label, .relation-edges g[data-hovered] .relation-label {
   border-color: color-mix(in srgb, currentColor 65%, var(--xigra-border));
 }
 .relation-draft { opacity: .7; }
@@ -201,17 +201,18 @@
 }
 .topology-empty > strong { color: var(--xigra-text); font-size: var(--xigra-type-body); }
 .topology-navigation, .topology-map { position: absolute; bottom: 12px; }
-.topology-navigation { left: 12px; display: grid; gap: 6px; }
+.topology-navigation { right: 16px; display: grid; justify-items: end; gap: 6px; max-width: calc(100% - 32px); }
 .topology-zoom, .topology-map {
   border: 1px solid var(--xigra-border);
   border-radius: var(--xigra-radius-panel);
   background: var(--graphite-glass);
   box-shadow: var(--graphite-lift);
 }
-.topology-zoom { justify-self: start; padding: 2px; }
+.topology-zoom { justify-self: end; padding: 2px; }
 .topology-zoom .topology-reset { background: transparent; padding: 0 5px; min-width: 47px; font-variant-numeric: tabular-nums; }
 .topology-navigation > span { background: var(--graphite-glass); padding: 2px 5px; border-radius: var(--xigra-radius-control); }
-.topology-map { right: 12px; display: grid; gap: 4px; padding: 7px; width: 138px; color: var(--xigra-muted); text-align: left; font-size: var(--xigra-type-meta); }
+.topology-map { right: 16px; bottom: 70px; display: grid; gap: 4px; padding: 7px; width: 138px; color: var(--xigra-muted); text-align: left; font-size: var(--xigra-type-meta); }
+.topology-surface:has(.topology-navigation > [role="status"]) .topology-map { bottom: 104px; }
 .topology-map svg { width: 100%; height: 68px; display: block; background: var(--xigra-window); border-radius: var(--xigra-radius-control); }
 .topology-map path { fill: var(--xigra-control-border); }
 .topology-map rect { fill: var(--xigra-selected); fill-opacity: .35; stroke: var(--xigra-focus); stroke-width: 1; }
@@ -262,9 +263,8 @@
   .lagoon-rail .topology-rail-entry { display: none; }
 }
 @media (max-width: 380px) {
-  .topology-map, .topology-navigation { bottom: 6px; }
-  .topology-map { right: 6px; width: 92px; }
-  .topology-navigation { left: 6px; }
+  .topology-navigation { right: 8px; bottom: 6px; }
+  .topology-map { right: 8px; bottom: 64px; width: 92px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .topology-node[data-created] { animation: none; }
@@ -305,8 +305,7 @@
 .topology-surface .relation-anchor:hover::after, .topology-node[data-selected] .relation-anchor::after { background: var(--xigra-focus); }
 .topology-surface .relation-anchor-in { left: -16px; }
 .topology-surface .relation-anchor-out { right: -16px; }
-.relation-edges g[data-muted] { opacity: 1; }
-.relation-edges g[data-muted]:hover, .relation-edges g[data-muted]:focus-within { opacity: 1; }
+.relation-edges g[data-muted] { opacity: .24; }
 .relation-line { vector-effect: non-scaling-stroke; }
 .relation-hit { vector-effect: non-scaling-stroke; }
 .relation-line { stroke-linecap: round; }
@@ -345,22 +344,55 @@
 /* Existing floating controls, extended with compact canvas tools. */
 .topology-toolbar { flex-wrap: wrap; }
 .topology-tools { max-width: 100%; }
-.topology-search { width: 150px; min-width: 100px; }
-.topology-options { position: relative; font-size: 12px; }
-.topology-options summary { cursor: pointer; padding: 8px; border: 1px solid var(--xigra-border); border-radius: 8px; }
-.topology-options > div { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; display: grid; gap: 12px; width: 230px; padding: 14px; border: 1px solid var(--xigra-border); border-radius: 10px; background: var(--xigra-surface); box-shadow: var(--relation-shadow); }
-.topology-options label { display: flex; align-items: center; gap: 8px; }
-.topology-options small { color: var(--xigra-muted); line-height: 1.5; }
-.topology-popup, .topology-search-results { position: absolute; z-index: 11; display: grid; gap: 6px; width: 250px; padding: 10px; border: 1px solid var(--xigra-border); border-radius: 10px; background: var(--xigra-surface); box-shadow: var(--relation-focus-shadow); font-size: 13px; }
+.relation-tool-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+:root body .app-shell .relation-tool-history button.tool.arasn-button[data-ui-button] { justify-content: center; padding: 0; }
+:root body .app-shell .relation-tool-history button.tool.arasn-button[data-ui-button="danger"]:not(:disabled) { color: var(--xigra-error); }
+.relation-tool-panel[data-dragging] { opacity: .94; }
+.relation-tool-position { z-index: 120; }
+.relation-tool-popup {
+  box-sizing: border-box; width: min(280px, var(--available-width), calc(100vw - 24px));
+  max-height: var(--available-height); overflow: auto; overscroll-behavior: contain;
+  display: grid; gap: 6px; padding: 8px; border: 1px solid var(--ui-border-subtle);
+  border-radius: var(--ui-radius-floating); background: var(--ui-surface-floating);
+  color: var(--ui-text-primary); box-shadow: var(--ui-shadow-floating); font-size: 13px;
+}
+.relation-tool-kind { width: min(166px, var(--available-width)); }
+:root .modal.xigra-record-dialog.topology-color-dialog { width: min(380px, calc(100vw - 32px)); }
+.topology-color-dialog form { display: grid; gap: 14px; }
+.topology-color-dialog form label { display: grid; gap: 5px; min-width: 0; }
+.topology-color-fields { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: end; gap: 10px; }
+.topology-color-fields input[type="color"] { width: 40px; height: 36px; padding: 3px; cursor: pointer; }
+.topology-color-swatch { width: 15px; height: 15px; border-radius: 4px; border: 1px solid var(--ui-border-subtle); }
+.relation-tool-kind [role="menuitem"], .relation-tool-search [role="option"] {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px;
+  padding: 4px 8px; border: 0; border-radius: 7px; background: transparent;
+  color: inherit; text-align: start; cursor: pointer;
+}
+.relation-tool-kind [data-highlighted], .relation-tool-search [role="option"]:is(:hover,[aria-selected="true"]) { background: var(--ui-hover); }
+.relation-tool-search [role="option"] { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.relation-tool-search input { width: 100%; min-width: 0; }
+.relation-tool-popup small { color: var(--ui-text-secondary); line-height: 1.5; }
+.relation-tool-options { gap: 10px; padding: 12px; }
+.relation-tool-options label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.relation-tool-options > button.arasn-button:not(.app-select) {
+  display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 8px;
+  border: 0; border-radius: 7px; background: transparent; color: var(--ui-text-primary);
+  font: inherit; text-align: start; cursor: pointer;
+}
+.relation-tool-options > button.arasn-button:not(.app-select):hover { background: var(--ui-hover); }
+.relation-tool-options > button.arasn-button:not(.app-select):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+@media(max-width:1000px) {
+  .relation-tool-history { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .relation-tool-panel .toolbar-dock-controls button { width: 22px; }
+}
+.topology-popup { position: absolute; z-index: 11; display: grid; gap: 6px; width: 250px; padding: 10px; border: 1px solid var(--xigra-border); border-radius: 10px; background: var(--xigra-surface); box-shadow: var(--relation-focus-shadow); font-size: 13px; }
 .topology-popup form { display: grid; gap: 8px; }
-.topology-popup button, .topology-search-results button { min-height: 34px; padding: 6px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--xigra-text); text-align: left; cursor: pointer; }
-.topology-popup button:hover, .topology-search-results button:hover { background: var(--xigra-selected); }
+.topology-popup button { min-height: 34px; padding: 6px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--xigra-text); text-align: left; cursor: pointer; }
+.topology-popup button:hover { background: var(--xigra-selected); }
 .topology-popup button:disabled { opacity: .45; cursor: default; }
-.topology-search-results { left: 12px; top: 12px; max-height: 320px; overflow: auto; }
-.topology-search-results button { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topology-marquee { position: absolute; pointer-events: none; border: 1px solid var(--xigra-focus); background: color-mix(in srgb,var(--xigra-focus) 12%,transparent); }
 .topology-node { cursor: grab; }
-@media(max-width:700px) { .topology-search { width: 130px; } .topology-options > div { right: auto; left: -80px; } .topology-navigation > span { max-width: 230px; font-size: 10px; } }
+@media(max-width:700px) { .topology-navigation > span { max-width: 230px; font-size: 10px; } }
 
 .relation-compact-tooltip { position:absolute; z-index:20; box-sizing:border-box; max-width:200px; max-height:94px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); box-shadow:0 4px 16px #00000022; pointer-events:none; display:grid; gap:4px; font-size:12px; line-height:1.5; }
 .relation-compact-tooltip strong { font-size:13px; }
@@ -368,3 +400,32 @@
 .topology-node[data-connectable="true"] { outline:2px solid var(--xigra-focus); outline-offset:4px; }
 .topology-node[data-connectable="true"] .relation-anchor-in { background:var(--xigra-focus); outline:2px solid var(--xigra-focus); outline-offset:3px; }
 .relation-workbench .topology-surface .relation-hit:focus-visible { outline:none; }
+/* Microinteraction states use the existing Graphite roles; no layout/model changes. */
+.relation-selection-halo { fill:none; stroke:currentColor; stroke-width:9px; opacity:.18; vector-effect:non-scaling-stroke; pointer-events:none; }
+:root .relation-workbench .topology-surface .topology-node[data-relation-focus] { border-color:var(--relation-color); box-shadow:0 0 0 2px color-mix(in srgb,var(--relation-color) 55%,transparent),var(--ui-shadow-card); }
+.topology-node-footer .node-sync { margin-left:auto; display:inline-flex; align-items:center; gap:4px; }
+.topology-node-footer .node-sync [role=img] { display:inline-flex; }
+.topology-node-footer .node-sync[data-tone=error] { color:var(--xigra-error); font-weight:600; }
+:root .relation-workbench .topology-toolgroup .history-action:not(:disabled), .free-history-row .tool:not(:disabled) { background:var(--xigra-selected); color:var(--xigra-on-selected); border:1px solid var(--xigra-control-border); transition:background-color 120ms ease,border-color 120ms ease; }
+:root .relation-workbench .topology-toolgroup .history-action:hover:not(:disabled), .free-history-row .tool:hover:not(:disabled) { background:var(--xigra-hover); border-color:var(--xigra-focus); }
+:root .relation-workbench .topology-toolgroup .history-action:active:not(:disabled), .free-history-row .tool:active:not(:disabled) { background:var(--xigra-pressed); box-shadow:inset 0 0 0 1px var(--xigra-focus); }
+:root .relation-workbench .topology-toolgroup .history-action:disabled, .free-history-row .tool:disabled { background:transparent; color:var(--xigra-muted); border:1px solid transparent; opacity:.35; cursor:default; }
+:root .relation-workbench .topology-toolgroup .history-action:focus-visible, .free-history-row .tool:focus-visible { outline:2px solid var(--xigra-focus); outline-offset:2px; }
+.relation-choice { position:absolute; z-index:25; width:min(260px,calc(100% - 16px)); border:1px solid var(--line); border-radius:10px; background:var(--ui-surface-floating); color:var(--ink); box-shadow:var(--ui-shadow-floating); padding:6px; }
+.relation-choice header { display:flex; align-items:center; justify-content:space-between; padding:3px 6px 6px; font-size:12px; }
+.relation-choice header button { border:0; background:transparent; color:var(--muted); display:grid; place-items:center; width:28px; height:28px; }
+.relation-choice > div { max-height:176px; overflow:auto; display:grid; gap:3px; }
+.relation-choice > div button { --relation-color:var(--relation-light); text-align:left; display:grid; gap:4px; padding:8px; border:1px solid transparent; border-left:3px solid var(--relation-color); border-radius:5px; background:var(--ui-surface-card); color:var(--ink); font-size:12px; }
+:root[data-theme=dark] .relation-choice > div button { --relation-color:var(--relation-dark); }
+.relation-choice small { color:var(--relation-color); }
+.relation-choice > div button:is(:hover,:focus-visible) { background:var(--xigra-selected); outline:2px solid var(--xigra-focus); outline-offset:-2px; }
+@media(prefers-reduced-motion:reduce) { :root .relation-workbench .topology-toolgroup .history-action, .free-history-row .tool { transition:none; } }
+.topology-node-footer .node-sync[data-tone=saved]::before { display:none; }
+:root .relation-workbench .topology-node[data-compact] > strong { font-size:var(--node-title-size); line-height:var(--node-title-line); max-height: calc(2 * var(--node-title-line)); }
+:root .relation-workbench .topology-node[data-compact] .topology-node-footer { display:none; }
+.topology-compact-status { position:absolute; right:8px; top:4px; line-height:1; color:var(--xigra-error); font-weight:700; }
+/* SVG focus must follow the curve rather than the path bounding rectangle. */
+:root .relation-workbench .relation-edges :is(path,g):focus,
+:root .relation-workbench .relation-edges :is(path,g):focus-visible { outline:none; }
+
+.topology-compact-status[data-tone=pending], .topology-node-footer .node-sync[data-tone=pending] { color:var(--xigra-warning); }

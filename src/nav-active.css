@@ -1,0 +1,98 @@
+/* Only the 30px icon disc owns a shadow. The button never emits light. */
+:root .sidebar.lagoon-rail {
+  --nav-brand: #6558ff;
+  --nav-label-selected: #5648db;
+  --nav-icon-muted: #818897;
+  --nav-icon-hover: #eceaff;
+  --nav-icon-shadow: 0 4px 12px rgba(101, 88, 255, .28);
+  --nav-motion: 200ms ease-out;
+}
+[data-theme="dark"] .sidebar.lagoon-rail {
+  --nav-brand: #7163ff;
+  --nav-label-selected: #b3aaff;
+  --nav-icon-muted: #929bad;
+  --nav-icon-hover: #34304c;
+  --nav-icon-shadow: 0 4px 12px rgba(101, 88, 255, .38);
+}
+:root .lagoon-rail .space.nav-item,
+:root .lagoon-rail .space.nav-item:is(:hover, :active, .active) {
+  background: transparent;
+  box-shadow: none;
+  font-weight: 500;
+  gap: 10px;
+  padding-inline: 7px;
+  color: var(--sidebar-text);
+  overflow: visible;
+  transition: color var(--nav-motion);
+}
+:root .lagoon-rail .nav-item::after { content: none; }
+:root .lagoon-rail .nav-item > .nav-item-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--nav-icon-muted);
+  background: transparent;
+  box-shadow: none;
+  transform: scale(.94);
+  transition: color var(--nav-motion), background-color var(--nav-motion),
+    box-shadow var(--nav-motion), transform var(--nav-motion);
+}
+:root .lagoon-rail .nav-item .nav-item-icon svg {
+  color: inherit;
+  transform: none;
+  transition: none;
+}
+:root .lagoon-rail .nav-item:hover:not(:disabled) > .nav-item-icon {
+  color: var(--nav-label-selected);
+  background: var(--nav-icon-hover);
+  transform: scale(1);
+}
+:root .lagoon-rail .space.nav-item[data-selected] { color: var(--nav-label-selected); }
+:root .lagoon-rail .nav-item[data-selected] > .nav-item-icon,
+:root .lagoon-rail .nav-item[data-selected]:hover > .nav-item-icon {
+  color: #fff;
+  background: var(--nav-brand);
+  box-shadow: var(--nav-icon-shadow);
+  transform: scale(1);
+}
+:root[data-appearance-custom] .sidebar.lagoon-rail {
+  --nav-brand: var(--ui-action);
+  --nav-label-selected: var(--ui-nav-label);
+  --nav-icon-muted: var(--ui-text-secondary);
+  --nav-icon-hover: var(--ui-nav-active);
+  --nav-icon-shadow: 0 4px 12px var(--ui-focus-halo);
+}
+:root[data-appearance-custom] .lagoon-rail .nav-item[data-selected] > .nav-item-icon {
+  color: var(--ui-on-action);
+}
+:root .lagoon-rail .nav-item:focus-visible {
+  outline: 2px solid var(--nav-label-selected);
+  outline-offset: 2px;
+}
+/* Keep labels readable at the intermediate width as well. */
+@media (min-width: 640px) and (max-width: 1000px) {
+  :root .sidebar.lagoon-rail { width: 184px; min-width: 184px; }
+  :root .lagoon-rail .space.nav-item { justify-content: flex-start; }
+  :root .lagoon-rail .nav-item > .nav-item-label { display: block; }
+}
+@media (max-width: 639px) {
+  :root .lagoon-rail nav .space.nav-item { gap: 2px; padding: 1px; }
+  :root .lagoon-rail .nav-item > .nav-item-label { display: block; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .sidebar.lagoon-rail { --nav-motion: 0ms; }
+  :root .lagoon-rail .space.nav-item > .nav-item-icon,
+  :root .lagoon-rail .space.nav-item:is(:hover, [data-selected]) > .nav-item-icon { transform: none; }
+}
+@media (forced-colors: active) {
+  :root .lagoon-rail .nav-item[data-selected] { outline: 2px solid Highlight; outline-offset: -2px; }
+  :root .lagoon-rail .space.nav-item:is([data-selected], :hover) > .nav-item-icon {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+}

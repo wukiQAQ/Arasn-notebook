@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { screenToWorld, worldLimit, zoomAt, type Camera } from "./topology";
 
 // Local, per-room camera; content continues through BoardClient's recovery queue.
-export function useFreeViewport(roomId: string, notify: (message: string) => void) {
+export function useFreeViewport(roomId: string, notify: (message: string) => void, active: boolean) {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 1, height: 1 });
   const [camera, setCamera] = useState<Camera>({ x: 800, y: 500, zoom: .8 });
@@ -49,11 +49,16 @@ export function useFreeViewport(roomId: string, notify: (message: string) => voi
   }, [key, save, notify, roomId]);
   // The viewport may mount after compact mode or the mobile reader closes.
   useLayoutEffect(() => {
-    if (!element) return;
-    const observer = new ResizeObserver(() => setSize(previous => previous.width === element.clientWidth && previous.height === element.clientHeight ? previous : { width: element.clientWidth, height: element.clientHeight }));
+    if (!element || !active) return;
+    const measure = () => {
+      const width = element.clientWidth, height = element.clientHeight;
+      if (width && height) setSize(previous => previous.width === width && previous.height === height ? previous : { width, height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [element]);
+  }, [element, active]);
   const point = (x: number, y: number) => {
     const rect = element!.getBoundingClientRect();
     const result = screenToWorld({ x: x - rect.left, y: y - rect.top }, size, current.current);

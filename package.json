@@ -8,7 +8,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build && node scripts/bundle-lan.cjs",
     "start": "npm run build && electron .",
-    "test": "node --test tests/theme-init.test.cjs tests/interaction-batch4.test.cjs tests/erase-path.test.cjs tests/correctness-batch1.test.cjs tests/brush-properties.test.cjs tests/quality-guards.test.cjs tests/free-content.test.cjs tests/drawing-tools.test.cjs tests/free-canvas.test.cjs tests/server.test.cjs tests/storage.test.cjs tests/storage-boundaries.test.cjs tests/board-client.test.cjs tests/canvas-references.test.cjs tests/canvas-storage.test.cjs tests/file-area-safety.test.cjs tests/lan-notes.test.cjs tests/window-manager.test.cjs tests/trigger-registry.test.cjs tests/smart-triggers.test.cjs",
+    "test": "node --test tests/capture-export.test.cjs tests/relation-hit.test.cjs tests/theme-init.test.cjs tests/interaction-batch4.test.cjs tests/erase-path.test.cjs tests/correctness-batch1.test.cjs tests/brush-properties.test.cjs tests/quality-guards.test.cjs tests/free-content.test.cjs tests/drawing-tools.test.cjs tests/free-canvas.test.cjs tests/server.test.cjs tests/storage.test.cjs tests/storage-boundaries.test.cjs tests/board-client.test.cjs tests/canvas-references.test.cjs tests/canvas-storage.test.cjs tests/file-area-safety.test.cjs tests/lan-notes.test.cjs tests/window-manager.test.cjs tests/trigger-registry.test.cjs tests/smart-triggers.test.cjs",
     "test:ui": "playwright test",
     "test:free-quality": "node tests/free-quality-desktop.cjs",
     "pack": "npm run build && node scripts/pack.cjs",

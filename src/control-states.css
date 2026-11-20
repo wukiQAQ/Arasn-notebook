@@ -1,0 +1,117 @@
+/* Shared state policy. Keep component geometry, actions and default emphasis. */
+:root { --control-motion: 160ms ease-out; }
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button) {
+  --control-hover-bg: var(--ui-hover);
+  --control-pressed-bg: var(--ui-pressed);
+  --control-hover-border: var(--ui-border-control);
+  --control-hover-text: var(--ui-text-primary);
+  --control-selected-bg: var(--ui-nav-active);
+  --control-selected-text: var(--ui-nav-on-active);
+  transition: background-color var(--control-motion), border-color var(--control-motion), color var(--control-motion);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is(.primary, .file-primary, .new-note) {
+  --control-hover-bg: var(--ui-action-hover);
+  --control-pressed-bg: color-mix(in srgb, var(--ui-action) 80%, black);
+  --control-hover-border: var(--ui-action-hover);
+  --control-hover-text: var(--ui-on-action);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is(.file-clear, .file-danger, .xigra-delete-button) {
+  --control-hover-bg: var(--ui-danger-bg, var(--xigra-error-bg));
+  --control-pressed-bg: color-mix(in srgb, var(--xigra-error) 18%, var(--surface));
+  --control-hover-text: var(--xigra-error);
+  --control-hover-border: var(--xigra-error);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is([aria-pressed="true"], [aria-selected="true"], [aria-current="true"], [data-selected]) {
+  background: var(--control-selected-bg);
+  color: var(--control-selected-text);
+  --control-hover-bg: color-mix(in srgb, var(--control-selected-bg) 75%, var(--ui-hover));
+  --control-hover-text: var(--control-selected-text);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--control-hover-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is(:active, [data-active]):not(:disabled):not([aria-disabled="true"]) {
+  background: var(--control-pressed-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+  box-shadow: inset 0 0 0 1px var(--control-hover-border);
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: -2px;
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is(:disabled, [aria-disabled="true"]) {
+  opacity: .45;
+  cursor: default;
+}
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button) svg,
+:root :is(.file-station, .header-actions, .xigra-shell .xigra-note-heading, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover) :is(button, [role="option"]):not(.nav-item, .arasn-button):is(:hover, :active) svg {
+  transform: none;
+  transition: color var(--control-motion);
+}
+:root .command-popup.glass-surface :is(button, [role="option"]) {
+  --control-selected-bg: var(--glass-selection);
+  --control-selected-text: var(--glass-text);
+}
+/* Composite inputs: the wrapper owns the only focus ring. */
+:root .file-station .file-query,
+:root .xigra-record-search {
+  outline: none;
+  box-shadow: none;
+  transition: border-color var(--control-motion);
+}
+:root .file-station .file-query:focus-within,
+:root .xigra-record-search:focus-within {
+  border-color: color-mix(in srgb, var(--ui-focus) 65%, var(--line));
+  outline: none;
+  box-shadow: none;
+}
+:root[data-focus-modality="keyboard"] .file-station .file-query:has(input:focus-visible),
+:root[data-focus-modality="keyboard"] .xigra-record-search:has(input:focus-visible) {
+  border-color: var(--line);
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}
+:root .file-station .file-query input:focus-visible,
+:root .xigra-record-search input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+/* Titles use a single underline; body editing never frames the whole paper. */
+:root .xigra-shell .quick-title:focus {
+  outline: none;
+  box-shadow: none;
+  border-bottom-color: color-mix(in srgb, var(--ui-focus) 65%, var(--line));
+}
+:root[data-focus-modality="keyboard"] .xigra-shell .quick-title:focus-visible {
+  outline: none;
+  border-bottom-color: transparent;
+  box-shadow: inset 0 -2px var(--ui-focus);
+}
+:root .xigra-compact .xigra-shell .quick-content:focus-within,
+:root .xigra-compact .xigra-shell .quick-content:has(.quick-input:focus-visible) {
+  border-color: var(--line);
+  box-shadow: none;
+  outline: none;
+}
+:root .xigra-compact .xigra-shell .quick-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+:root[data-focus-modality="keyboard"] .xigra-compact .xigra-shell .quick-input:focus-visible {
+  box-shadow: inset 2px 0 var(--ui-focus);
+}
+/* The checkbox label owns its keyboard outline, including hover + focus. */
+:root .setting-toggle:has(input:focus-visible) input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --control-motion: 0ms; }
+}
+@media (forced-colors: active) {
+  :root[data-focus-modality="keyboard"] .xigra-shell .quick-title:focus-visible { box-shadow: none; border-bottom-color: Highlight; }
+  :root .xigra-compact .xigra-shell .quick-input:focus-visible { box-shadow: none; outline: 2px solid Highlight; outline-offset: -2px; }
+}

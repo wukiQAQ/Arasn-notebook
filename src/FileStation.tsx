@@ -1,3 +1,4 @@
+import { Button } from "./Button";
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
@@ -10,6 +11,8 @@ import {
 import { ImagePreview } from "./ImagePreview";
 import { BoardClient, uid } from "./board";
 import type { ManagedFile, ImportResult } from "./board";
+import { fileOriginLabel } from './record-attachments';
+import { useNotification } from './Notification';
 
 const fileKinds = { "": "所有类型", 图片: "图片", 音频: "音频", 视频: "视频", 文档: "文档", 其他: "其他" };
 const fileIcons = { 图片: Image, 音频: Music, 视频: Film, 文档: FileText };
@@ -61,6 +64,8 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
     [rename, setRename] = useState<{ id: string; name: string } | null>(null);
   const [clearScope, setClearScope] = useState<{ count: number; refs: string[]; canUndo: boolean }>();
   const [canUndoClear, setCanUndoClear] = useState(false);
+  const { notify } = useNotification();
+  useEffect(() => { if (message) notify(message, { tone: messageTone === 'error' ? 'error' : messageTone === 'saved' ? 'success' : 'neutral', duration: messageTone === 'error' ? null : 2000, placement: 'corner' }); }, [message, messageTone, notify]);
   useEffect(() => { let alive = true; void api.action("fileAreaPreview").then(value => { if (alive) setCanUndoClear((value as { canUndo: boolean }).canUndo); }).catch(() => {}); return () => { alive = false; }; }, [revision]);
   const inlineTrigger = useRef<HTMLButtonElement | null>(null);
   const inlineCancel = useRef<HTMLButtonElement>(null);
@@ -207,33 +212,28 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
       tabIndex={0}
     >
       <div className="file-actions">
-        <button
+        <Button
           className="file-primary"
           disabled={busy}
           onClick={() => run(async () => imported(await api.choose()))}
         >
           <Upload size={16} />导入文件
-        </button>
-        <button className="file-secondary-action" disabled={busy} onClick={paste}>
+        </Button>
+        <Button className="file-secondary-action" disabled={busy} onClick={paste}>
           <Clipboard size={16} />粘贴
-        </button>
-        <button className="file-secondary-action" disabled={busy} title="当前支持便签互传；文件发送尚未接入" onClick={onDevices}>设备互传</button>
-        <Menu.Root modal={false}>
-          <Menu.Trigger className="file-compact-more" aria-label="更多文件操作" disabled={busy}><Ellipsis size={18} /><span>更多</span></Menu.Trigger>
-          <Menu.Portal><Menu.Positioner className="file-popover-position" align="end" sideOffset={6} collisionPadding={12}><Menu.Popup className="file-popover">
-            <Menu.Item className="file-option" onClick={paste}><Clipboard size={16} />粘贴</Menu.Item>
-            <Menu.Item className="file-option" onClick={onDevices}>设备互传</Menu.Item>
-          </Menu.Popup></Menu.Positioner></Menu.Portal>
-        </Menu.Root>
-        <span className="file-layout" role="group" aria-label="显示方式"><button aria-label="列表视图" aria-pressed={layout === "list"} onClick={() => setLayout("list")}><List size={17}/></button><button aria-label="网格视图" aria-pressed={layout === "grid"} onClick={() => setLayout("grid")}><LayoutGrid size={17}/></button></span>
+        </Button>
+        <Button className="file-secondary-action" disabled={busy} title="当前支持便签互传；文件发送尚未接入" onClick={onDevices}>设备互传</Button>
+
+
       </div>
+      <div className="file-organize">
       <nav className="file-views" aria-label="文件视图">
         {[
           { id: "library", label: "中转站", Icon: Archive },
           { id: "panel", label: "面板文件", Icon: PanelTop },
           { id: "trash", label: "回收站", Icon: Trash2 },
         ].map(({ id, label, Icon }) => (
-          <button
+          <Button
             key={id}
             aria-pressed={view === id}
             onClick={() => {
@@ -243,9 +243,11 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             }}
           >
             <Icon size={15} />{label}
-          </button>
+          </Button>
         ))}
       </nav>
+        <span className="file-layout" role="group" aria-label="显示方式"><Button iconOnly aria-label="列表视图" aria-pressed={layout === "list"} onClick={() => setLayout("list")}><List size={18}/></Button><Button iconOnly aria-label="网格视图" aria-pressed={layout === "grid"} onClick={() => setLayout("grid")}><LayoutGrid size={18}/></Button></span>
+      </div>
       <div className="file-search">
         <label className="file-query">
           <Search size={16} aria-hidden="true" />
@@ -267,7 +269,7 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             setSelection([]);
           }}
         >
-          <Select.Trigger className="file-kind" aria-label="文件分类">
+          <Select.Trigger render={<Button />} className="file-kind" aria-label="文件分类">
             <Select.Value /><Select.Icon><ChevronDown size={15} /></Select.Icon>
           </Select.Trigger>
           <Select.Portal>
@@ -288,11 +290,11 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
         </Select.Root>
       </div>
       {view !== "trash" && <div className="file-batch" role="group" aria-label="批量操作"><label className="file-select"><input type="checkbox" aria-label="选择本页文件" disabled={busy || loading || !rows.length} checked={rows.length > 0 && rows.every(file => selection.includes(file.id))} onChange={event => setSelection(event.target.checked ? rows.map(file => file.id) : [])}/>选择本页</label><span>已选 {selection.length} 项</span>
-        {selection.length > 0 && <><button disabled={busy || loading} onClick={() => run(() => onAttach(rows.filter(file => selection.includes(file.id))), "已加入工作页，应用副本保持不变")}>加入工作页</button>
-        <button disabled={busy || loading || !onRecord} title={onRecord ? "关联到最近编辑的便签，不复制文件" : "请先在便签页选择一张便签"} onClick={() => run(() => onRecord!(rows.filter(file => selection.includes(file.id))), "已关联到当前便签")}>加入当前便签</button></>}
+        {selection.length > 0 && <><Button disabled={busy || loading} onClick={() => run(() => onAttach(rows.filter(file => selection.includes(file.id))), "已加入工作页，应用副本保持不变")}>加入工作页</Button>
+        <Button disabled={busy || loading || !onRecord} title={onRecord ? "关联到最近编辑的便签，不复制文件" : "请先在便签页选择一张便签"} onClick={() => run(() => onRecord!(rows.filter(file => selection.includes(file.id))), "已关联到当前便签")}>加入当前便签</Button></>}
       </div>}
       {view !== "trash" && selection.length > 0 && (
-        <button
+        <Button
           disabled={busy || loading}
           onClick={() =>
             run(async () => {
@@ -305,13 +307,10 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
           }
         >
           移入回收站（{selection.length}）
-        </button>
+        </Button>
       )}
       <p className="file-safety-note">移出面板仅解除引用；回收站不影响用户原文件。</p>
-      <div role="status" className="file-message xigra-notice"
-        data-tone={busy ? "pending" : message ? messageTone : undefined}>
-        {progress || message || (busy ? "正在处理，请稍候…" : "拖入文件或按 Ctrl+V。文件只保存在本机。")}
-      </div>
+      {busy && <span className="file-operation-progress" role="status">{progress || "正在处理…"}</span>}
       {confirm && (
         <div role="alertdialog" aria-label="确认操作" className="file-confirm xigra-notice" data-tone="warning">
           <p>
@@ -321,7 +320,7 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
                 ? "仅清理回收站中的应用副本。应用会先生成并校验可恢复备份，导入来源文件仍然保留。"
                 : "恢复备份会替换当前面板；当前数据会先备份，中转站文件合并保留。"}
           </p>
-          <button
+          <Button
             disabled={busy}
             onClick={() => {
               const action = confirm;
@@ -341,8 +340,8 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             }}
           >
             {confirm === "clear" ? "确认清空" : "确认操作"}
-          </button>
-          <button ref={inlineCancel} onClick={dismissInline}>取消</button>
+          </Button>
+          <Button ref={inlineCancel} onClick={dismissInline}>取消</Button>
         </div>
       )}
       {rename && (
@@ -360,10 +359,10 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             value={rename.name}
             onChange={(e) => setRename({ ...rename, name: e.target.value })}
           />
-          <button>保存</button>
-          <button type="button" onClick={dismissInline}>
+          <Button>保存</Button>
+          <Button type="button" onClick={dismissInline}>
             取消
-          </button>
+          </Button>
         </form>
       )}
       <div className={`file-list file-list-${layout}`} aria-busy={loading}>
@@ -389,12 +388,12 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             <FileMedia file={file} disabled={busy || loading} />
             <div className="file-meta">
               <strong title={file.name}>{file.name}</strong>
-              <small>{file.category} · {sizeLabel(file.size)}</small>
+              <small>{file.category} · {sizeLabel(file.size)} <span className="file-source">· {fileOriginLabel(file)}{view === 'panel' ? ' · 面板引用' : ''}</span></small>
             </div>
             <div className="file-row-actions">
-              {view !== "trash" && <button disabled={busy || loading} aria-label={`加入工作页 ${file.name}`} onClick={() => run(() => onAttach([file]), "已加入工作页")}>加入工作页</button>}
+              {view !== "trash" && <Button disabled={busy || loading} aria-label={`加入工作页 ${file.name}`} onClick={() => run(() => onAttach([file]), "已加入工作页")}>加入工作页</Button>}
               {view === "trash" ? (
-                <button
+                <Button
                   disabled={busy || loading}
                   onClick={() =>
                     run(
@@ -404,9 +403,9 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
                   }
                 >
                   恢复
-                </button>
+                </Button>
               ) : (
-                <button className="file-row-secondary"
+                <Button className="file-row-secondary"
                   disabled={busy || loading}
                   onClick={() => run(
                     () => api.action(view === "panel" ? "unreference" : "reference", { id: file.id }),
@@ -414,7 +413,7 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
                   )}
                 >
                   {view === "panel" ? "移出面板" : <><Plus size={15} />放入面板</>}
-                </button>
+                </Button>
               )}
               <Menu.Root modal={false}>
                 <Menu.Trigger className="file-more" id={`file-menu-${file.id}`} disabled={busy || loading}
@@ -451,23 +450,23 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
         {!loading && !rows.length && <p className="xigra-empty">{query || kind ? "没有符合筛选条件的文件。" : view === "trash" ? "回收站为空。" : view === "panel" ? "当前工作页没有引用文件。" : "拖入文件或使用「导入文件」开始。"}</p>}
       </div>
       <div className="file-pagination">
-        <button disabled={busy || loading || page === 0} onClick={() => { setSelection([]); setPage(page - 1); }}>
+        <Button disabled={busy || loading || page === 0} onClick={() => { setSelection([]); setPage(page - 1); }}>
           <ChevronLeft size={15} />上一页
-        </button>
+        </Button>
         <span>
           {page + 1} 页 · {total} 个文件
         </span>
-        <button
+        <Button
           disabled={busy || loading || (page + 1) * 25 >= total}
           onClick={() => { setSelection([]); setPage(page + 1); }}
         >
           下一页<ChevronRight size={15} />
-        </button>
+        </Button>
       </div>
       <details>
         <summary>恢复与数据检查</summary>
         <div className="file-actions">
-          <button className="file-clear" disabled={busy} onClick={event => {
+          <Button className="file-clear" disabled={busy} onClick={event => {
             const trigger = event.currentTarget;
             void run(async () => {
               const scope = await api.action("fileAreaPreview") as { count: number; refs: string[]; canUndo: boolean };
@@ -475,17 +474,17 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
               if (!scope.count) return "文件区为空；中转站副本不受影响";
               openConfirmation("clear", trigger); return "请确认清空范围";
             });
-          }}><Trash2 size={16}/>清空文件区</button>
-          <button disabled={busy || !canUndoClear} onClick={() => void run(async () => { await api.action("undoFileAreaClear"); setView("panel"); setPage(0); return "已恢复文件区条目"; })}>撤销清空文件区</button>
-          <button
+          }}><Trash2 size={16}/>清空文件区</Button>
+          <Button disabled={busy || !canUndoClear} onClick={() => void run(async () => { await api.action("undoFileAreaClear"); setView("panel"); setPage(0); return "已恢复文件区条目"; })}>撤销清空文件区</Button>
+          <Button
             disabled={busy}
             onClick={() =>
               run(async () => JSON.stringify(await api.action("audit")))
             }
           >
             完整性检查
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={busy}
             onClick={() =>
               run(async () => {
@@ -495,21 +494,21 @@ export function FileStation({ client, onAttach, onRecord, onDevices }: { client:
             }
           >
             备份导出
-          </button>
-          <button disabled={busy} onClick={(event) => openConfirmation("restore", event.currentTarget)}>
+          </Button>
+          <Button disabled={busy} onClick={(event) => openConfirmation("restore", event.currentTarget)}>
             恢复备份
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={busy}
             onClick={() =>
               run(async () => JSON.stringify(await api.action("retryFailed")))
             }
           >
             重试失败导入
-          </button>
-          <button disabled={busy} onClick={(event) => openConfirmation("purge", event.currentTarget)}>
+          </Button>
+          <Button disabled={busy} onClick={(event) => openConfirmation("purge", event.currentTarget)}>
             清空回收站
-          </button>
+          </Button>
         </div>
         <p className="file-hint">
           默认不自动清理。只在你确认后清理回收站，清理前保留可恢复备份。

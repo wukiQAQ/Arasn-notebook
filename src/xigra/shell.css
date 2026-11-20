@@ -13,23 +13,6 @@
   animation: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .xigra-desktop > :is(main, .sidebar) {
-    --xigra-view-offset: 7px;
-    animation: xigra-view-enter var(--xigra-motion-panel) var(--xigra-ease);
-  }
-
-  .xigra-desktop > .xigra-shell {
-    --xigra-view-offset: -5px;
-    animation: xigra-view-enter 160ms var(--xigra-ease);
-  }
-
-  @keyframes xigra-view-enter {
-    from { opacity: .72; translate: 0 var(--xigra-view-offset); }
-    to { opacity: 1; translate: 0 0; }
-  }
-}
-
 .xigra-note-heading {
   display: flex;
   align-items: center;
@@ -149,3 +132,6 @@
 .device-hub-action:focus-visible { outline: 2px solid var(--xigra-focus); outline-offset: 3px; }
 .device-inbox-count { border-radius: 6px; background: var(--xigra-selected); color: var(--xigra-on-selected); padding: 1px 6px; font-size: 11px; }
 .device-hub-action .device-pending { color: var(--xigra-brand); }
+
+/* Retain mode subtrees without exposing their layout or focus targets. */
+.app-shell > main[hidden], .app-shell > aside[hidden], .app-shell > .quick-panel[hidden], .app-shell > .skip-link[hidden] { display: none !important; }

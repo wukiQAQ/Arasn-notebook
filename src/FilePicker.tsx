@@ -3,6 +3,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { X, Upload } from "lucide-react";
 import type { BoardClient, ManagedFile } from "./board";
 import { FileMedia } from "./FileStation";
+import { fileOriginLabel } from './record-attachments';
 
 export function FilePicker({ open, onOpenChange, onChoose }: { open: boolean; onOpenChange(open: boolean): void; onChoose(files: ManagedFile[]): Promise<void> }) {
   const [query, setQuery] = useState("");
@@ -50,16 +51,21 @@ export function FilePicker({ open, onOpenChange, onChoose }: { open: boolean; on
   </Dialog.Popup></Dialog.Portal></Dialog.Root>;
 }
 
-export function RecordAttachments({ client, recordId, active, notify }: { client: BoardClient; recordId: string; active: boolean; notify(message: string): void }) {
+export function RecordAttachments({ client, recordId, active, notify, onSend }: { client: BoardClient; recordId: string; active: boolean; notify(message: string): void; onSend?(files: ManagedFile[]): Promise<void> }) {
   const links = Object.entries(client.view()).flatMap(([id, item]) => item.value?.type === "content-link" && item.value.recordId === recordId && item.value.targetRef.kind === "file" ? [{ id, fileId: item.value.targetRef.id }] : []);
   const key = JSON.stringify(links);
   const [files, setFiles] = useState<Record<string, ManagedFile>>({});
   useEffect(() => {
     if (!active) return;
     let live = true;
-    void Promise.all(links.map(async link => { try { return [link.fileId, await window.desktop!.files.action("metadata", { id: link.fileId })] as const; } catch { return [link.fileId, null] as const; } })).then(rows => { if (live) setFiles(Object.fromEntries(rows.filter(([, file]) => file)) as Record<string, ManagedFile>); });
+    void Promise.all(links.map(async link => { try { return [link.fileId, await window.desktop!.files.action("metadata", { id: link.fileId, recordId })] as const; } catch { return [link.fileId, null] as const; } })).then(rows => { if (live) setFiles(Object.fromEntries(rows.filter(([, file]) => file)) as Record<string, ManagedFile>); });
     return () => { live = false; };
   }, [key, active]);
   if (!links.length) return null;
-  return <section className="record-attachments" aria-label="便签附件">{links.map(link => <div key={link.id}>{files[link.fileId] && <FileMedia file={files[link.fileId]} disabled={Boolean(files[link.fileId].deleted_at)}/>}<span>{files[link.fileId]?.name ?? "文件不可用"}{files[link.fileId]?.deleted_at ? "（在回收站中）" : ""}</span><button className="button" onClick={() => { client.edit(link.id, null); void client.flush().catch(e => notify(e.message)); }}>移除引用</button></div>)}</section>;
+  return <section className="record-attachments" aria-label="便签附件">{links.map(link => <div key={link.id}>{files[link.fileId] && <FileMedia file={files[link.fileId]} disabled={Boolean(files[link.fileId].deleted_at)}/>}<span>{files[link.fileId]?.name ?? "文件不可用"}{files[link.fileId]?.deleted_at ? "（在回收站中）" : ""}<small className="record-attachment-source">来源：{fileOriginLabel(files[link.fileId])} · 保留在当前便签 · 文件中心副本</small></span>{onSend && files[link.fileId] && <button className="button" disabled={!!files[link.fileId].deleted_at || files[link.fileId].status === "purged"} onClick={() => {
+    void onSend([files[link.fileId]]).then(() => notify("已发送到工作页"), error => notify(String(error)));
+  }}>发送到工作页</button>}{onSend && files[link.fileId] && <button className="button" disabled={!!files[link.fileId].deleted_at || files[link.fileId].status === "purged"} onClick={() => {
+    void window.desktop!.files.action("reference", { id: link.fileId })
+      .then(() => notify("已放入文件面板"), error => notify(String(error)));
+  }}>放入面板</button>}<button className="button" onClick={() => { client.edit(link.id, null); void client.flush().catch(e => notify(e.message)); }}>移除引用</button></div>)}</section>;
 }

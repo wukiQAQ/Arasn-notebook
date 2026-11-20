@@ -1,0 +1,119 @@
+/* Canonical action geometry and typography. Content swatches and canvas handles
+   retain their own geometry; they are not toolbar actions. */
+:root {
+  --ui-font: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --xigra-font: var(--ui-font);
+  --ui-button-height: 44px;
+  --ui-canvas-tools-width: 112px;
+  --ui-button-radius: 10px;
+  --ui-button-font: 15px;
+  --ui-button-weight: 500;
+  --ui-button-gap: 8px;
+  --ui-actions-gap: 10px;
+  --ui-title-size: 22px;
+  --ui-module-size: 18px;
+  --ui-body-size: 15px;
+  --ui-helper-size: 13px;
+  --ui-status-size: 12px;
+  --secondary-button-bg: #f5f6f8;
+  --secondary-button-border: transparent;
+  --secondary-button-hover-bg: #ebeef2;
+  --secondary-button-hover-border: rgba(30,38,52,.10);
+  --secondary-button-pressed-bg: #e0e4eb;
+}
+:root[data-theme="dark"] {
+  --secondary-button-bg: #242830;
+  --secondary-button-border: transparent;
+  --secondary-button-hover-bg: #2d323c;
+  --secondary-button-hover-border: rgba(255,255,255,.10);
+  --secondary-button-pressed-bg: #353c48;
+}
+:root body { font-family: var(--ui-font); font-size: var(--ui-body-size); }
+:root body :is(button,input,textarea,select) { font-family: var(--ui-font); }
+:root body .page-header .page-header-title { font-size: var(--ui-title-size); }
+:root body :is(.quick-header h1, .record-index-heading h2, .record-document-heading h2, .settings-header h2, .free-properties-heading) { font-size: var(--ui-module-size); font-weight: 600; }
+:root body :is(.quick-input, .xigra-record-editor, .record-editor-body, .settings-scroll) { font-size: var(--ui-body-size); }
+:root body :is(.page-header-description,.settings-header p,.property-hint,.brush-properties small) { font-size: var(--ui-helper-size); font-weight: 400; }
+:root body :is(.save-state,.xigra-status) { font-size: var(--ui-status-size); font-weight: 500; border: 0; box-shadow: none; background: transparent; }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button] {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  box-sizing: border-box; height: var(--ui-button-height); min-height: var(--ui-button-height);
+  padding: 0 16px; gap: var(--ui-button-gap);
+  border: 1px solid var(--secondary-button-border); border-radius: var(--ui-button-radius);
+  font-family: var(--ui-font); font-size: var(--ui-button-font); font-weight: var(--ui-button-weight); line-height: 20px;
+  color: var(--ui-text-secondary); background: var(--secondary-button-bg);
+  white-space: nowrap; box-shadow: none; outline: none; transform: none;
+  cursor: pointer; -webkit-app-region: no-drag;
+  transition: background-color var(--control-motion),border-color var(--control-motion),color var(--control-motion);
+}
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:hover:not(:disabled) { background: var(--secondary-button-hover-bg); border-color: var(--secondary-button-hover-border); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button="secondary"]:hover:not(:disabled) svg { color: var(--ui-text-primary); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:active:not(:disabled) { background: var(--secondary-button-pressed-bg); border-color: var(--secondary-button-hover-border); box-shadow: none; transform: none; }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button="primary"] { background: var(--ui-action); border-color: var(--ui-action); color: var(--ui-on-action); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button="primary"]:hover:not(:disabled) { background: var(--ui-action-hover); border-color: var(--ui-action-hover); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button="primary"]:active:not(:disabled) { background: var(--ui-action-pressed, color-mix(in srgb,var(--ui-action) 80%,black)); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button="danger"] { color: var(--xigra-error); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:not(.color,[data-ui-button="primary"]):is([aria-pressed="true"],[aria-selected="true"]) { background: var(--ui-nav-active); border-color: var(--ui-focus); color: var(--ui-text-primary); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:focus-visible { outline: 1px solid var(--ui-focus); outline-offset: 2px; }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:disabled { opacity: .45; cursor: default; }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button] svg { width: 18px; height: 18px; flex: none; transform: none; transition: color var(--control-motion); }
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button.arasn-icon-button[data-ui-button] { width: 44px; min-width: 44px; padding: 0; }
+:root body :is(.header-actions,.xigra-note-actions,.file-actions,.topology-tools,.brush-preset-grid) { gap: var(--ui-actions-gap); }
+:root body .page-header .header-actions { gap: var(--ui-actions-gap); }
+/* Tool panels are portaled, anchored and collision-aware; never occupy canvas layout. */
+.tool-settings-position { z-index: 40; }
+.tool-settings-popup { width: min(300px,calc(100vw - 32px)); max-height: min(560px,calc(100dvh - 24px),var(--available-height)); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--ui-border-control); border-radius: 12px; background: var(--surface); color: var(--ui-text-primary); box-shadow: 0 8px 28px #0003; }
+.tool-settings-popup .free-properties { position: static; width: auto; padding: 16px; border: 0; box-shadow: none; }
+.tool-settings-popup .free-properties-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; position: sticky; top: -16px; padding-block: 4px; background: var(--surface); z-index: 2; }
+.tool-settings-popup .free-properties-heading button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border-radius: 10px; border: 1px solid var(--secondary-button-border); background: transparent; color: inherit; }
+.tool-settings-popup .brush-properties { display: grid; gap: 12px; }
+.tool-settings-popup :is(label,.object-properties) { display: grid; gap: 8px; margin: 0; min-width: 0; }
+.tool-settings-popup .brush-properties .colors { display: flex; flex-wrap: wrap; gap: 8px; }
+:root body .tool-settings-popup button.arasn-button.color[data-ui-button] { width: 32px; min-width: 32px; height: 32px; min-height: 32px; padding: 0; border: 2px solid transparent; border-radius: 50%; }
+:root body .tool-settings-popup button.arasn-button.color.chosen[data-ui-button] { border-color: var(--ui-focus); outline: 1px solid var(--ui-focus); outline-offset: 2px; }
+.tool-settings-popup .object-properties { margin: 12px 0; padding: 12px; border: 1px solid var(--ui-border-control); border-radius: 10px; }
+.tool-settings-popup .brush-preset-grid { display: flex; flex-wrap: wrap; }
+.tool-settings-popup .brush-preset-row { display: flex; gap: 8px; margin: 8px 0; }
+.tool-settings-popup :is(input:not([type="range"]):not([type="color"]),.app-select) { max-width: 100%; min-width: 0; }
+:root body .free-tool-rail .tool-anchor { display: contents; }
+:root body :is(.app-shell .free-tool-rail,.free-more-popup) :is(button.tool.arasn-button[data-ui-button],summary.tool) {
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px;
+  width: 100%; min-width: 0; height: 36px; min-height: 36px; padding: 0 10px;
+  border: 1px solid transparent; border-radius: 8px; background: transparent;
+  color: var(--ui-text-primary); font-size: 14px; font-weight: 400; line-height: 18px;
+}
+:root body :is(.app-shell .free-tool-rail,.free-more-popup) :is(button.tool.arasn-button[data-ui-button],summary.tool):hover:not(:disabled,[aria-pressed="true"],[data-popup-open],details[open] > summary) {
+  background: var(--ui-hover); border-color: transparent;
+}
+:root body .app-shell .free-tool-rail :is(button.tool.arasn-button[data-ui-button]:is([aria-pressed="true"],[data-popup-open]),details[open] > summary.tool) {
+  background: var(--ui-nav-active); border-color: var(--ui-focus);
+}
+:root body :is(.app-shell .free-tool-rail,.free-more-popup) :is(button.tool.arasn-button[data-ui-button],summary.tool):focus-visible {
+  outline: 2px solid var(--ui-focus); outline-offset: -2px;
+}
+:root body .app-shell .free-tool-rail:not([data-mode="full"]) button.tool.arasn-button[data-ui-button] { padding: 0; justify-content: center; }
+:root body .page-header .header-actions .mobile-settings[data-ui-button] { display: none; }
+:root body .app-shell .free-workspace[data-toolbar-mode="full"] .toolbar { width: var(--ui-canvas-tools-width); }
+:root body .xigra-shell .quick-input { font-size: var(--ui-body-size); line-height: 1.7; }
+:root body .tool-settings-popup .free-properties-heading { font-size: var(--ui-module-size); }
+:root body .modal .app-select-trigger { font-size: var(--ui-body-size); }
+:root body .file-station .file-actions .file-compact-more[data-ui-button] { display: none; }
+@media(max-width: 1100px) {
+  :root body .file-workspace .file-station .file-actions .file-secondary-action[data-ui-button] { display: none; }
+  :root body .file-station .file-actions .file-compact-more[data-ui-button] { display: inline-flex; }
+}
+@media(max-width: 1000px) {
+  :root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button] { padding-inline: 14px; }
+}
+@media(max-width: 639px) {
+  :root body .page-header .header-actions .mobile-settings[data-ui-button] { display: inline-flex; }
+}
+@media(forced-colors: active) {
+  :root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button] { border-color: ButtonText; background: ButtonFace; color: ButtonText; }
+  :root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button[data-ui-button]:focus-visible { outline-color: Highlight; }
+}
+
+/* Primary text is invariant, including legacy recorder hover and selected rules. */
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button.arasn-button-primary[data-ui-button="primary"],
+:root body :is(.app-shell,.modal,.tool-settings-popup,.free-more-popup,.window-actions-popup) button.arasn-button.arasn-button-primary[data-ui-button="primary"]:is(:hover,:active,:focus,:focus-visible,[aria-pressed="true"],[aria-selected="true"]) { color:var(--ui-on-action); font-weight:var(--ui-button-weight); }
+:root body :is(.app-shell,.modal,.window-actions-popup) button.arasn-button.arasn-button-primary[data-ui-button="primary"] :is(svg,span) { color:inherit; }

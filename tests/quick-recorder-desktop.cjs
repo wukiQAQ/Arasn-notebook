@@ -14,16 +14,20 @@ const path = require('node:path');
   const launch = async () => {
     app = await electron.launch({ args: ['.'], cwd: path.resolve(__dirname, '..'), env });
     page = await app.firstWindow(); page.setDefaultTimeout(12000);
+    await page.evaluate(() => document.addEventListener('keydown', event => {
+      if (!event.ctrlKey && !event.altKey && !event.metaKey &&
+          (event.key.length === 1 || ['Backspace', 'Delete'].includes(event.key))) event.preventDefault();
+    }, true));
     page.on('pageerror', e => errors.push(e.message));
-    win = await app.browserWindow(page); await win.evaluate(w => { w.show(); w.focus(); });
+    win = await app.browserWindow(page); await win.evaluate(w => { w.setIgnoreMouseEvents(true); w.show(); w.focus(); });
     await page.locator('.quick-title:enabled').waitFor();
   };
   const button = name => page.getByRole('button', { name, exact: true });
-  const saved = () => expect(page.locator('.save-state')).toHaveText('已保存');
+  const saved = () => expect(page.locator('.save-state:visible')).toHaveText('已保存');
   const capture = async (name, width, height) => {
-    await win.evaluate((w, size) => w.setContentSize(...size), [width, height]);
+    await win.evaluate((w, size) => { w.restore(); w.setMinimumSize(360, 400); w.setContentSize(...size); }, [width, height]);
     await page.waitForFunction(w => innerWidth === w, width);
-    await page.locator('.toast').waitFor({ state: 'hidden' });
+    await page.locator('.toast, .app-notification').waitFor({ state: 'hidden' });
     await page.screenshot({ path: path.join(output, name + '.png'), scale: 'css', animations: 'disabled' });
     const layout = await page.evaluate(() => ({ width: innerWidth, height: innerHeight,
       overflow: document.documentElement.scrollWidth > innerWidth,
@@ -87,6 +91,11 @@ const path = require('node:path');
     assert.deepEqual(errors, []);
     await fs.writeFile(path.join(output, 'verification.json'), JSON.stringify({ layouts, errors, focusAndCaret: true, titleSearch: true, fileImport: true, canvas: true, restart: true }, null, 2));
     console.log('PASS recorder: title/body, focus/carets, search, files, canvas, restart, 5 widths');
+  } catch (error) {
+    if (page && !page.isClosed()) {
+      await page.screenshot({ path: path.join(output, 'failure.png') });
+    }
+    throw error;
   } finally {
     if (app) await app.close();
     const resolved = await fs.realpath(data);

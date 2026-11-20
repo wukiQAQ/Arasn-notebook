@@ -15,7 +15,7 @@ const {
 } = require("electron");
 const { StorageEngine } = require("./engines/storage-engine.cjs");
 const { PanelEngine } = require("./engines/panel-engine.cjs");
-const { WindowManager, QUICK_WINDOW } = require("./engines/window-manager.cjs");
+const { WindowManager, WORKBENCH_WINDOW } = require("./engines/window-manager.cjs");
 const { installServices } = require("./engines/install-services.cjs");
 const { LanNotes } = require("./engines/lan-notes.cjs");
 const { listNetworks } = require("./engines/network-interfaces.cjs");
@@ -49,27 +49,21 @@ let triggers, edgeFeedback, links = [], shareHost = null;
 const token = crypto.randomBytes(24).toString("hex");
 const staticDir = path.join(__dirname, "../dist");
 const appIcon = path.join(staticDir, "arasn-icon.png");
-let expanded = false;
 let readyToReveal = false;
 let revealRequested = false;
 let windowIntent;
 let nextWindowIntent = 0;
+let triggerRevealVersion = 0;
 const validCanvasOptions = value => value && typeof value === "object" && !Array.isArray(value) &&
-  Object.keys(value).length === 5 &&
-  Object.keys(value).every(key => ["roomId", "grid", "snap", "minimap", "wheel"].includes(key)) &&
+  Object.keys(value).every(key => ["roomId", "grid", "snap", "minimap", "wheel", "nodeDisplay"].includes(key)) &&
   typeof value.roomId === "string" && value.roomId.length > 0 &&
   ["grid", "snap", "minimap"].every(key => typeof value[key] === "boolean") &&
-  ["auto", "zoom", "pan"].includes(value.wheel);
-function setLayout(value) {
-  if (typeof value !== "boolean") throw new Error("布局参数无效");
-  windowManager.setLayout(value);
-  expanded = value;
-  window.webContents.send("app:layout", expanded);
-  return info();
-}
+  ["auto", "zoom", "pan"].includes(value.wheel) &&
+  (value.nodeDisplay === undefined || ["detailed", "compact"].includes(value.nodeDisplay));
+const validSidebar = value => value && ['full', 'compact', 'hidden'].includes(value.mode) && Number.isFinite(value.width) && value.width >= 180 && value.width <= 280;
+const { validAppearance } = require("./engines/appearance.cjs");
 let preferences = {
   theme: "system",
-  alwaysOnTop: true,
   startMinimized: true,
   startHidden: false,
 };
@@ -96,21 +90,27 @@ function revealWindow(focus) {
 }
 function requestWindowIntent(action) {
   if (windowIntent || exiting || window.webContents.isDestroyed()) return;
+  ++triggerRevealVersion;
   const id = ++nextWindowIntent;
-  const timeout = setTimeout(() => { windowIntent = undefined; }, 2500);
-  windowIntent = { id, action, timeout };
+  const restore = {
+    visible: Boolean(window.isVisible() && !window.isMinimized()),
+    focus: Boolean(window.isFocused()),
+  };
+  const declined = () => { if (restore.visible && !window.isVisible()) revealWindow(restore.focus); };
+  const timeout = setTimeout(() => { windowIntent = undefined; declined(); }, 2500);
+  windowIntent = { id, action, timeout, declined };
   window.webContents.send("app:windowIntent", id, action);
 }
 function dispatchTrigger(action, region) {
   if (!readyToReveal || windowIntent || exiting || window.isDestroyed() || window.webContents.isDestroyed()) return;
-  if (action === "toggle" && !window.isMinimized() && window.isVisible()) {
+  if (action === "toggle" && !window.isMinimized() && window.isFocused()) {
     requestWindowIntent("hide");
     return;
   }
   const arriving = region && triggers.config.feedback !== false && (!window.isVisible() || window.isMinimized());
-  revealWindow(!region);
   if (arriving) window.webContents.send("app:trigger-arrival", region);
-  if (action !== "toggle") window.webContents.send("app:trigger-action", action);
+  const target = action === "toggle" ? "quick-note" : action;
+  window.webContents.send("app:trigger-action", target, !region || target === "quick-note" || target === "workbench", triggerRevealVersion);
 }
 const legacyShortcut = () => triggers?.config.bindings.find(binding =>
   binding.enabled && binding.action === "toggle" && binding.input.device === "keyboard")?.input.accelerator;
@@ -118,7 +118,6 @@ const info = () => {
   const networks = listNetworks();
   const shareAddressAvailable = !shared || networks.some(entry => entry.address === shareHost);
   return ({
-  expanded,
   shortcut: legacyShortcut() ?? DEFAULT_KEY,
   shortcutOk: Object.keys(triggers?.failures ?? {}).length === 0,
   triggers: triggers?.config ?? defaultConfig(),
@@ -134,6 +133,7 @@ const info = () => {
   shareAddressAvailable,
   dataPath: app.getPath("userData"),
   ...preferences,
+  alwaysOnTop: false,
   ...startup.view(),
 });
 };
@@ -170,7 +170,7 @@ if (lock)
           triggerConfig = saved.triggers;
           if (["system", "light", "dark"].includes(saved.theme))
             preferences.theme = saved.theme;
-          for (const key of ["alwaysOnTop", "startMinimized", "startHidden"])
+          for (const key of ["startMinimized", "startHidden"])
             if (typeof saved[key] === "boolean") preferences[key] = saved[key];
         } catch {
           /* Keep default when only preferences are invalid. */
@@ -192,13 +192,14 @@ if (lock)
           preferences.canvasOptions = migrated.settings.canvasOptions;
         for (const key of [
           "theme",
-          "alwaysOnTop",
           "startMinimized",
           "startHidden",
         ])
           if (migrated.settings[key] !== undefined)
             preferences[key] = migrated.settings[key];
       }
+      if (validSidebar(migrated.settings?.sidebar)) preferences.sidebar = migrated.settings.sidebar;
+      if (validAppearance(migrated.settings?.appearance)) preferences.appearance = migrated.settings.appearance;
       nativeTheme.themeSource = preferences.theme;
       store = await new PanelEngine(storage, () =>
         window?.webContents.send("board:changed"),
@@ -213,9 +214,17 @@ if (lock)
       );
       const showOnStartup = !process.env.ARASN_SMOKE && !preferences.startHidden &&
         !(process.argv.includes("--autostart") && preferences.startMinimized);
+      // Let the renderer's title surface and dialog scrim show through the native buttons.
+      const titleBarOverlay = () => ({
+        color: "#00000000",
+        symbolColor: nativeTheme.shouldUseDarkColors ? "#eef0f4" : "#242830",
+        height: 48,
+      });
       window = new BrowserWindow({
-        ...QUICK_WINDOW,
+        ...WORKBENCH_WINDOW,
         title: "Arasn",
+        titleBarStyle: "hidden",
+        ...(process.platform === "win32" ? { titleBarOverlay: titleBarOverlay() } : {}),
         icon: appIcon,
         backgroundColor: nativeTheme.shouldUseDarkColors ? "#1b1e24" : "#f3f4f6",
         autoHideMenuBar: true,
@@ -229,9 +238,12 @@ if (lock)
           session,
         },
       });
-      windowManager = new WindowManager(window, storage, screen, preferences.alwaysOnTop);
+      windowManager = new WindowManager(window, storage, screen);
       const updateBackground = () => {
-        if (!window.isDestroyed()) window.setBackgroundColor(nativeTheme.shouldUseDarkColors ? "#1b1e24" : "#f3f4f6");
+        if (!window.isDestroyed()) {
+          window.setBackgroundColor(nativeTheme.shouldUseDarkColors ? "#1b1e24" : "#f3f4f6");
+          if (process.platform === "win32") window.setTitleBarOverlay(titleBarOverlay());
+        }
       };
       nativeTheme.on("updated", updateBackground);
       window.on("closed", () => nativeTheme.removeListener("updated", updateBackground));
@@ -317,7 +329,16 @@ if (lock)
           event.senderFrame === window.webContents.mainFrame &&
           event.senderFrame?.url.startsWith(`${origin}/`) ? preferences.theme : null;
       });
-      secureHandle("app:layout", setLayout);
+      ipcMain.on("app:appearance", event => {
+        event.returnValue = event.sender === window.webContents &&
+          event.senderFrame === window.webContents.mainFrame &&
+          event.senderFrame?.url.startsWith(`${origin}/`) ? preferences.appearance ?? null : null;
+      });
+      secureHandle("app:reveal", (focus, version) => {
+        if (typeof focus !== "boolean" || !Number.isSafeInteger(version) || version < 0) throw new Error("窗口唤出参数无效");
+        // A delayed trigger completion must not undo a newer close/hide request.
+        if (version === triggerRevealVersion && !windowIntent) revealWindow(focus);
+      });
       let shareTask = Promise.resolve();
       const changeNetworkMode = (action) => {
         shareTask = shareTask.catch(() => {}).then(action);
@@ -377,14 +398,14 @@ if (lock)
       secureHandle("app:hide", () => requestWindowIntent("hide"));
       secureHandle("app:confirmWindowIntent", async (id, allowed) => {
         if (!windowIntent || windowIntent.id !== id) return;
-        const { action, timeout } = windowIntent;
+        const { action, timeout, declined } = windowIntent;
         clearTimeout(timeout);
         windowIntent = undefined;
-        if (allowed !== true) return;
-        if (action === "hide") window.hide();
+        if (allowed !== true) { declined(); return; }
+        if (action === "hide") { window.hide(); }
         else {
           exiting = true;
-          await windowManager.saveQuickBounds();
+          await windowManager.saveCurrentBounds();
           app.quit();
         }
       });
@@ -395,7 +416,7 @@ if (lock)
           "shortcut",
           "triggers",
           "theme",
-          "alwaysOnTop",
+          "appearance",
           "startMinimized",
           "startHidden",
           "openAtLogin",
@@ -403,9 +424,12 @@ if (lock)
           "topologyViewport",
           "canvasOptions",
           "brushPresets",
+          "sidebar",
         ];
         if (Object.keys(patch).some((key) => !allowed.includes(key)))
           throw new Error("未知设置");
+        if (patch.appearance !== undefined && !validAppearance(patch.appearance))
+          throw new Error("外观设置无效");
         if (patch.freeViewport !== undefined &&
             (!validFreeViewport(patch.freeViewport) || patch.freeViewport.roomId !== store.snapshot().roomId))
           throw new Error("自由页视图无效或工作页已更换");
@@ -421,7 +445,6 @@ if (lock)
         )
           throw new Error("主题无效");
         for (const key of [
-          "alwaysOnTop",
           "startMinimized",
           "startHidden",
           "openAtLogin",
@@ -440,7 +463,10 @@ if (lock)
             ? bindings.map(binding => binding === current ? replacement : binding)
             : [...bindings, replacement] };
         }
+        if (patch.sidebar !== undefined && !validSidebar(patch.sidebar)) throw new Error("导航设置无效");
         const next = { ...preferences };
+        if (patch.appearance !== undefined) next.appearance = patch.appearance;
+        if (patch.sidebar !== undefined) next.sidebar = { ...patch.sidebar };
         if(patch.brushPresets !== undefined) {
           if(!validBrushPresets(patch.brushPresets))throw new Error('画笔方案无效');
           next.brushPresets=patch.brushPresets.map(v=>({...v}));
@@ -455,7 +481,6 @@ if (lock)
             restoreLogin = startup.apply(patch.openAtLogin);
           for (const key of [
             "theme",
-            "alwaysOnTop",
             "startMinimized",
             "startHidden",
           ])
@@ -474,7 +499,6 @@ if (lock)
         if (staged && triggers.config.feedback === false) edgeFeedback?.dispose();
         preferences = next;
         if (patch.theme !== undefined) nativeTheme.themeSource = preferences.theme;
-        if (patch.alwaysOnTop !== undefined) windowManager.setQuickAlwaysOnTop(preferences.alwaysOnTop);
         return info();
       }
       let settingsTask = Promise.resolve();

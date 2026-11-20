@@ -1,0 +1,185 @@
+:root .adaptive-shell > main > .xigra-record-workspace {
+  --record-inset: clamp(14px, 2.4vw, 32px);
+  --record-toolbar-height: 54px;
+  --record-action-size: 36px;
+  --record-action-gap: 8px;
+  --record-transition: 180ms cubic-bezier(.2, .75, .25, 1);
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+  grid-template: minmax(0, 1fr) / minmax(0, clamp(214px, 26%, 272px)) minmax(0, 1fr);
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transition: grid-template-columns var(--record-transition), gap var(--record-transition);
+}
+:root .adaptive-shell > main > .xigra-record-workspace[data-quick="true"] {
+  grid-template-columns: minmax(0, 0px) minmax(0, 1fr);
+  gap: 0;
+}
+:root .xigra-record-workspace .xigra-record-index {
+  border: 0;
+  padding-inline: 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ui-surface-nav) 86%, var(--ui-surface-card));
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity var(--record-transition), padding-inline var(--record-transition);
+}
+:root .xigra-record-workspace[data-quick="true"] .xigra-record-index {
+  padding-inline: 0;
+  opacity: 0;
+}
+:root .xigra-record-workspace .record-index-heading { display: flex; flex-wrap: nowrap; }
+:root .xigra-record-workspace .xigra-record-list button {
+  height: 74px;
+  min-height: 74px;
+  box-sizing: border-box;
+  gap: 3px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 9px;
+  text-align: start;
+}
+:root .xigra-record-workspace .xigra-record-list button strong { text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+:root .xigra-record-workspace .xigra-record-list button small {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.35;
+  white-space: normal;
+  overflow: hidden;
+}
+:root .xigra-record-workspace .xigra-record-paper {
+  display: flex;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ui-surface-card) 88%, var(--ui-surface-app));
+}
+:root .xigra-record-workspace .xigra-record-paper .xigra-note-heading {
+  --record-action-background: color-mix(in srgb, var(--secondary-button-bg) 72%, transparent);
+  --record-action-hover: color-mix(in srgb, var(--ui-action) 8%, var(--ui-hover));
+  --record-action-pressed: var(--ui-pressed);
+  box-sizing: border-box;
+  flex: 0 0 var(--record-toolbar-height);
+  height: var(--record-toolbar-height);
+  min-height: var(--record-toolbar-height);
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--record-action-gap);
+  border: 0;
+  padding: 8px var(--record-inset);
+  flex-wrap: nowrap;
+  background: transparent;
+}
+:root[data-theme="dark"] .xigra-record-workspace .xigra-record-paper .xigra-note-heading {
+  --record-action-background: color-mix(in srgb, var(--ui-surface-card) 96%, var(--ui-text-primary));
+  --record-action-hover: color-mix(in srgb, var(--record-action-background) 93%, var(--ui-text-primary));
+  --record-action-pressed: color-mix(in srgb, var(--record-action-background) 87%, var(--ui-text-primary));
+}
+:root body .xigra-record-workspace :is(.record-document-heading, .xigra-note-actions) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--record-action-gap);
+}
+:root body .app-shell .xigra-record-workspace .xigra-note-heading button.arasn-button[data-ui-button] {
+  height: var(--record-action-size);
+  min-height: var(--record-action-size);
+  border-radius: var(--ui-button-radius);
+  filter: none;
+}
+:root body .app-shell .xigra-record-workspace .xigra-note-heading button.arasn-icon-button[data-ui-button] {
+  width: var(--record-action-size);
+  min-width: var(--record-action-size);
+  border-color: transparent;
+  background: var(--record-action-background);
+}
+:root body .app-shell .xigra-record-workspace .xigra-note-heading button.arasn-icon-button[data-ui-button]:is(:hover, [data-popup-open]):not(:disabled) {
+  background: var(--record-action-hover);
+  color: var(--ui-text-primary);
+}
+:root body .app-shell .xigra-record-workspace .xigra-note-heading button.arasn-icon-button[data-ui-button]:active:not(:disabled) {
+  background: var(--record-action-pressed);
+}
+:root .xigra-record-workspace .xigra-note-heading button.page-new-note { padding-inline: 12px; gap: 6px; }
+:root .xigra-record-workspace .record-editor-title {
+  margin: 4px var(--record-inset) 0;
+  padding: 10px 0;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ui-border-subtle);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ui-text-primary);
+  font: 650 clamp(20px, 3.2cqi, 28px)/1.4 var(--ui-font);
+  outline: none;
+}
+:root .xigra-record-workspace .record-editor-title:focus-visible { border-color: var(--ui-focus); }
+:root .xigra-record-workspace .xigra-record-paper .xigra-record-editor {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 14px max(var(--record-inset), calc(100% - var(--record-inset) - 72ch)) 20px var(--record-inset);
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  line-height: 1.8;
+}
+:root .app-shell .xigra-record-workspace .xigra-record-paper > .note-status-bar {
+  display: flex;
+  justify-content: space-between;
+  width: auto;
+  max-width: none;
+  align-self: stretch;
+  flex: none;
+  flex-wrap: wrap;
+  margin: 0 var(--record-inset);
+  padding: 6px 0;
+  gap: 4px 12px;
+  border: 0;
+  border-top: 1px solid var(--ui-border-subtle);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+:root .xigra-record-workspace .note-status-bar .note-word-count { display: inline; }
+:root .xigra-record-workspace .note-status-actions { display: flex; gap: 2px; flex-wrap: wrap; }
+:root .record-attachment-popover .attachment-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+:root .record-attachment-popover .record-attachments > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+:root .record-attachment-popover .record-attachments > div > span { flex: 1 1 125px; }
+
+:root .xigra-record-workspace[data-library-overlay="true"] .xigra-record-paper { grid-column: 1 / -1; grid-row: 1; }
+:root .xigra-record-workspace[data-library-overlay="true"] .xigra-record-index {
+  position: absolute;
+  z-index: 2;
+  inset: var(--record-toolbar-height) auto 0 0;
+  width: min(290px, 96%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-12px);
+  box-shadow: var(--xigra-shadow-floating);
+  transition: opacity var(--record-transition), transform var(--record-transition), visibility var(--record-transition);
+}
+:root .xigra-record-workspace[data-library-overlay="true"][data-library-open="true"] .xigra-record-index {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+}
+:root .xigra-record-workspace[data-library-overlay="true"] .note-count-limit { display: none; }
+@media (max-width: 720px) {
+  :root body .app-shell .xigra-record-workspace .xigra-note-heading button.page-new-note[data-ui-button] {
+    width: var(--record-action-size);
+    padding: 0;
+  }
+  :root .xigra-record-workspace .xigra-note-heading .page-new-note span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .adaptive-shell > main > .xigra-record-workspace { --record-transition: 0ms; }
+}

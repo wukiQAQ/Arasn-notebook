@@ -1,0 +1,40 @@
+/* One page title, one compact header, then task tools and content. */
+:root .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  box-sizing: border-box;
+  min-height: 64px;
+  height: auto;
+  padding: 10px 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+:root .app-shell .page-header.topbar.xigra-workbench-bar { height: auto; min-height: 64px; border: 0; margin: 0; padding: 10px 0; }
+:root .page-header-identity { display: flex; align-items: center; gap: 8px; min-width: 0; }
+:root .page-header-copy { min-width: 0; }
+.page-header-title-row { display: flex; align-items: center; gap: 4px; }
+:root .page-header .page-header-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0; margin: 0; font-size: 18px; font-weight: 600; line-height: 26px; font-family: inherit; color: var(--ui-text-primary); letter-spacing: 0; white-space: normal; }
+:root .page-header .page-header-meta { font-size: 12px; line-height: 20px; font-weight: 400; color: var(--ui-text-secondary); white-space: pre; }
+:root .page-header-description { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--ui-text-secondary); }
+:root .page-header .header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; max-width: 100%; }
+:root .page-header .page-header-back { flex: none; width: 36px; height: 36px; min-height: 36px; }
+:root .page-header .page-header-view { display: inline-flex; align-items: center; min-height: 36px; }
+:root .file-workspace .file-station { border: 0; border-radius: 0; padding: 8px 0 0; background: transparent; gap: 12px; }
+:root .file-workspace .file-actions { border-bottom: 0; padding-bottom: 0; }
+:root .relation-workbench .topology-toolbar { min-height: 0; padding: 4px 0 12px; gap: 8px; }
+:root .relation-workbench .topology-tools { flex: 1; }
+:root .free-workspace { border: 0; border-radius: 0; }
+:root .device-hub .page-header { padding-top: 0; margin-bottom: 16px; }
+@media (max-width: 760px) {
+  :root .app-shell .page-header.topbar.xigra-workbench-bar { gap: 8px; }
+  :root .page-header .header-actions { gap: 6px; }
+  :root .page-header .header-actions .new-note { padding-inline: 12px; }
+}
+@media (max-width: 639px) {
+  :root .page-header .header-actions { flex-basis: 100%; justify-content: flex-start; }
+}

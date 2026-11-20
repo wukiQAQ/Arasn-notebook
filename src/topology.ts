@@ -13,18 +13,25 @@ export function relationCurve(from: Point, to: Point) {
 
 // Layout-only geometry: existing node IDs, relation types and stored endpoints stay unchanged.
 export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLabels: Bounds[] = []) {
-  const direction = b.x + b.width / 2 >= a.x + a.width / 2 ? 1 : -1;
-  const sourcePort = direction > 0 ? a.x + a.width : a.x;
-  const targetPort = direction > 0 ? b.x : b.x + b.width;
+  // Stacked cards use their top/bottom boundaries when a horizontal route would enter a card.
+  const vertical = a.x < b.x + b.width && b.x < a.x + a.width &&
+    (a.y + a.height < b.y || b.y + b.height < a.y);
+  const axis = (box: Bounds) => vertical ? { x: box.y, y: box.x, width: box.height, height: box.width } : box;
+  const world = (p: Point) => vertical ? { x: p.y, y: p.x } : p;
+  const source = axis(a), target = axis(b);
+  const direction = target.x + target.width / 2 >= source.x + source.width / 2 ? 1 : -1;
+  const sourcePort = direction > 0 ? source.x + source.width : source.x;
+  const targetPort = direction > 0 ? target.x : target.x + target.width;
   const gap = (targetPort - sourcePort) * direction;
   const short = gap > 0 && gap * zoom < 80;
   const clearance = short ? Math.min(1, gap * zoom / 32) : 1;
-  const start = { x: sourcePort + direction * 6 * clearance / zoom, y: a.y + a.height / 2 };
-  const end = { x: targetPort - direction * 10 * clearance / zoom, y: b.y + b.height / 2 };
-  const normalBend = Math.max(40 / zoom, Math.min(180 / zoom, Math.abs(end.x - start.x) * .5 + Math.abs(end.y - start.y) * .12));
+  const from = { x: sourcePort + direction * 6 * clearance / zoom, y: source.y + source.height / 2 };
+  const to = { x: targetPort - direction * 10 * clearance / zoom, y: target.y + target.height / 2 };
+  const normalBend = Math.max(40 / zoom, Math.min(180 / zoom, Math.abs(to.x - from.x) * .5 + Math.abs(to.y - from.y) * .12));
   // Close, separated cards keep monotonic control points instead of folding back.
-  const bend = short ? Math.min(normalBend, Math.abs(end.x - start.x) / 2) : normalBend;
-  const c1 = { x: start.x + direction * bend, y: start.y }, c2 = { x: end.x - direction * bend, y: end.y };
+  const bend = vertical || short ? Math.min(normalBend, Math.abs(to.x - from.x) / 2) : normalBend;
+  const start = world(from), end = world(to);
+  const c1 = world({ x: from.x + direction * bend, y: from.y }), c2 = world({ x: to.x - direction * bend, y: to.y });
   const point = (t: number) => {
     const u = 1 - t;
     return { x: u ** 3 * start.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t ** 3 * end.x,
@@ -38,7 +45,8 @@ export function relationGeometry(a: Bounds, b: Bounds, zoom: number, occupiedLab
     const rect = { x: candidate.x - labelWidth / 2 / zoom, y: candidate.y - 14 / zoom, width: labelWidth / zoom, height: 28 / zoom };
     if (![a, b].some(node => overlaps(rect, node, 8 / zoom)) && !occupiedLabels.some(other => overlaps(rect, other, 4 / zoom))) { label = candidate; break search; }
   }
-  return { start, end, c1, c2, label, labelWidth, direction,
+  return { start, end, c1, c2, label, labelWidth, direction, vertical,
+    sourceAnchor: world({ x: sourcePort, y: from.y }), targetAnchor: world({ x: targetPort, y: to.y }),
     labelBounds: { x: label.x - labelWidth / 2 / zoom, y: label.y - 14 / zoom, width: labelWidth / zoom, height: 28 / zoom },
     path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}` };
 }
@@ -47,13 +55,15 @@ export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
 export type Bounds = Point & Size;
 export type Camera = Point & { zoom: number };
-export type CanvasOptions = { roomId: string; grid: boolean; snap: boolean; minimap: boolean; wheel: "auto" | "zoom" | "pan" };
+export type CanvasOptions = { roomId: string; grid: boolean; snap: boolean; minimap: boolean; wheel: "auto" | "zoom" | "pan"; nodeDisplay?: "detailed" | "compact" };
 export type TopologyViewport = Camera & { roomId: string };
 export type TopologyLayout = Bounds & {
   kind: keyof typeof NODE_KINDS;
   status: keyof typeof NODE_STATUSES;
   hidden?: boolean;
   locked?: boolean;
+  autoSize?: boolean;
+  color?: string;
 };
 export type TopologyNote = NodeValue | TextValue;
 
@@ -65,15 +75,22 @@ export const DEFAULT_CAMERA: Camera = { x: 0, y: 0, zoom: 1 };
 export const worldLimit = (value: number) => Math.min(WORLD_LIMIT, Math.max(-WORLD_LIMIT, value));
 
 export function noteLayout(x: number, y: number, kind: TopologyLayout["kind"] = "note"): TopologyLayout {
-  return { x, y, width: 280, height: 140, kind, status: "open" };
+  return { x, y, width: 300, height: 150, kind, status: "open", autoSize: true };
 }
 
+export function centeredNodeLayout(point: Point, kind?: TopologyLayout['kind']) {
+  const layout = noteLayout(0, 0, kind);
+  return { ...layout, x: worldLimit(point.x - layout.width / 2), y: worldLimit(point.y - layout.height / 2) };
+}
+
+export const AUTO_NODE_MAX_HEIGHT = 208;
 export function vacantLayout(layout: TopologyLayout, items: Record<string, Item>, canvasId: string) {
+  const reserved = (box: TopologyLayout) => box.autoSize ? { ...box, height: AUTO_NODE_MAX_HEIGHT } : box;
   const occupied = Object.values(items).flatMap(item => item.value?.type === "canvas-node" &&
-    item.value.canvasId === canvasId && !item.value.layout.hidden ? [item.value.layout] : []);
+    item.value.canvasId === canvasId && !item.value.layout.hidden ? [reserved(item.value.layout)] : []);
   for (let step = 0; step < 40; step++) {
-    const candidate = { ...layout, x: worldLimit(layout.x + (step % 5) * 320), y: worldLimit(layout.y + Math.floor(step / 5) * 190) };
-    if (!occupied.some(other => overlaps(candidate, other, 24))) return candidate;
+    const candidate = { ...layout, x: worldLimit(layout.x + (step % 5) * (layout.width + 40)), y: worldLimit(layout.y + Math.floor(step / 5) * (reserved(layout).height + 40)) };
+    if (!occupied.some(other => overlaps(reserved(candidate), other, 24))) return candidate;
   }
   return layout;
 }
@@ -84,7 +101,8 @@ export function layoutOf(value: TopologyNote) {
 
 export function sameLayout(a: TopologyLayout, b: TopologyLayout) {
   return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height &&
-    a.kind === b.kind && a.status === b.status && Boolean(a.hidden) === Boolean(b.hidden) && Boolean(a.locked) === Boolean(b.locked);
+    a.kind === b.kind && a.status === b.status && Boolean(a.hidden) === Boolean(b.hidden) &&
+    Boolean(a.locked) === Boolean(b.locked) && Boolean(a.autoSize) === Boolean(b.autoSize) && a.color === b.color;
 }
 
 export function screenToWorld(point: Point, size: Size, camera: Camera): Point {

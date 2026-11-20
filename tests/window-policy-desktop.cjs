@@ -28,10 +28,11 @@ const os = require("node:os");
     app = await launch();
     page = await app.firstWindow();
     await page.waitForFunction(() => Boolean(window.desktop));
-    await expect.poll(() => page.evaluate(() => window.desktop.info().then(info => info.alwaysOnTop))).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.desktop.info().then(info => info.alwaysOnTop))).toBe(false);
+    expect((await nativeState()).top).toBe(false);
     await page.evaluate(() => window.desktop.layout(true));
     expect((await nativeState()).top).toBe(false);
-    await page.evaluate(() => window.desktop.settings({ alwaysOnTop: true }));
+    await expect(page.evaluate(() => window.desktop.settings({ alwaysOnTop: true }))).rejects.toThrow('未知设置');
     expect((await nativeState()).top).toBe(false);
     await app.evaluate(({ BrowserWindow, app }) => {
       BrowserWindow.getAllWindows()[0].hide();
@@ -41,8 +42,6 @@ const os = require("node:os");
     await expect.poll(async () => (await nativeState()).focused).toBe(true);
     expect((await nativeState()).top).toBe(false);
     await page.evaluate(() => window.desktop.layout(false));
-    await expect.poll(async () => (await nativeState()).top).toBe(true);
-    await page.evaluate(() => window.desktop.settings({ alwaysOnTop: false }));
     expect((await nativeState()).top).toBe(false);
     await page.evaluate(async () => {
       await window.desktop.layout(true);
@@ -71,7 +70,7 @@ const os = require("node:os");
       const target = new BrowserWindow({ show: false });
       const foreground = new BrowserWindow({ show: true });
       foreground.focus();
-      const manager = new WindowManager(target, { call: async () => undefined }, screen, false);
+      const manager = new WindowManager(target, { call: async () => undefined }, screen);
       await manager.restore();
       let focusEvents = 0;
       target.on("focus", () => focusEvents++);
@@ -86,7 +85,6 @@ const os = require("node:os");
       await new Promise(resolve => setTimeout(resolve, 150));
       const passiveMinimized = { minimized: target.isMinimized(), focused: target.isFocused(), focusEvents };
       manager.setLayout(true);
-      manager.setQuickAlwaysOnTop(true);
       const workbenchTop = target.isAlwaysOnTop();
       manager.setLayout(false);
       const quickTop = target.isAlwaysOnTop();
@@ -94,13 +92,13 @@ const os = require("node:os");
       foreground.focus();
       manager.reveal({ focus: false });
       await new Promise(resolve => setTimeout(resolve, 100));
-      const pinnedPassiveFocus = target.isFocused();
+      const passiveFocus = target.isFocused();
       target.destroy();
       foreground.destroy();
-      return { visible, focused, focusEvents, passiveMinimized, workbenchTop, quickTop, pinnedPassiveFocus };
+      return { visible, focused, focusEvents, passiveMinimized, workbenchTop, quickTop, passiveFocus };
     }, path.resolve(__dirname, "../desktop/engines/window-manager.cjs"));
     expect(passive).toEqual({ visible: true, focused: false, focusEvents: 0,
-      passiveMinimized: { minimized: false, focused: false, focusEvents: 0 }, workbenchTop: false, quickTop: true, pinnedPassiveFocus: false });
+      passiveMinimized: { minimized: false, focused: false, focusEvents: 0 }, workbenchTop: false, quickTop: false, passiveFocus: false });
     await exit();
     app = await launch();
     page = await app.firstWindow();
@@ -113,22 +111,7 @@ const os = require("node:os");
     await page.evaluate(() => window.desktop.layout(true));
     expect((await nativeState()).top).toBe(false);
     await exit();
-    console.log("PASS native window modes, saved true/false, focused reveal, passive reveal, canvas options validation and restart");
-  } catch(error) {
-    if(app) {
-      const probe=await app.evaluate(async({BrowserWindow})=>{
-        const main=BrowserWindow.getAllWindows()[0];main.setAlwaysOnTop(true);
-        await new Promise(r=>setTimeout(r,150));const direct=main.isAlwaysOnTop();
-        const control=new BrowserWindow({show:false,width:200,height:100,alwaysOnTop:true,title:'Isolated pin probe'});
-        control.showInactive();await new Promise(r=>setTimeout(r,150));const standalone=control.isAlwaysOnTop();control.destroy();
-        return {direct,standalone,windows:BrowserWindow.getAllWindows().map(w=>({id:w.id,title:w.getTitle(),top:w.isAlwaysOnTop(),visible:w.isVisible(),focused:w.isFocused()}))};
-      });
-      const info=await page.evaluate(async()=>{const i=await window.desktop.info();return{expanded:i.expanded,pin:i.alwaysOnTop};});
-      const output=path.resolve(__dirname,'../docs/screenshots/free-quality');await fs.mkdir(output,{recursive:true});
-      await fs.writeFile(path.join(output,'window-policy-probe.json'),JSON.stringify({probe,info},null,2));
-      console.log('policy diagnostics',{probe,info});
-    }
-    throw error;
+    console.log("PASS normal native window levels, legacy settings, focused and passive reveal, canvas options and restart");
   } finally {
     if (app) await app.close().catch(() => {});
     const cleanupTarget=await fs.realpath(root);

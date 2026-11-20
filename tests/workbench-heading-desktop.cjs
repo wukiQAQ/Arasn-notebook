@@ -17,7 +17,7 @@ const assert = require('node:assert/strict');
     const page = await app.firstWindow(); const win = await app.browserWindow(page);
     page.on('pageerror', e => errors.push(e.message));
     await win.evaluate(w => { w.show(); w.focus(); });
-    await page.getByRole('button', { name: '打开工作区', exact: true }).click();
+    await page.getByRole('button', { name: '切换到工作区', exact: true }).click();
     const rail = page.getByRole('complementary', { name: '侧边栏' });
     for (const [width, height] of [[1440, 900], [820, 700], [390, 720]]) {
       await win.evaluate((w, s) => { w.setMinimumSize(350, 460); w.setContentSize(...s); }, [width, height]);
@@ -25,7 +25,7 @@ const assert = require('node:assert/strict');
       for (const [route, title, file] of [['我的随手页', '自由工作页', 'canvas'], ['打开关系画布', '关系画布', 'relations'], ['便笺列表', '速记', 'records'], ['文件', '文件中心', 'files']]) {
         await rail.getByRole('button', { name: route, exact: true }).click();
         if (phase !== 'before') {
-          await expect(page.locator('.topbar h1')).toHaveText(title);
+          await expect(page.locator('.topbar h1 > span')).toHaveText(title);
           await expect(page.locator('.topbar')).not.toContainText('Arasn');
           await expect(rail.locator('.xigra-wordmark')).toHaveText('Arasn');
           await expect(rail.locator('[aria-current="page"]')).toHaveCount(1);
@@ -34,9 +34,9 @@ const assert = require('node:assert/strict');
         const geometry = await page.locator('.topbar').evaluate(el => {
           const title = el.querySelector('h1, .xigra-workbench-wordmark').getBoundingClientRect();
           const actions = el.querySelector('.header-actions').getBoundingClientRect();
-          return { noPageOverflow: document.documentElement.scrollWidth <= innerWidth, titleRight: title.right, actionsLeft: actions.left, actionsRight: actions.right, width: innerWidth };
+          return { noPageOverflow: document.documentElement.scrollWidth <= innerWidth, titleRight: title.right, rowsSeparate: title.bottom <= actions.top || actions.bottom <= title.top, actionsLeft: actions.left, actionsRight: actions.right, width: innerWidth };
         });
-        if (phase !== 'before') assert.ok(geometry.noPageOverflow && geometry.titleRight <= geometry.actionsLeft && geometry.actionsRight <= width + 1, JSON.stringify({ title, ...geometry }));
+        if (phase !== 'before') assert.ok(geometry.noPageOverflow && (geometry.rowsSeparate || geometry.titleRight <= geometry.actionsLeft) && geometry.actionsRight <= width + 1, JSON.stringify({ title, ...geometry }));
         checks.push({ width, title, ...geometry });
       }
     }

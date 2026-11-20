@@ -5,6 +5,7 @@ export function LagoonMotion() {
   useEffect(() => {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const running = new Set<Animation>();
+    const quietControls = '.file-station, .file-preview, .note-handle, .lagoon-rail, .header-actions, .xigra-shell, .xigra-record-workspace, .modal, .command-popup, .file-popover';
     const current = new WeakMap<Element, Animation>();
     const play = (node: Element, frames: Keyframe[], duration: number) => {
       current.get(node)?.cancel();
@@ -16,7 +17,7 @@ export function LagoonMotion() {
       if (event.pointerType !== 'mouse' || reduced.matches) return;
       const button = (event.target as Element).closest('button');
       if (!button || button.contains(event.relatedTarget as Node | null) || button.disabled ||
-          button.closest('.file-station, .file-preview, .note-handle, .lagoon-rail')) return;
+          button.closest(quietControls)) return;
       const svg = button.querySelector('svg'); if (!svg) return;
       const name = svg.getAttribute('data-lagoon-icon') || svg.getAttribute('class') || '';
       if (name.includes('tray')) {
@@ -37,7 +38,7 @@ export function LagoonMotion() {
     const click = (event: MouseEvent) => {
       if (!event.detail || reduced.matches) return;
       const button=(event.target as Element).closest('button'); const svg=button?.querySelector('svg');
-      if(svg && !button?.disabled && !button?.closest('.file-station, .file-preview, .note-handle, .lagoon-rail'))
+      if(svg && !button?.disabled && !button?.closest(quietControls))
         play(svg,[{transform:'scale(.83)'},{transform:'scale(1.08)',offset:.65},{transform:'scale(1)'}],180);
     };
     document.addEventListener('pointerover', hover); document.addEventListener('click',click);

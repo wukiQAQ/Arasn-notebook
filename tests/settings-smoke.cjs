@@ -36,12 +36,7 @@ const path = require("node:path");
     await page.locator(".sidebar").getByRole("button", { name: "设置与快捷键" }).click();
     await selectOption(page, "外观主题", "dark");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await page.getByLabel("便签始终置顶", { exact: true }).check();
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.desktop.info().then((i) => i.alwaysOnTop)),
-      )
-      .toBe(true);
+    await expect(page.getByLabel("便签始终置顶", { exact: true })).toHaveCount(0);
     const toggleGroup = () => page.getByRole("region", { name: "显示或隐藏主面板" });
     const record = async (key) => {
       await toggleGroup().getByRole("button", { name: "修改", exact: true }).click();
@@ -124,7 +119,7 @@ const path = require("node:path");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     const restored = await page.evaluate(() => window.desktop.info());
     expect(restored.shortcut).toBe("Control+Alt+F8");
-    expect(restored.alwaysOnTop).toBe(true);
+    expect(restored.alwaysOnTop).toBe(false);
     expect(restored.startMinimized).toBe(false);
     await page.getByRole("button", { name: "打开工作区", exact: true }).click();
     await page.locator(".sidebar").getByRole("button", { name: "设置与快捷键" }).click();

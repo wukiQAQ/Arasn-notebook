@@ -100,10 +100,15 @@ const uuid = (id) => {
   return id;
 };
 const object = (id) => path.join(root, "objects", uuid(id) + ".bin");
+const withFileOrigin = row => {
+  let origin = 'unknown';
+  try { const detail = db.prepare("SELECT detail FROM operations WHERE id=? AND kind='import'").get(row.id); origin = JSON.parse(detail?.detail || '{}').origin; } catch {}
+  return { ...row, importOrigin: ['local','paste','device'].includes(origin) ? origin : 'unknown' };
+};
 const getFile = (id) => {
   const row = db.prepare("SELECT * FROM files WHERE id=?").get(uuid(id));
   if (!row) throw new Error("文件不存在");
-  return row;
+  return withFileOrigin(row);
 };
 function syncFileOwner(id, value, allowDeleted = false) {
   db.prepare("DELETE FROM canvas_file_refs WHERE owner_id=?").run(id);
@@ -218,7 +223,7 @@ async function digest(file) {
 }
 let activeImports = 0,
   maintenance = false;
-async function importOne(source, notify, displayName) {
+async function importOne(source, notify, displayName, origin = 'local') {
   if (maintenance) throw new Error("正在备份或清理，请稍后导入");
   activeImports++;
   const id = crypto.randomUUID(),
@@ -232,7 +237,7 @@ async function importOne(source, notify, displayName) {
       id,
       "import",
       "running",
-      JSON.stringify({ source: real }),
+      JSON.stringify({ source: real, origin: ['local','paste'].includes(origin) ? origin : 'unknown' }),
     );
     const hash = crypto.createHash("sha256");
     let bytes = 0,
@@ -345,9 +350,16 @@ async function makeBackup(target, notify) {
   return target;
 }
 const methods = {
-  metadata: ({ id }) => {
+  metadata: ({ id, recordId }) => {
     const file = getFile(id);
-    return { id: file.id, name: file.name, category: file.category, size: file.size, sha256: file.sha256, deleted_at: file.deleted_at, status: file.status };
+    return { id: file.id, name: file.name, category: file.category, size: file.size, sha256: file.sha256, deleted_at: file.deleted_at, status: file.status, importOrigin: file.importOrigin,
+      attachmentOrigin: recordId ? getSetting(`attachment-origin:${uuid(recordId)}:${file.id}`) : undefined };
+  },
+  attachmentOrigin: ({ id, recordId, origin }) => {
+    const file = getFile(id);
+    if (!['本地导入','粘贴','文件中心引用','设备互传','关系画布附件'].includes(origin)) throw new Error('附件来源无效');
+    setSetting(`attachment-origin:${uuid(recordId)}:${file.id}`, origin);
+    return true;
   },
   canvasCreate: ({ roomId, recordId, nodeId, opId, layout, text = "" }) => {
     if (roomId !== state.roomId || getSetting("canvas-migration")?.roomId !== roomId)
@@ -441,7 +453,7 @@ const methods = {
       const detail = JSON.parse(row.detail);
       if (!detail.source) continue;
       try {
-        results.push(await importOne(detail.source, notify));
+        results.push(await importOne(detail.source, notify, undefined, detail.origin));
         db.prepare("UPDATE operations SET state='retried' WHERE id=?").run(
           row.id,
         );
@@ -508,13 +520,13 @@ const methods = {
         .prepare(
           `SELECT f.* FROM files f WHERE ${where} ORDER BY f.created_at DESC,f.id LIMIT 25 OFFSET ?`,
         )
-        .all(...args, page * 25),
+        .all(...args, page * 25).map(withFileOrigin),
       total: db
         .prepare(`SELECT count(*) n FROM files f WHERE ${where}`)
         .get(...args).n,
     };
   },
-  import: async ({ paths, names = [] }, notify) => {
+  import: async ({ paths, names = [], origin = 'local' }, notify) => {
     if (!Array.isArray(paths) || paths.length > 100)
       throw new Error("每批最多100个文件");
     const results = [];
@@ -522,7 +534,7 @@ const methods = {
       try {
         results.push({
           ok: true,
-          file: await importOne(source, notify, names[index]),
+          file: await importOne(source, notify, names[index], origin),
         });
       } catch (e) {
         results.push({

@@ -1,6 +1,9 @@
+import { useResizableSidebar } from "./useResizableSidebar";
+import { Button } from "./Button";
 import {ExportDialog} from './ExportDialog';
-import {renderFreeExport} from './render-export';
-import { NetworkPicker } from './xigra/NetworkPicker';
+import { Notification, NotificationProvider, useNotification } from './Notification';
+import {freeExportSource} from './render-export';
+import { WhiteboardShare, type ShareOperation } from './xigra/WhiteboardShare';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -13,7 +16,7 @@ import {
   Layers3,
   Minus,
   RelationCanvasIcon,
-  Radio,
+  Network,
   MonitorUp,
   Pencil,
   Plus,
@@ -31,18 +34,18 @@ import {
 } from "./board";
 import "./style.css";
 import "./desk.css";
-import { SaveRecoveryActions, SaveStatus, StatusPill, ViewSwitch, XigraBrand } from "./xigra/visuals";
+import { SaveRecoveryActions, SaveStatus, StatusPill, XigraBrand } from "./xigra/visuals";
 import './interaction.css';
 import { Dialog } from "@base-ui/react/dialog";
 import { CommandMenu } from "./CommandMenu";
 import { Search, FileText, Command } from "./LagoonIcons";
-import { QuickPanel } from "./QuickPanel";
 import { FileStation } from "./FileStation";
 import { FilePicker } from "./FilePicker";
-import type { ManagedFile } from "./board";
+import type { FreePlacement, Item, ManagedFile } from "./board";
 import { RecordWorkspace } from "./xigra/records/RecordWorkspace";
 import { LanNotesDialog, type LanRequest } from "./xigra/LanNotesDialog";
-import { CompactRecordSearch } from "./xigra/records/RecordSearch";
+import { HelpPopover } from "./xigra/HelpPopover";
+import { GlobalRecordSearch } from "./xigra/records/RecordSearch";
 import { recordTitle } from "./xigra/records/RecordList";
 import { useRecordSession } from "./xigra/records/session";
 import { TriggerSettings, type TriggerAction } from "./xigra/TriggerSettings";
@@ -65,6 +68,7 @@ import { useDrawingTools } from "./useDrawingTools";
 import { useFreeViewport } from "./useFreeViewport";
 import "./free-canvas.css";
 import { FreeToolbar, freeToolHint } from "./FreeToolbar";
+import { NewNoteButton } from "./NewNoteButton";
 import { BrushProperties } from './BrushProperties';
 import { DEFAULT_BRUSH, brushPath, brushDash, validPreset, type BrushStyle, type BrushPreset } from './brush';
 import { AppSelect } from "./xigra/AppSelect";
@@ -72,10 +76,37 @@ import "./xigra/note-roles.css";
 import "./sidebar.css";
 import "./file-workspace.css";
 import "./visual-order.css";
-import "./quick-recorder.css";
+import "./xigra/shell.css";
 import "./note-file-polish.css";
-import { enclosingBounds, screenToWorld } from "./topology";
+import "./nav-active.css";
+import { NavItem } from "./NavItem";
+import "./xigra/whiteboard-share.css";
+import "./glass-surface.css";
+import "./control-states.css";
+import { FocusModality } from "./FocusModality";
+import { ControlTooltip } from "./ControlTooltip";
+import { ArrowLeft } from "lucide-react";
+import { useAdaptiveLayout } from "./useAdaptiveLayout";
+import "./adaptive-layout.css";
+import { PageHeader } from "./PageHeader";
+import "./page-header.css";
+import "./ui-system.css";
+import { useToolbarDock } from './useToolbarDock';
+import { ToolbarDockControls } from './ToolbarDockControls';
+import './space-economy.css';
+import { WindowNavigationBar, usePageHistory } from './WindowNavigationBar';
+import './window-navigation.css';
+import './five-fixes.css';
+import './detail-refinements.css';
+import { SettingsLayout } from './SettingsLayout';
+import { AppearanceActions, AppearancePanel } from './AppearanceSettings';
+import { useAppearance } from './useAppearance';
+import { CanvasNoteContent } from './CanvasNoteContent';
+import { CardResizeHandle, CARD_LIMITS } from './CardResizeHandle';
+import { enclosingBounds } from "./topology";
 import type { Camera, TopologyViewport } from "./topology";
+import "./search-sidebar-refinement.css";
+import "./xigra/records/workspace.css";
 
 const COLORS = ["#263449", "#39796b", "#d05a4b", "#4668c6"];
 const NOTE_WIDTH = 280, NOTE_HEIGHT = 140;
@@ -83,6 +114,13 @@ const notePosition = (x: number, y: number) => ({
   x: Math.round(Math.max(-1_000_000, Math.min(1_000_000, x))),
   y: Math.round(Math.max(-1_000_000, Math.min(1_000_000, y))),
 });
+function freeNote(value: Item["value"] | undefined): TextValue | undefined {
+  if (value?.type === "text" && !value.localOnly) return value;
+  if ((value?.type === "text" || value?.type === "node") && value.freePlacement) {
+    return { type: "text", text: value.text, title: value.title, color: "#263449", ...value.freePlacement };
+  }
+}
+
 function App() {
   const [, refresh] = useState(0);
   const [client] = useState(() => new BoardClient(() => refresh((n) => n + 1)));
@@ -92,10 +130,14 @@ function App() {
   const [brushStyle,setBrushStyle]=useState<BrushStyle>(DEFAULT_BRUSH);
   const [brushPresets,setBrushPresets]=useState<BrushPreset[]>([]);
   const [textStyle,setTextStyle]=useState({fontSize:18,bold:false});
+  const [textColor, setTextColor] = useState(COLORS[0]);
+  const [shapeBrush, setShapeBrush] = useState({ color: COLORS[0], width: 4, ...DEFAULT_BRUSH });
+  const [lastShape, setLastShape] = useState<Shape>("rect");
   const [shape, setShape] = useState<Shape>("free");
   const [properties, setProperties] = useState(false);
   const [selected, setSelected] = useState("");
-  const [workbenchPage, setWorkbenchPage] = useState<"canvas" | "records" | "topology" | "files">("canvas");
+  const [workbenchPage, setWorkbenchPage, pageHistory] = usePageHistory<"canvas" | "records" | "topology" | "files">(window.desktop ? "records" : "canvas");
+  const sidebar = useResizableSidebar();
   const [fileReturnPage, setFileReturnPage] = useState<"canvas" | "records" | "topology">("canvas");
   const [recordSearchOpen, setRecordSearchOpen] = useState(false);
   const [recordQuery, setRecordQuery] = useState("");
@@ -116,21 +158,33 @@ function App() {
   } | null>(null);
   const [info, setInfo] = useState<DesktopInfo | null>(null);
   useEffect(() => { if (info) return watchLocalGestures(info.triggers); }, [info?.triggers]);
-  const [expanded, setExpanded] = useState(!window.desktop);
+  const [quickCapture, setQuickCapture] = useState(false);
+  const [showFullRecordNavigation, setShowFullRecordNavigation] = useState(false);
   const [dialog, setDialog] = useState<"share" | "settings" | "devices" | null>(null);
+  // Base UI keeps the popup mounted during exit. Keep its actual content too.
+  const lastDialog = useRef<NonNullable<typeof dialog>>("settings");
+  if (dialog) lastDialog.current = dialog;
+  const dialogContent = dialog ?? lastDialog.current;
   const [dialogError, setDialogError] = useState('');
   const [shareAddress, setShareAddress] = useState('');
-  const [theme, setTheme] = useState<DesktopInfo["theme"]>(() => {
-    if (window.desktop) return window.desktop.initialTheme;
-    let saved: string | null = null;
-    try { saved = localStorage.getItem("arasn-theme"); } catch { /* Shared browsers may block storage. */ }
-    return saved === "light" || saved === "dark" ? saved : "system";
-  });
-  const [toast, setToast] = useState("");
-  const viewport = useFreeViewport(client.base.roomId, setToast);
+  const appearance = useAppearance();
+  const { notice, notify: setToast, dismiss: dismissNotice, settingsNotice } = useNotification();
+  useEffect(() => {
+    if (client.error) setToast(`保存未完成：${client.error}`, { tone: 'error', duration: null, source: 'save', retry: async () => {
+      client.retry(); await client.flush(); if (client.error) throw new Error(client.error);
+    } });
+    else if (notice?.source === 'save') dismissNotice();
+  }, [client.error, client.canRetry, setToast, dismissNotice]);
+  const inRecords = Boolean(window.desktop) && workbenchPage === "records";
+  const inTopology = Boolean(window.desktop) && workbenchPage === "topology";
+  const inFiles = Boolean(window.desktop) && workbenchPage === "files";
+  const inCanvas = !inRecords && !inTopology && !inFiles;
+  const viewport = useFreeViewport(client.base.roomId, setToast, inCanvas);
   const scale = viewport.camera.zoom;
   const zoom = Math.round(scale * 100);
   const [working, setWorking] = useState(false);
+  const [shareOperation, setShareOperation] = useState<ShareOperation | null>(null);
+  const [shareRetry, setShareRetry] = useState<ShareOperation | null>(null);
   const [importing,setImporting]=useState(false);
   const [importProgress,setImportProgress]=useState("");
   useEffect(()=>window.desktop?.files.progress(p=>setImportProgress(`正在导入 ${p.name}`)),[]);
@@ -146,11 +200,10 @@ function App() {
   const history = useRef(new DrawingHistory());
   const items = client.view();
   const records = useRecordSession(client, items);
+  const [recordImporting, setRecordImporting] = useState(false);
   const [canvasRequest, setCanvasRequest] = useState<{ id: string; token: number }>();
-  const inRecords = Boolean(window.desktop) && workbenchPage === "records";
-  const inTopology = Boolean(window.desktop) && workbenchPage === "topology";
-  const inFiles = Boolean(window.desktop) && workbenchPage === "files";
-  const inCanvas = !inRecords && !inTopology && !inFiles;
+  useEffect(() => { if (!inCanvas) setProperties(false); }, [inCanvas]);
+  const pageTitle = inTopology ? "关系画布" : inRecords ? (quickCapture ? "快捷记录" : "便签") : inFiles ? "文件中心" : "自由工作页";
   function openFilePage() {
     if (records.composing) return;
     if (workbenchPage !== "files") setFileReturnPage(workbenchPage);
@@ -161,13 +214,16 @@ function App() {
     setAttachmentRecord(recordId);
     setFilesOpen(true);
   }
-  async function attachFiles(files: ManagedFile[], target: "canvas" | "record", recordId = attachmentRecord) {
+  async function attachFiles(files: ManagedFile[], target: "canvas" | "record", recordId = attachmentRecord, origin = "文件中心引用") {
     if (target === "record") {
       if (!recordId || !["text", "node"].includes(client.view()[recordId]?.value?.type ?? "")) throw new Error("请先选择一张已保存的便签");
       const roomId = client.base.roomId;
       for (const file of files) {
         const exists = Object.values(client.view()).some(item => item.value?.type === "content-link" && item.value.recordId === recordId && item.value.targetRef.kind === "file" && item.value.targetRef.id === file.id);
-        if (!exists) client.edit(uid(), { type: "content-link", roomId, recordId, targetRef: { kind: "file", id: file.id } });
+        if (!exists) {
+          client.edit(uid(), { type: "content-link", roomId, recordId, targetRef: { kind: "file", id: file.id } });
+          await window.desktop!.files.action('attachmentOrigin', { id: file.id, recordId, origin }).catch(() => undefined);
+        }
       }
       await client.flush();
     } else {
@@ -210,7 +266,7 @@ function App() {
     const active = document.activeElement;
     if (active instanceof HTMLElement && active !== document.body &&
         !active.closest("[data-hide-panel]")) return;
-    if (!expanded || inRecords) records.focus();
+    if (inRecords) records.focus();
     else if (inCanvas) paper.current?.querySelector<HTMLTextAreaElement>(".note.focused textarea")?.focus({ preventScroll: true });
   };
   prepareWindow.current = async (action) => {
@@ -274,7 +330,18 @@ function App() {
       ? (items[selected].value as TextValue)
       : null;
   const visible = Object.entries(items).filter(([, item]) => item.value);
-  const texts = visible.filter(([, item]) => item.value?.type === "text" && !item.value.localOnly);
+  const texts = visible.flatMap(([id, item]) => {
+    const value = freeNote(item.value);
+    return value ? [[id, { ...item, value }] as const] : [];
+  });
+  function updateFreeNote(id: string, patch: FreePlacement | Partial<TextValue>, group?: string) {
+    const source = client.view()[id]?.value;
+    if (source?.type === "text" && !source.localOnly) commit(id, { ...source, ...patch }, group);
+    else if ((source?.type === "text" || source?.type === "node") && source.freePlacement) {
+      const { x, y, width, height } = { ...source.freePlacement, ...patch };
+      commit(id, { ...source, ...("text" in patch ? { text: patch.text ?? "" } : {}), freePlacement: { x, y, width, height } }, group);
+    }
+  }
   useLayoutEffect(() => {
     if (!newCanvasNote.current || newCanvasNote.current !== selected) return;
     const note = document.getElementById(`note-${selected}`);
@@ -284,7 +351,8 @@ function App() {
   }, [selected]);
   const strokes = visible.filter(([, item]) => item.value?.type === "stroke");
   useEffect(()=>{history.current=new DrawingHistory();},[client.base.roomId]);
-  const tools=useDrawingTools({client,tool,shape,color,width,brushStyle,scale,selected,select:setSelected,point:viewport.point,commit:commitGroup});
+  const drawingBrush = shape === 'free' ? { color, width, ...brushStyle } : shapeBrush;
+  const tools=useDrawingTools({client,tool,shape,color:drawingBrush.color,width:drawingBrush.width,brushStyle:drawingBrush,scale,selected,select:setSelected,point:viewport.point,commit:commitGroup});
   async function saveBrushPresets(next: BrushPreset[]) {
     if(next.length>12||!next.every(validPreset))throw new Error('方案无效');
     if(window.desktop)await window.desktop.settings({brushPresets:next});
@@ -299,65 +367,36 @@ function App() {
     const value=client.view()[selected]?.value;
     const {name: _name,...style}=patch;
     if(tool==='select'&&value?.type==='stroke')commit(selected,{...value,...style});
-    else if((tool==='select'||tool==='text')&&value?.type==='text') {if(style.color)commit(selected,{...value,color:style.color});}
+    else if(tool==='select'&&value?.type==='text') {if(style.color)commit(selected,{...value,color:style.color});}
+    else if(tool==='text') {if(style.color)setTextColor(style.color);}
+    else if(tool==='pen'&&shape!=='free')setShapeBrush(v=>({...v,...style}));
     else {if(style.color)setColor(style.color);if(style.width)setWidth(style.width);setBrushStyle(v=>({...v,...Object.fromEntries(Object.entries(style).filter(([k])=>!['color','width'].includes(k)))}));}
   }
 
 
   useEffect(() => {
     void client.start();
-    if (window.desktop)
-      void window.desktop.info().then((value) => {
-        setInfo(value);
-        setTheme(value.theme);
-        setExpanded(value.expanded);
-      });
-    const unsubscribe = window.desktop?.onLayout((value) => {
-      setExpanded(value);
-      if (!value) {
-        setDialog(null);
-        setCommandOpen(false);
-        setFilesOpen(false);
-        setIndexOpen(false);
-        setDeleteRecord("");
-      }
-    });
-    return () => {
-      client.stop();
-      unsubscribe?.();
-    };
+    void window.desktop?.info().then(setInfo);
+    return () => client.stop();
   }, [client]);
-  useLayoutEffect(() => {
-    const media = matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => {
-      document.documentElement.dataset.theme =
-        theme === "system" ? (media.matches ? "dark" : "light") : theme;
-      document.documentElement.style.colorScheme = document.documentElement.dataset.theme;
-      document.documentElement.style.backgroundColor = "";
-      const focus = getComputedStyle(document.documentElement).getPropertyValue("--xigra-focus").trim();
-      void window.desktop?.triggers.palette(focus).catch(() => {});
-    };
-    apply();
-    try { localStorage.setItem("arasn-theme", theme); } catch { /* Theme still works without browser storage. */ }
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
-  }, [theme]);
   useEffect(() => {
     setDialogError('');
+    setShareRetry(null);
     if (!dialog || !window.desktop) return;
     let active = true;
     void window.desktop.info().then(next => { if (active) setInfo(next); })
       .catch(error => { if (active) setDialogError(error.message); });
     return () => { active = false; };
   }, [dialog]);
-  async function refreshInfo() {
+  async function refreshInfo(sharing = false) {
     if (!window.desktop) return;
+    if (sharing) { setShareOperation('refresh'); setShareRetry(null); }
     setWorking(true); setDialogError('');
     try { setInfo(await window.desktop.info()); }
-    catch (error) { setDialogError((error as Error).message); }
-    finally { setWorking(false); }
+    catch (error) { setDialogError((error as Error).message); if (sharing) setShareRetry('refresh'); }
+    finally { setWorking(false); if (sharing) setShareOperation(null); }
   }
-  async function changeSettings(patch: Partial<DesktopInfo>) {
+  async function changeSettings(patch: Partial<DesktopInfo>, silent = false) {
     const previous = info;
     if (window.desktop && patch.openAtLogin === undefined)
       setInfo((current) => (current ? { ...current, ...patch } : current));
@@ -367,25 +406,20 @@ function App() {
       if (window.desktop) {
         const updated = await window.desktop.settings(patch);
         setInfo(updated);
-        setTheme(updated.theme);
-      } else if (patch.theme) setTheme(patch.theme);
-      setToast("设置已保存");
+      }
+      if (!silent) settingsNotice("设置已保存");
     } catch (error) {
       setInfo(previous);
       if (window.desktop) {
-        try { const current = await window.desktop.info(); setInfo(current); setTheme(current.theme); } catch { /* Keep the last known state and show the failure. */ }
+        try { setInfo(await window.desktop.info()); } catch { /* Keep the last known state and show the failure. */ }
       }
-      setDialogError((error as Error).message);
-      setToast((error as Error).message);
+      const message = (error instanceof Error ? error.message : String(error)).replace(/^Error invoking remote method '[^']+': Error: /, '');
+      setDialogError(message);
+      settingsNotice(`设置保存失败：${message}`, () => changeSettings(patch));
     } finally {
       setWorking(false);
     }
   }
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 3500);
-    return () => clearTimeout(timer);
-  }, [toast]);
   async function hidePanel() {
     if (!window.desktop || records.composing) return;
     try { await window.desktop.hide(); }
@@ -393,45 +427,42 @@ function App() {
       setToast((error as Error).message);
     }
   }
-  async function switchView(toWorkbench: boolean) {
-    if (!window.desktop || records.composing) return;
-    try {
-      if (toWorkbench) setWorkbenchPage("records");
-      if (!toWorkbench && inCanvas && selectedText) records.open(selected);
-      const result = await window.desktop.layout(toWorkbench);
-      setExpanded(result.expanded);
-    } catch (error) {
-      setToast((error as Error).message);
-    }
-  }
   const actionHandler = useRef<(action: TriggerAction, local?: boolean) => Promise<void>>(async () => {});
   actionHandler.current = async (action, local = false) => {
-    if (composingTarget.current?.isConnected || document.hidden || dialog || indexOpen ||
-        recordSearchOpen || deleteRecord || lanRequest) return;
+    if (composingTarget.current?.isConnected || (local && document.hidden)) return;
+    if ((dialog || indexOpen || recordSearchOpen || deleteRecord || lanRequest || exportRequest) &&
+        action !== "quick-note" && action !== "workbench") return;
+    if (action === "quick-note") {
+      if (dialog || indexOpen || recordSearchOpen || deleteRecord || lanRequest || exportRequest || filesOpen || commandOpen) return;
+      setWorkbenchPage("records");
+      setQuickCapture(true);
+      setShowFullRecordNavigation(false);
+      records.focus();
+      return;
+    }
+    if (action === "workbench") {
+      setQuickCapture(false);
+      return;
+    }
     if (action === "commands" && !filesOpen) {
-      if (!expanded) await switchView(true);
       setCommandOpen(open => local ? !open : true);
     } else if (action === "files" && !commandOpen) {
-      if (!expanded) await switchView(true);
       openFilePage();
-    } else if (!filesOpen && !commandOpen) {
-      if (action === "quick-note") {
-        if (expanded) await switchView(false);
-        else records.focus();
-      }
-      if (action === "workbench" && !expanded) await switchView(true);
     }
   };
   useEffect(() => {
     let queue = Promise.resolve();
-    return window.desktop?.triggers.onAction(action => {
-      queue = queue.then(() => actionHandler.current(action)).catch(error => setToast(String(error)));
+    return window.desktop?.triggers.onAction((action, focus = true, version = 0) => {
+      queue = queue.then(async () => {
+        await actionHandler.current(action);
+        await window.desktop!.reveal(focus, version);
+      }).catch(error => setToast(String(error)));
     });
   }, []);
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || composingTarget.current?.isConnected) return;
-      if (lanRequest) return;
+      if (lanRequest || exportRequest) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         if (!event.repeat) void actionHandler.current("commands", true);
@@ -448,9 +479,9 @@ function App() {
         (event.target.isContentEditable || event.target.closest("input, textarea, select"))
       )
         return;
-      if (expanded && inCanvas && event.ctrlKey && event.key.toLowerCase() === "y") { event.preventDefault(); undoLast(true); }
-      if (event.key === "Delete" && expanded && inCanvas && tool === "select" && (boxSelection.length>0 || selected && ["stroke","text","free-file"].includes(client.view()[selected]?.value?.type ?? ""))) removeFreeSelection();
-      if (expanded && inCanvas && event.ctrlKey && event.key.toLowerCase() === "z") {
+      if (inCanvas && event.ctrlKey && event.key.toLowerCase() === "y") { event.preventDefault(); undoLast(true); }
+      if (event.key === "Delete" && inCanvas && tool === "select" && (boxSelection.length>0 || selected && ["stroke","text","free-file"].includes(client.view()[selected]?.value?.type ?? ""))) removeFreeSelection();
+      if (inCanvas && event.ctrlKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
         undoLast(event.shiftKey);
       }
@@ -488,7 +519,7 @@ function App() {
   function updateBox(key:'x'|'y'|'width'|'height',n:number) {
     if(!activeObject || !objectBox || !Number.isFinite(n))return;
     if((key==='x'||key==='y')&&Math.abs(n)>1e6)return;
-    if((key==='width'||key==='height')&&(n< (activeObject.type==='stroke'?1:key==='width'?120:96)||n>1200))return;
+    if(key==='width'||key==='height'){const minimum=activeObject.type==='text'?(key==='width'?CARD_LIMITS.minWidth:CARD_LIMITS.minHeight):activeObject.type==='stroke'?1:key==='width'?120:96;const maximum=activeObject.type==='text'?(key==='width'?CARD_LIMITS.maxWidth:CARD_LIMITS.maxHeight):1200;if(n<minimum||n>maximum)return;}
     const box={...objectBox,[key]:n};
     if(activeObject.type==='stroke')commit(selected,{...activeObject,points:transformStroke(activeObject.points,objectBox,box)});
     else if(activeObject.type==='text'||activeObject.type==='free-file')commit(selected,{...activeObject,[key]:n});
@@ -510,7 +541,7 @@ function App() {
   }
   function contentBounds() {
     return enclosingBounds(visible.flatMap(([, item]) => {
-      const value = item.value!;
+      const value = freeNote(item.value) ?? item.value!;
       if (value.type === "text" && !value.localOnly) return [{ x: value.x, y: value.y, width: value.width??NOTE_WIDTH, height: value.height??NOTE_HEIGHT }];
       if(value.type==='free-file')return [{x:value.x,y:value.y,width:value.width,height:value.height}];
       if (value.type !== "stroke") return [];
@@ -532,7 +563,7 @@ function App() {
     let position = notePosition(...(point ?? center));
     if (!point) {
       const occupied=visible.flatMap(([,item])=>{
-        const v=item.value;
+        const v=freeNote(item.value) ?? item.value;
         return v?.type==='free-file'?[{x:v.x,y:v.y,width:v.width,height:v.height}]:v?.type==='text'&&!v.localOnly?[{x:v.x,y:v.y,width:v.width??280,height:v.height??140}]:[];
       });
       const overlaps=(p:{x:number;y:number})=>occupied.some(o=>p.x<o.x+o.width+16&&p.x+NOTE_WIDTH+16>o.x&&p.y<o.y+o.height+16&&p.y+NOTE_HEIGHT+16>o.y);
@@ -546,7 +577,8 @@ function App() {
       type: "text",
       text: "",
       ...position,
-      color,
+      color: textColor,
+      width: NOTE_WIDTH, height: 180,
       ...textStyle,
     });
     newCanvasNote.current = id;
@@ -556,7 +588,12 @@ function App() {
   const [boxSelection,setBoxSelection]=useState<string[]>([]);
   const [freeMarquee,setFreeMarquee]=useState<{x:number;y:number;width:number;height:number}>();
   const freeBox=useRef<{pointer:number;start:[number,number]}|null>(null);
-  function removeFreeSelection(){const ids=boxSelection.length?boxSelection:[selected];commitGroup(ids.filter(id=>['stroke','text','free-file'].includes(client.view()[id]?.value?.type??'')).map(id=>({id,value:null})));setBoxSelection([]);setSelected('');}
+  function removeFreeNoteValue(id: string) {
+    const value = client.view()[id]?.value;
+    return (value?.type === "text" || value?.type === "node") && value.freePlacement
+      ? { ...value, freePlacement: undefined } : null;
+  }
+  function removeFreeSelection(){const ids=boxSelection.length?boxSelection:[selected];commitGroup(ids.filter(id => { const value = client.view()[id]?.value; return value?.type === 'stroke' || value?.type === 'free-file' || freeNote(value); }).map(id => ({ id, value: removeFreeNoteValue(id) })));setBoxSelection([]);setSelected('');}
   useEffect(()=>{setBoxSelection([]);freeBox.current=null;setFreeMarquee(undefined);},[tool,inCanvas]);
   function down(event: React.PointerEvent) {
     if (!client.ready) return;
@@ -593,15 +630,15 @@ function App() {
     }
   }
   function up(event: React.PointerEvent) {
-    if(freeBox.current?.pointer===event.pointerId){if(event.type==='pointerup'&&freeMarquee){const box=freeMarquee;setBoxSelection(visible.flatMap(([id,item])=>{const v=item.value;const b=v?.type==='stroke'?strokeBounds(v.points):v?.type==='free-file'?v:v?.type==='text'&&!v.localOnly?{x:v.x,y:v.y,width:v.width??NOTE_WIDTH,height:v.height??NOTE_HEIGHT}:undefined;return b&&b.x<=box.x+box.width&&b.x+b.width>=box.x&&b.y<=box.y+box.height&&b.y+b.height>=box.y?[id]:[];}));}freeBox.current=null;setFreeMarquee(undefined);return;}
+    if(freeBox.current?.pointer===event.pointerId){if(event.type==='pointerup'&&freeMarquee){const box=freeMarquee;setBoxSelection(visible.flatMap(([id,item])=>{const v=freeNote(item.value) ?? item.value;const b=v?.type==='stroke'?strokeBounds(v.points):v?.type==='free-file'?v:v?.type==='text'&&!v.localOnly?{x:v.x,y:v.y,width:v.width??NOTE_WIDTH,height:v.height??NOTE_HEIGHT}:undefined;return b&&b.x<=box.x+box.width&&b.x+b.width>=box.x&&b.y<=box.y+box.height&&b.y+b.height>=box.y?[id]:[];}));}freeBox.current=null;setFreeMarquee(undefined);return;}
     if (tools.up(event)) return;
     const pan = paperPan.current;
     if (pan?.pointer === event.pointerId) { if (event.type !== "pointerup") viewport.show(pan.camera); paperPan.current = null; viewport.save(); return; }
     const d = drag.current;
     if (d && event.type === "pointerup") {
-      const value = client.view()[d.id]?.value;
+      const value = freeNote(client.view()[d.id]?.value);
       const position = notePosition(d.value.x + (event.clientX - d.x) / scale, d.value.y + (event.clientY - d.y) / scale);
-      if (value?.type === "text" && (value.x !== position.x || value.y !== position.y)) commit(d.id, { ...value, ...position });
+      if (value?.type === "text" && (value.x !== position.x || value.y !== position.y)) updateFreeNote(d.id, position);
     }
     drag.current = null;
     setDragPreview(null);
@@ -624,18 +661,18 @@ function App() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  const [exportRequest,setExportRequest]=useState<boolean|null>(null);
-  function exportImage(viewportOnly=false) { setExportRequest(viewportOnly); }
-  async function generateImage(viewportOnly:boolean,multiplier:number) {
-    const bounds=viewportOnly?{...screenToWorld({x:0,y:0},viewport.size,viewport.current.current),width:viewport.size.width/scale,height:viewport.size.height/scale}:undefined;
-    const blob=await renderFreeExport(structuredClone(visible),bounds,multiplier,scale,id=>{
-      if(!window.desktop)throw new Error('当前环境不能读取本机原图，请在桌面应用导出');
-      return window.desktop.files.originalImage(id);
-    });
-    download(blob,viewportOnly?'Arasn-当前视口.png':'Arasn-随手页.png');
+  const [exportRequest,setExportRequest]=useState(false);
+  function exportImage() { setReader(false); setExportRequest(true); }
+  const exportTarget = () => paper.current?.closest<HTMLElement>('.paper-scroll') ?? null;
+  function exportSnapshot() {
+    const target = exportTarget();
+    if (!target) throw new Error('请先打开画布视图再截图。');
+    return freeExportSource(visible.map(([id, item]) => [id, { ...item, value: freeNote(item.value) ?? item.value }]), target, viewport.current.current);
   }
 
   async function share(enabled: boolean) {
+    setShareOperation(enabled ? 'start' : 'stop');
+    setShareRetry(null);
     setWorking(true);
     setDialogError('');
     try {
@@ -643,9 +680,10 @@ function App() {
       setInfo(await window.desktop!.share(enabled, enabled ? selectedShareAddress : undefined));
     } catch (error) {
       setDialogError((error as Error).message);
-      setToast((error as Error).message);
+      setShareRetry(enabled ? 'start' : 'stop');
     } finally {
       setWorking(false);
+      setShareOperation(null);
     }
   }
   const selectedShareAddress = info?.sharing ? info.shareHost || '' : info?.networks.some(entry => entry.address === shareAddress) ? shareAddress : info?.networks[0]?.address || '';
@@ -664,7 +702,7 @@ function App() {
         area.remove();
         if (!ok) throw new Error();
       }
-      setToast("已复制");
+      setToast("已复制", { tone: "success" });
     } catch {
       setToast("复制失败，请选中文字后按 Ctrl+C");
     }
@@ -676,83 +714,90 @@ function App() {
       const note = document.querySelector<HTMLElement>(
         `[data-note-id="${id}"]`,
       );
-      const value = client.view()[id]?.value;
-      if (value?.type === "text") viewport.show({ ...viewport.current.current, x: value.x + NOTE_WIDTH / 2, y: value.y + NOTE_HEIGHT / 2 });
+      const value = freeNote(client.view()[id]?.value);
+      if (value) viewport.show({ ...viewport.current.current, x: value.x + (value.width ?? NOTE_WIDTH) / 2, y: value.y + (value.height ?? NOTE_HEIGHT) / 2 });
       note
         ?.querySelector<HTMLTextAreaElement>("textarea")
         ?.focus({ preventScroll: true });
     });
   }
-  return (
-    <div className={`app-shell${inTopology && expanded ? " relation-workbench" : ""}${window.desktop ? " xigra-desktop" : ""}${expanded ? "" : " compact-shell xigra-compact"}`}>
-      {!expanded ? (
-        <QuickPanel onCanvas={id => client.addRecordToCanvas(id, info?.topologyViewport)} onViewCanvas={id => { void switchView(true).then(() => { setCanvasRequest({ id, token: Date.now() }); setWorkbenchPage("topology"); }); }} client={client} info={info} session={records} search={() => setRecordSearchOpen(true)} expand={() => void switchView(true)} hide={() => void hidePanel()} copy={copy} incoming={lanCount ? { count: lanCount, open: () => setLanRequest({}) } : undefined} />
-      ) : (
-        <>
-          <aside className="sidebar lagoon-rail" aria-label="侧边栏">
-            <div className="brand"><XigraBrand /></div>
-            <nav aria-label="工作台导航">
-            <div className="sidebar-group sidebar-primary" role="group" aria-label="主导航">
-            <button className={`space ${inCanvas ? "active" : ""}`} aria-label="我的随手页" aria-current={inCanvas ? "page" : undefined} disabled={records.composing} onClick={() => { setWorkbenchPage("canvas"); setReader(true); }}><Layers3 size={21}/><span>工作页</span></button>
-            {window.desktop && <button className={`space topology-rail-entry ${inTopology ? "active" : ""}`} aria-label="打开关系画布" aria-current={inTopology ? "page" : undefined} disabled={records.composing || !info || !client.ready} onClick={() => setWorkbenchPage("topology")}><RelationCanvasIcon size={21} strokeWidth={1.65} aria-hidden="true"/><span>关系画布</span></button>}
-            <button className={`space ${inRecords ? "active" : ""}`} aria-label="便笺列表" aria-current={inRecords ? "page" : undefined} disabled={records.composing} onClick={() => window.desktop ? setWorkbenchPage("records") : setIndexOpen(true)}><FileText size={21}/><span>便签</span></button>
-            {window.desktop && <button className={`space ${inFiles ? "active" : ""}`} aria-label="文件" aria-current={inFiles ? "page" : undefined} disabled={records.composing} onClick={openFilePage}><Icon name="tray"/><span>文件</span></button>}
-            </div>
-            <div className="sidebar-group sidebar-collaboration" role="group" aria-labelledby="sidebar-collaboration-title">
-            <span className="sidebar-group-title" id="sidebar-collaboration-title">协作</span>
-            {window.desktop ? <button className="space" aria-label="设备互传" aria-haspopup="dialog" aria-expanded={dialog === "devices"} onClick={() => setDialog("devices")}><MonitorUp size={21} strokeWidth={1.65} aria-hidden="true"/><span>设备互传</span>{lanCount > 0 && <small className="device-inbox-count" aria-label={`${lanCount} 条待接收`}>{lanCount}</small>}</button>
-              : <button className="space" aria-label="白板共享" aria-haspopup="dialog" aria-expanded={dialog === "share"} onClick={() => setDialog("share")}><Radio size={21} strokeWidth={1.65} aria-hidden="true"/><span>共享</span></button>}
-            </div></nav>
-            <div className="sidebar-bottom"><button className="space" aria-label="设置与快捷键" title="设置与快捷键" aria-haspopup="dialog" aria-expanded={dialog === "settings"} onClick={() => setDialog("settings")}><Settings2 size={21}/><span>设置</span></button></div>
-          </aside>
-          <a className="skip-link" href="#workspace">
-            跳到编辑区
-          </a>
-          <main>
-            <header className="topbar xigra-workbench-bar">
-              <h1 className="xigra-workbench-title">
-                {inTopology ? "关系画布" : inRecords ? "速记" : inFiles ? "文件中心" : "自由工作页"}
-                {!window.desktop && <small>共享工作页</small>}
-              </h1>
-              <div className="header-actions">{!inTopology && !inFiles && <button className="new-note" aria-label="写一张便笺" disabled={inRecords ? records.volatile || records.composing : !client.ready} onClick={() => {
-                if (inRecords) records.open("");
-                else addText();
-              }}><Plus size={20}/>新建便签</button>}
-                <button
+  const adaptive = useAdaptiveLayout(viewport.size, properties, inCanvas);
+  const dock = useToolbarDock("free", inCanvas, adaptive.toolbar);
+  const compactRecordNavigation = inRecords && (quickCapture || (adaptive.nav === "collapsed" && mobile));
+  const sidebarMode = compactRecordNavigation && sidebar.mode === "full" && !showFullRecordNavigation ? "compact" : sidebar.mode;
+  const navigationContext = `${workbenchPage}:${compactRecordNavigation}`;
+  const [sidebarMotionContext, setSidebarMotionContext] = useState("");
+  useLayoutEffect(() => { setSidebarMotionContext(""); }, [navigationContext]);
+  function toggleSidebar() {
+    setSidebarMotionContext(navigationContext);
+    sidebar.toggle();
+  }
+  function toggleNavigationDensity() {
+    setSidebarMotionContext(navigationContext);
+    if (compactRecordNavigation && sidebar.mode === "full") {
+      setShowFullRecordNavigation(sidebarMode === "compact");
+    } else {
+      if (compactRecordNavigation) setShowFullRecordNavigation(sidebar.mode === "compact");
+      sidebar.toggleCompact();
+    }
+  }
+  const navExpanded = sidebarMode === "full";
+  const newNoteDisabled = !client.ready || records.composing || records.volatile || recordImporting;
+  function newNote() {
+    if (newNoteDisabled) return;
+    if (inCanvas) addText();
+    else {
+      setWorkbenchPage("records");
+      records.open("");
+    }
+  }
+  const pageActions = (<div className="header-actions">
+                {inCanvas && mobile && <Button className="button page-header-view" onClick={() => setReader(v => !v)}>{reader ? "画布总览" : "文字阅读"}</Button>}
+                {false && <Button
                   className="icon-button"
                   aria-label="搜索与快捷操作"
                   title="搜索与快捷操作 · Ctrl+K"
                   onClick={() => setCommandOpen(true)}
                 >
                   <Command size={17} />
-                </button>
-                <button
+                </Button>}
+                {!inFiles && <Button
                   className="icon-button mobile-settings"
                   aria-label="设置与快捷键"
                   onClick={() => setDialog("settings")}
                 >
                   <Settings2 size={19} />
-                </button>
-                {!inRecords && !inFiles && <SaveStatus client={client} recordId={!inTopology && selectedText ? selected : undefined} />}
-                {window.desktop && <ViewSwitch inWorkbench disabled={records.composing} onClick={() => void switchView(false)} />}
-                <button
-                  className="icon-button"
-                  data-hide-panel
-                  title="隐藏到托盘"
-                  aria-label="隐藏到托盘"
-                  disabled={records.composing}
-                  onClick={() =>
-                    window.desktop
-                      ? void hidePanel()
-                      : setToast("浏览器版本可直接最小化窗口")
-                  }
-                >
-                  <Minus size={18} />
-                </button>
-              </div>
-            </header>
-            {toast && <div className="workbench-status xigra-notice" data-tone="neutral" role="status">{toast}</div>}
-            {inCanvas && <section className="page-heading free-page-heading"><span>自由工作页</span><div className="page-actions">{mobile && <button className="button" onClick={() => setReader(v => !v)}>{reader ? "画布总览" : "文字阅读"}</button>}<button className="button" onClick={()=>void exportImage()}><Download size={16}/>导出图片</button><button className="button" aria-label="导出当前视口" onClick={()=>void exportImage(true)}>当前视口</button></div></section>}
+                </Button>}
+              </div>);
+  const windowBar = <WindowNavigationBar context={pageActions} title={pageTitle} disabled={records.composing}
+    inboxAction={lanCount ? <Button className="quick-incoming" aria-label={`待接收便签，${lanCount} 条`} disabled={records.composing} onClick={() => setLanRequest({})}>收件 {lanCount}</Button> : undefined}
+    sidebar={toggleSidebar} sidebarMode={sidebarMode} toggleCompact={toggleNavigationDensity} hide={() => void hidePanel()}
+    back={pageHistory.back} forward={pageHistory.forward} canBack={pageHistory.canBack} canForward={pageHistory.canForward}
+    search={() => setRecordSearchOpen(true)} commands={() => setCommandOpen(true)} share={() => setDialog("devices")} />;
+  return (
+    <div ref={adaptive.shellRef} data-nav-mode={sidebarMode === "full" ? "full" : "collapsed"} data-sidebar-mode={sidebarMode} data-sidebar-motion={sidebarMotionContext === navigationContext || undefined} data-sidebar-dragging={sidebar.dragging || undefined} style={{ "--user-sidebar-width": `${sidebarMode === "hidden" ? 0 : sidebarMode === "compact" ? 64 : sidebar.width}px` } as React.CSSProperties} data-toolbar-mode={adaptive.toolbar} className={`app-shell${sidebarMode === "hidden" ? " sidebar-hidden" : ""}${window.desktop ? " adaptive-shell" : ""}${inTopology ? " relation-workbench" : ""}${window.desktop ? " xigra-desktop" : ""}`}>
+      {window.desktop && windowBar}
+          <aside id="workbench-sidebar" inert={sidebarMode === "hidden"} className="sidebar lagoon-rail" data-expanded={navExpanded || undefined} aria-label="侧边栏">
+
+            <nav aria-label="工作台导航">
+            <div className="sidebar-group sidebar-primary nav-active-surface" role="group" aria-label="主导航">
+            <NavItem collapsed={sidebarMode === "compact"} selected={inCanvas && dialog !== "devices"} aria-label="我的随手页" disabled={records.composing} onClick={() => { setWorkbenchPage("canvas"); setReader(true); }} icon={<Layers3 size={21}/>}>工作页</NavItem>
+            {window.desktop && <NavItem collapsed={sidebarMode === "compact"} className="topology-rail-entry" selected={inTopology && dialog !== "devices"} aria-label="打开关系画布" disabled={records.composing || !info || !client.ready} onClick={() => setWorkbenchPage("topology")} icon={<RelationCanvasIcon size={21} strokeWidth={1.65} aria-hidden="true"/>}>关系画布</NavItem>}
+            <NavItem collapsed={sidebarMode === "compact"} selected={inRecords && dialog !== "devices"} aria-label="便笺列表" disabled={records.composing} onClick={() => { if (window.desktop) { setQuickCapture(false); setWorkbenchPage("records"); } else setIndexOpen(true); }} icon={<FileText size={21}/>}>便签</NavItem>
+            {window.desktop && <NavItem collapsed={sidebarMode === "compact"} selected={inFiles && dialog !== "devices"} aria-label="文件" disabled={records.composing} onClick={openFilePage} icon={<Icon name="tray"/>}>文件</NavItem>}
+            </div>
+            <div className="sidebar-group sidebar-collaboration" role="group" aria-labelledby="sidebar-collaboration-title">
+            <span className="sidebar-group-title" id="sidebar-collaboration-title">协作</span>
+            {window.desktop ? <NavItem collapsed={sidebarMode === "compact"} selected={dialog === "devices"} aria-label="设备互传" aria-haspopup="dialog" aria-expanded={dialog === "devices"} onClick={() => setDialog("devices")} icon={<MonitorUp size={21} strokeWidth={1.65}/>} badge={lanCount > 0 && <small className="device-inbox-count" aria-label={`${lanCount} 条待接收`}>{lanCount}</small>}>设备互传</NavItem>
+              : <NavItem collapsed={sidebarMode === "compact"} aria-label="白板共享" aria-haspopup="dialog" aria-expanded={dialog === "share"} onClick={() => setDialog("share")} icon={<Network size={21} strokeWidth={1.65}/>}>共享</NavItem>}
+            </div></nav>
+            <div className="sidebar-bottom"><ControlTooltip label="设置与快捷键" enabled={sidebarMode === "compact"}><button className="space" aria-label="设置与快捷键" title="设置与快捷键" aria-haspopup="dialog" aria-expanded={dialog === "settings"} onClick={() => setDialog("settings")}><Settings2 size={21}/><span>设置</span></button></ControlTooltip></div>
+            {sidebarMode === "full" && <div className="sidebar-resizer" role="separator" aria-label="调整侧边栏宽度" aria-orientation="vertical" aria-valuemin={180} aria-valuemax={sidebar.max} aria-valuenow={sidebar.width} tabIndex={0} {...sidebar.resizeProps} />}
+          </aside>
+          <a className="skip-link" href="#workspace">
+            跳到编辑区
+          </a>
+          <main>
             {info && !info.shortcutOk && (
               <div className="notice xigra-notice" data-tone="warning">
                 部分全局触发器未能注册。可从托盘打开页面，在设置中查看详情。
@@ -765,53 +810,63 @@ function App() {
                 <button onClick={() => void client.tick()}>重试连接</button>
               </div>
             )}
-            {window.desktop && <RecordWorkspace active={inRecords} session={records} client={client} query={recordQuery} setQuery={setRecordQuery} confirmDelete={setDeleteRecord} copy={copy} notify={setToast} sendNote={(id, title) => void sendNote(id, title)} onFiles={() => openFilePicker(records.id)} onCanvas={id => { setCanvasRequest({ id, token: Date.now() }); setWorkbenchPage("topology"); }} />}
+            {window.desktop && <RecordWorkspace onCreate={newNote} createDisabled={newNoteDisabled} active={inRecords} quick={quickCapture} setQuick={setQuickCapture} importing={recordImporting} setImporting={setRecordImporting} session={records} client={client} query={recordQuery} setQuery={setRecordQuery} confirmDelete={setDeleteRecord} copy={copy} notify={setToast} sendNote={(id, title) => void sendNote(id, title)} onFiles={() => openFilePicker(records.id || "")} onFileCenter={openFilePage} onSendFiles={files => attachFiles(files, "canvas")}
+              onAttach={(files, id, origin) => attachFiles(files, "record", id, origin)}
+              onFreePage={id => {
+                const value = client.view()[id]?.value;
+                if ((value?.type === "node" || (value?.type === "text" && value.localOnly)) && !value.freePlacement) {
+                  const { x, y } = viewport.current.current;
+                  commit(id, { ...value, freePlacement: { ...notePosition(x - NOTE_WIDTH / 2, y - NOTE_HEIGHT / 2), width: NOTE_WIDTH, height: NOTE_HEIGHT } });
+                }
+                setWorkbenchPage("canvas"); locateNote(id);
+              }}
+              onCanvas={id => { setCanvasRequest({ id, token: Date.now() }); setWorkbenchPage("topology"); }} />}
             {window.desktop && inFiles && <section className="file-workspace" id="workspace" aria-label="文件工作区" tabIndex={-1}>
-              <header className="file-workspace-heading"><div><h1>文件</h1><p>本机资料，集中整理。引用与应用副本独立管理。</p></div><button className="button" onClick={() => setWorkbenchPage(fileReturnPage)}>返回工作区</button></header>
               <FileStation client={client} onAttach={files => attachFiles(files, "canvas")} onRecord={records.id ? files => attachFiles(files, "record", records.id) : undefined} onDevices={() => setDialog("devices")} />
             </section>}
             {window.desktop && <TopologyWorkspace active={inTopology} client={client} items={items}
-              middlePanBlocked={Boolean(info && !info.triggers.paused && info.triggers.bindings.some(binding => binding.enabled && ((binding.input.device === "mouse" && binding.input.button === "Middle") || (binding.input.device === "gesture" && binding.input.button === "Middle" && binding.input.global))))}
-              request={canvasRequest} onOpenRecord={id => { if (!records.composing) { records.open(id); setWorkbenchPage("records"); } }} savedOptions={info?.canvasOptions} onOptions={next => void changeSettings({ canvasOptions: next })} savedViewport={info?.topologyViewport} onViewport={queueViewport} onBack={() => setWorkbenchPage("canvas")} notify={setToast} />}
+              request={canvasRequest} onOpenRecord={id => { if (!records.composing && !recordImporting) { records.open(id); setQuickCapture(false); setWorkbenchPage("records"); } }} savedOptions={info?.canvasOptions} onOptions={next => void changeSettings({ canvasOptions: next }, true)} savedViewport={info?.topologyViewport} onViewport={queueViewport} notify={setToast} />}
             <section
-              className="workspace xigra-workspace-view free-workspace" data-tool={tool}
+              ref={adaptive.canvasRef}
+              className="workspace xigra-workspace-view free-workspace" data-tool={tool} data-toolbar-mode={adaptive.toolbar} style={{ "--free-available-height": `${viewport.size.height}px` } as React.CSSProperties}
               id={inCanvas ? "workspace" : undefined}
               hidden={!inCanvas}
               aria-label="随手页编辑区"
               tabIndex={-1}
             >
-              <div className="toolbar" role="toolbar" aria-label="编辑工具">
-                <FreeToolbar tool={tool} shape={shape} choose={id => { setTool(id); if(id === 'pen') setShape('free'); }}
-                  shapes={() => {setProperties(true);setTool('pen');if(shape === 'free')setShape('rect');}}
-                  properties={properties} openProperties={() => setProperties(true)} closeProperties={() => setProperties(false)}
+              <div ref={dock.ref} className="toolbar" role="toolbar" aria-label="编辑工具" style={dock.style} data-dock-side={dock.side} data-dock-mode={dock.mode} data-dragging={dock.dragging || undefined}>
+                <FreeToolbar createAction={<NewNoteButton onClick={newNote} disabled={newNoteDisabled}/>} mode={adaptive.toolbar} tool={tool} shape={shape} choose={id => { setProperties(false); setTool(id); if(id === 'pen') setShape('free'); }}
+                  dockControls={<ToolbarDockControls dock={dock} />}
+                  shapes={() => {setProperties(false);setTool('pen');setShape(lastShape);}}
+                  properties={properties} toggleProperties={() => setProperties(v => !v)} closeProperties={() => setProperties(false)}
                   undo={() => undoLast()} redo={() => undoLast(true)} canUndo={!!history.current.past.length} canRedo={!!history.current.future.length}
                   canRemove={tool === 'select' && (boxSelection.length>0 || !!activeObject && ['stroke','text','free-file'].includes(activeObject.type))}
                   remove={()=>{if(tool==='select')removeFreeSelection();}}
-                  attach={window.desktop ? () => openFilePicker() : undefined} importing={importing || !client.ready} />
-                {properties && <div className="free-properties" data-object={activeObject?.type}><div className="free-properties-heading">{tool==='select'?'对象属性':tool==='hand'?'画布导航':tool==='erase'?'橡皮擦范围':tool==='text'?'文字属性':shape==='free'?'画笔属性':'图形属性'}<button aria-label="关闭工具属性" onClick={() => setProperties(false)}><X size={16}/></button></div>
+                  attach={window.desktop ? () => openFilePicker() : undefined} importing={importing || !client.ready} exportCanvas={exportImage}
+                  settings={<div className="free-properties" data-object={tool==='select'?activeObject?.type:undefined}><div className="free-properties-heading">{tool==='select'?'选择设置':tool==='hand'?'画布导航':tool==='erase'?'橡皮擦设置':tool==='text'?'文字设置':shape==='free'?'画笔设置':'图形设置'}<Button iconOnly aria-label="关闭工具设置" title="关闭工具设置 · Esc" onClick={() => setProperties(false)}><X size={18}/></Button></div>
                 {tool==='erase' && <label className="eraser-size"><AppSelect<'stroke'|'partial'> label="擦除模式" value={tools.eraserMode} onValueChange={tools.setEraserMode} options={[{value:'stroke',label:'整条笔迹'},{value:'partial',label:'局部擦除'}]}/>橡皮擦范围 {tools.eraserSize}px<input aria-label="橡皮擦大小" type="range" min="12" max="96" value={tools.eraserSize} onChange={e=>tools.setEraserSize(Number(e.target.value))}/><small>{tools.eraserMode==='partial'?'只擦除经过的笔迹片段，保留其余部分':'划过删除整条笔迹'}，一次拖动可整组撤销</small></label>}
                 {tool==='select'&&objectBox&&<fieldset className="object-properties"><legend>对象属性</legend>{(['x','y','width','height'] as const).map((key,index)=><label key={key}>{['横坐标','纵坐标','宽度','高度'][index]}<input aria-label={['对象横坐标','对象纵坐标','对象宽度','对象高度'][index]} type="number" value={Math.round(objectBox[key]*100)/100} onChange={e=>updateBox(key,e.target.valueAsNumber)}/></label>)}{activeObject?.type!=='stroke'&&<label>不透明度<input aria-label="对象不透明度" type="range" min="10" max="100" value={Math.round(((activeObject?.type==='text'||activeObject?.type==='free-file')?(activeObject.opacity??1):1)*100)} onChange={e=>{if(activeObject?.type==='text'||activeObject?.type==='free-file')commit(selected,{...activeObject,opacity:Number(e.target.value)/100},`opacity:${selected}`);}}/></label>}</fieldset>}
                 {tool==='hand'&&<p className="property-hint">拖动画布移动视口；缩放与适配位于右下角。</p>}
-                {tool==='select'&&!activeObject&&<p className="property-hint">选择笔迹、便签或附件后，在这里调整对象。</p>}
+                {tool==='select'&&<p className="property-hint">Shift 拖动框选，Shift 点击增减选区；拖动空白平移。选中对象后可编辑下方对象属性。</p>}
                 {(tool==='pen'||tool==='text'||tool==='select'&&(activeObject?.type==='stroke'||activeObject?.type==='text'))&&<BrushProperties
-                  color={(tool==='select'||tool==='text')&&selectedText?selectedText.color:tool==='select'&&activeObject?.type==='stroke'?activeObject.color:color}
-                  width={tool==='select'&&activeObject?.type==='stroke'?activeObject.width:width}
-                  style={tool==='select'&&activeObject?.type==='stroke'?{opacity:activeObject.opacity??1,smoothing:activeObject.smoothing??0,lineCap:activeObject.lineCap??'round',brush:activeObject.brush??'ink'}:brushStyle}
+                  color={tool==='text'?textColor:tool==='select'&&selectedText?selectedText.color:tool==='select'&&activeObject?.type==='stroke'?activeObject.color:drawingBrush.color}
+                  width={tool==='select'&&activeObject?.type==='stroke'?activeObject.width:drawingBrush.width}
+                  style={tool==='select'&&activeObject?.type==='stroke'?{opacity:activeObject.opacity??1,smoothing:activeObject.smoothing??0,lineCap:activeObject.lineCap??'round',brush:activeObject.brush??'ink'}:drawingBrush}
                   change={changeBrush} ink={tool==='pen'||tool==='select'&&activeObject?.type==='stroke'}
-                  shape={tool==='pen'?shape:undefined} setShape={tool==='pen'?setShape:undefined}
+                  shape={tool==='pen'?shape:undefined} setShape={tool==='pen'&&shape!=='free'?s=>{setShape(s);setLastShape(s);}:undefined}
                   presets={brushPresets} save={saveBrushPresets}
-                  text={tool==='text'||tool==='select'&&!!selectedText?selectedText??textStyle:undefined}
-                  changeText={patch=>{if(selectedText)commit(selected,{...selectedText,...patch});else setTextStyle(v=>({...v,...patch}));}} />}
-                </div>}
+                  text={tool==='text'?textStyle:tool==='select'&&selectedText?selectedText:undefined}
+                  changeText={patch=>{if(tool==='select'&&selectedText)commit(selected,{...selectedText,...patch});else setTextStyle(v=>({...v,...patch}));}} />}
+                </div>} />
               </div>
               <div id="free-tool-hint" className="free-tool-hint" role="status">{freeToolHint(tool)}</div>
               <div className="free-view-controls" role="toolbar" aria-label="视图控制">
-                <button aria-label="缩小" onClick={() => viewport.zoom(1 / 1.2)}><Minus size={16}/></button>
-                <button className="free-zoom" aria-label="重置视图为100%" title="恢复100%缩放，保持中心位置" onClick={() => viewport.show({ ...viewport.current.current, zoom: 1 })}>{zoom}%</button>
-                <button aria-label="放大" onClick={() => viewport.zoom(1.2)}><Plus size={16}/></button>
-                <button aria-label="适配内容" title="适配全部便签与笔迹" onClick={fitContent}><Icon name="fit" size={18}/></button>
+                <Button iconOnly aria-label="缩小" onClick={() => viewport.zoom(1 / 1.2)}><Minus size={16}/></Button>
+                <Button iconOnly className="free-zoom" aria-label="重置视图为100%" title="恢复100%缩放，保持中心位置" onClick={() => viewport.show({ ...viewport.current.current, zoom: 1 })}>{zoom}%</Button>
+                <Button iconOnly aria-label="放大" onClick={() => viewport.zoom(1.2)}><Plus size={16}/></Button>
+                <Button iconOnly aria-label="适配内容" title="适配全部便签与笔迹" onClick={fitContent}><Icon name="fit" size={18}/></Button>
               </div>
-              {mobile && reader ? <div className="mobile-reader">{texts.map(([id,item]) => { const value=item.value as TextValue; return <article key={id} data-note-id={id} className="reader-note" onPointerDown={() => setSelected(id)} style={{"--note-ink":value.color} as React.CSSProperties}><header><FileText size={16}/><span>便笺</span><button aria-label="删除便笺" disabled={tool !== "select" || selected !== id} onClick={() => commit(id,null)}><Trash2 size={16}/></button></header><textarea aria-label="便笺文字" value={value.text} placeholder="从一句话开始…" onChange={e => commit(id,{...value,text:e.target.value},`typing:${id}`)} style={{color:value.color,fontWeight:value.bold?700:400}}/></article>; })}{!texts.length && <p>点“新建便签”，写下第一句话。</p>}</div> : <div className="paper-scroll" ref={viewport.view} tabIndex={0} role="region" aria-label="自由画布" aria-describedby="free-tool-hint"
+              {mobile && reader ? <div className="mobile-reader">{texts.map(([id,item]) => { const value=item.value as TextValue; return <article key={id} data-note-id={id} className="reader-note" onPointerDown={() => setSelected(id)} style={{"--note-ink":value.color} as React.CSSProperties}><header><FileText size={16}/><span>便笺</span><button aria-label="删除便笺" disabled={tool !== "select" || selected !== id} onClick={() => commit(id, removeFreeNoteValue(id))}><Trash2 size={16}/></button></header><textarea aria-label="便笺文字" value={value.text} placeholder="从一句话开始…" onChange={e => updateFreeNote(id,{text:e.target.value},`typing:${id}`)} style={{color:value.color,fontWeight:value.bold?700:400}}/></article>; })}{!texts.length && <p>点“新建便签”，写下第一句话。</p>}</div> : <div className="paper-scroll" ref={viewport.view} tabIndex={0} role="region" aria-label="自由画布" aria-describedby="free-tool-hint"
                 onDragOver={e=>{if(window.desktop&&e.dataTransfer.types.includes('Files')){e.preventDefault();e.dataTransfer.dropEffect='copy';}}}
                 onDrop={e=>{if(!window.desktop)return;e.preventDefault();const files=Array.from(e.dataTransfer.files);const point=viewport.point(e.clientX,e.clientY);if(files.length)void importAttachments(()=>window.desktop!.files.drop(files),point);}}
                 onPointerDownCapture={event => { if(event.button===0&&!event.shiftKey)setBoxSelection([]); if ((tool === "hand" || event.button === 1) && !(event.target as Element).closest("button,input,select")) { event.stopPropagation(); down(event); } }}
@@ -899,6 +954,7 @@ function App() {
                             opacity:value.opacity??1,
                             color: value.color,
                             "--note-ink": value.color,
+                            "--card-control-inset": `${24 / scale}px`,
                           } as React.CSSProperties}
                           onPointerDown={(e) => {
                             e.stopPropagation();
@@ -934,38 +990,22 @@ function App() {
                                 aria-label="删除便笺"
                                 disabled={tool !== 'select' || selected !== id}
                                 onPointerDown={(e) => e.stopPropagation()}
-                                onClick={() => commit(id, null)}
+                                onClick={() => commit(id, removeFreeNoteValue(id))}
                               >
                                 <X size={14} />
                               </button>
                             </div>
                           </div>
-                          <textarea
-                            id={`note-${id}`}
-                            aria-label="便笺文字"
-                            placeholder="在这里写点什么…"
-                            value={value.text}
-                            style={{
-                              fontSize: value.fontSize || 18,
-                              fontWeight: value.bold ? 700 : 400,
-                            }}
-                            maxLength={10000}
-                            onChange={(e) =>
-                              commit(id, { ...value, text: e.target.value }, `typing:${id}`)
-                            }
-                            onFocus={() => {
-                              setSelected(id);
-                              setProperties(false);
-                              const camera = viewport.current.current;
-                              const left = viewport.size.width / 2 + (value.x - camera.x) * camera.zoom;
-                              const top = viewport.size.height / 2 + (value.y - camera.y) * camera.zoom;
-                              const safeLeft = Math.max(76, Math.min(left, viewport.size.width - NOTE_WIDTH * camera.zoom - 16));
-                              const safeTop = Math.max(12, Math.min(top, viewport.size.height - NOTE_HEIGHT * camera.zoom - 72));
-                              if (left !== safeLeft || top !== safeTop) viewport.show({ ...camera,
-                                x: camera.x + (left - safeLeft) / camera.zoom, y: camera.y + (top - safeTop) / camera.zoom });
-                            }}
-                            spellCheck={false}
-                          />
+                          <CanvasNoteContent id={id} value={value} autoOpen={newCanvasNote.current === id} client={client} notify={setToast} onChange={text => {
+                            updateFreeNote(id, { text }, `typing:${id}`);
+                          }}/>
+                          <CardResizeHandle width={value.width ?? NOTE_WIDTH} height={value.height ?? NOTE_HEIGHT} zoom={scale}
+                            onPreview={size => setDragPreview({ id, value: { ...value, ...size } })}
+                            onCancel={() => setDragPreview(null)} onCommit={size => {
+                              setDragPreview(null);
+                              updateFreeNote(id, size);
+                            }}/>
+
                         </div>
                       );
                     })}
@@ -973,13 +1013,14 @@ function App() {
                 </div>
               </div>
               }{boxSelection.length>0&&<div className="free-selection-status" role="status">已框选 {boxSelection.length} 项 · Delete 删除 · 点击对象单独调整</div>}<footer className="canvas-footer">
-                <StatusPill tone={info?.sharing || !window.desktop ? "saved" : "neutral"}>
+                <div className="canvas-footer-state"><StatusPill tone={info?.sharing || !window.desktop ? "saved" : "neutral"}>
                   {info?.sharing
                     ? "局域网共享已开启"
                     : window.desktop
                       ? "本机工作空间"
                       : "已连接共享工作空间"}
                 </StatusPill>
+                <SaveStatus client={client} recordId={selectedText ? selected : undefined}/></div>
                 <span>
                   {texts.length} 张便笺 · {strokes.length} 段笔迹{" "}
                   <span className="footer-separator">|</span>{" "}
@@ -995,9 +1036,7 @@ function App() {
             </section>
 
           </main>
-        </>
-      )}
-      {exportRequest!==null&&<ExportDialog initialViewport={exportRequest} close={()=>setExportRequest(null)} run={generateImage}/>}
+      {exportRequest&&<ExportDialog target={exportTarget} snapshot={exportSnapshot} close={()=>setExportRequest(false)} notify={setToast}/>}
       {window.desktop && <LanNotesDialog lan={window.desktop.lan} request={lanRequest} close={() => setLanRequest(null)} onIncoming={setLanCount} />}
       <Dialog.Root
         open={!!dialog}
@@ -1008,97 +1047,47 @@ function App() {
         <Dialog.Portal>
           <Dialog.Backdrop className="desk-backdrop" />
           <Dialog.Popup
-            className={dialog === "share" ? "modal xigra-share" : dialog === "devices" ? "modal device-hub" : "modal xigra-settings"}
+            className={dialogContent === "share" ? "modal xigra-share" : dialogContent === "devices" ? "modal device-hub" : "modal xigra-settings"}
+            onKeyDownCapture={event => {
+              if (dialogContent !== "share" || event.key !== "Escape" || event.nativeEvent.isComposing) return;
+              if (event.currentTarget.querySelector(':is(.app-select, .network-help-trigger)[aria-expanded="true"]')) return;
+              event.preventDefault();
+              event.stopPropagation();
+              setDialog(null);
+            }}
             role="dialog"
             aria-modal="true"
-            aria-label={dialog === "share" ? "白板实时共享" : dialog === "devices" ? "设备互传" : "设置"}
+            aria-label={dialogContent === "share" ? "白板实时共享" : dialogContent === "devices" ? "设备互传" : "设置"}
           >
             <Dialog.Title className="sr-only">
-              {dialog === "share" ? "白板实时共享" : dialog === "devices" ? "设备互传" : "设置"}
+              {dialogContent === "share" ? "白板实时共享" : dialogContent === "devices" ? "设备互传" : "设置"}
             </Dialog.Title>
-            {dialog === "share" ? <Dialog.Close className="modal-close icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>
-              : <header className="settings-header">
-                <div><h2>{dialog === "devices" ? "设备互传" : "设置"}</h2><p>{dialog === "devices" ? "连接设备、收发便签，或共享文字与笔迹。" : "管理外观、全局触发器与应用偏好。"}</p></div>
-                <Dialog.Close className="icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>
-              </header>}
-            {dialogError && <p className="xigra-notice" data-tone="error" role="alert">{dialogError.replace(/^Error invoking remote method '[^']+': Error: /, '')}</p>}
-            {dialog === "devices" ? <div className="device-hub-actions">
+            {dialogContent === "share" ? <Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="modal-close icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>
+              : dialogContent === "devices" ? <PageHeader level={2} title="设备互传" titleAction={<HelpPopover topic="devices" />} className="device-page-header" actions={<Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close>} />
+              : <header className="settings-header"><h2>设置</h2><Dialog.Close render={<Button iconOnly tooltip="关闭弹窗" />} className="icon-button" aria-label="关闭弹窗"><X size={18} /></Dialog.Close></header>}
+            {dialogError && dialogContent !== 'share' && <p className="xigra-notice" data-tone="error" role="alert">{dialogError.replace(/^Error invoking remote method '[^']+': Error: /, '')}</p>}
+            {dialogContent === "devices" ? <div className="device-hub-actions">
               <button className="device-hub-action" aria-label="打开便签互传" onClick={() => { setDialog(null); setLanRequest({}); }}>
-                <MonitorUp size={22} aria-hidden="true"/><span><strong>设备连接与便签互传</strong><small>发现与配对设备、发送便签、查看接收记录。</small>{lanCount > 0 && <small className="device-pending">{lanCount} 条便签待接收</small>}</span><ArrowUpRight size={17} aria-hidden="true"/>
+                <MonitorUp size={22} aria-hidden="true"/><span><strong>设备连接与便签互传</strong>{lanCount > 0 && <small className="device-pending">{lanCount} 条便签待接收</small>}</span><ArrowUpRight size={17} aria-hidden="true"/>
               </button>
               <button className="device-hub-action" aria-label="打开白板共享" onClick={() => setDialog("share")}>
-                <Radio size={22} aria-hidden="true"/><span><strong>白板实时共享</strong><small>同步当前工作页的文字与笔迹。</small><small>{info?.sharing ? "共享已开启" : "当前未共享"}</small></span><ArrowUpRight size={17} aria-hidden="true"/>
+                <Network size={22} aria-hidden="true"/><span><strong>白板实时共享</strong><small>{info?.sharing ? "共享已开启" : "当前未共享"}</small></span><ArrowUpRight size={17} aria-hidden="true"/>
               </button>
-            </div> : dialog === "share" ? (
-              <>
-                <span className="modal-symbol">
-                  <Radio size={24} strokeWidth={1.65} aria-hidden="true" />
-                </span>
-                <h2>局域网白板共享</h2>
-                <p>
-                  与同一局域网里的同事同步文字与笔迹。本机文件、附件和关系画布不共享。
-                </p>
-                {window.desktop ? (
-                  <>
-                    <NetworkPicker label="共享网卡" interfaces={info?.networks || []} value={selectedShareAddress} onChange={setShareAddress} disabled={working || Boolean(info?.sharing)} />
-                    <div className="share-state">
-                      <StatusPill tone={working ? "pending" : info?.sharing ? "saved" : "neutral"} live>
-                        {working ? "正在处理" : info?.sharing ? info.shareAddressAvailable ? "服务正在监听" : "监听地址不可用" : "共享未开启"}
-                      </StatusPill>
-                      <button
-                        className={info?.sharing ? "button" : "button primary"}
-                        disabled={working || (!info?.sharing && !selectedShareAddress)}
-                        onClick={() => share(!info?.sharing)}
-                      >
-                        {working
-                          ? "正在处理…"
-                          : info?.sharing
-                            ? "停止共享"
-                            : "开启共享"}
-                      </button>
-                      <button className="button" disabled={working} onClick={() => void refreshInfo()}>刷新网络</button>
-                    </div>
-                    {info?.sharing && <p className="network-status">监听地址：{info.shareHost}。切换网卡需先停止共享；外部是否能连接尚未验证。</p>}
-                    {!!info?.links.length && (
-                      <div className="xigra-share-links">
-                        {info.links.map((link) => (
-                          <div className="share-link" key={link}>
-                            <input aria-label="共享链接" value={link} readOnly onFocus={(e) => e.target.select()} />
-                            <button aria-label="复制共享链接" onClick={() => copy(link)}><Copy size={17} /></button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {info?.sharing && !info.links.length && (
-                      <p className="xigra-notice" data-tone="warning" role="alert">监听地址已不可用，请停止共享，检查 Wi-Fi 或网线后刷新。</p>
-                    )}
-                    <div className="modal-tip">
-                      同事用浏览器打开链接即可编辑。主机需要保持运行；若无法连接，请检查
-                      Windows 防火墙的专用网络权限。
-                    </div>
-                  </>
-                ) : (
-                  <div className="modal-tip">
-                    你正在访问共享页面。共享开关和邀请链接由主机上的桌面应用管理。
-                  </div>
-                )}
-                <div className="privacy-note xigra-notice" data-tone="warning">
-                  持有链接的人都能查看和编辑共享文字与笔迹，无需设备批准；便签互传的配对不授予或限制白板访问。HTTP 传输未加密，仅在可信局域网使用。停止共享会断开当前连接，重新开启会更换链接。
-                </div>
-              </>
+            </div> : dialogContent === "share" ? (
+              <WhiteboardShare info={info} desktop={Boolean(window.desktop)} address={selectedShareAddress}
+                working={working} operation={shareOperation} error={dialogError}
+                retry={shareRetry ? () => { if (shareRetry === 'refresh') void refreshInfo(true); else void share(shareRetry === 'start'); } : dialogError ? () => void refreshInfo(true) : undefined}
+                onAddress={setShareAddress} onShare={enabled => void share(enabled)} onRefresh={() => void refreshInfo(true)}
+                onCopy={value => void copy(value)} onBack={() => setDialog("devices")} />
             ) : (
-              <div className="settings-scroll">
-                <section className="settings-appearance" aria-labelledby="appearance-heading">
-                <h3 id="appearance-heading">外观</h3>
-                <p>主题应用于速记和所有工作区页面；跟随系统会随系统外观自动切换。</p>
-                <label className="field-label">
-                  外观主题
-                  <AppSelect label="外观主题" value={theme} disabled={working}
-                    options={[{value:'system',label:'跟随系统'},{value:'light',label:'浅色'},{value:'dark',label:'深色'}]}
-                    onValueChange={value => void changeSettings({theme:value})} />
-                </label>
-                </section>
-                {window.desktop && info && <TriggerSettings info={info} onApplied={setInfo} />}
+              <SettingsLayout actions={{
+                appearance: <AppearanceActions controller={appearance} />,
+                backup: <Button className="button" onClick={() => download(
+                  new Blob([JSON.stringify({ ...client.base, items: client.view(), conflicts: client.conflicts }, null, 2)], { type: "application/json" }),
+                  "Arasn-完整备份.json",
+                )}><Download size={16} /> 导出完整备份</Button>,
+              }}>{{ appearance: <AppearancePanel controller={appearance} />,
+                triggers: <>{window.desktop && info ? <TriggerSettings info={info} onApplied={setInfo} /> : <p>全局快捷键与触发器仅在桌面应用中可用。</p>}</>, preferences: <>
                 <h3 className="settings-preferences-heading">应用偏好</h3>
                 <label className="setting-toggle">
                   <span>
@@ -1117,7 +1106,7 @@ function App() {
                 </label>
                 <div className="startup-status">
                   <p className="setting-hint" role="status" data-startup-status={info?.startupStatus}>{info?.autoStartReason || '请在桌面应用管理系统自启。'}</p>
-                  {window.desktop && <button className="button" disabled={working} onClick={() => void refreshInfo()}>刷新系统状态</button>}
+                  {window.desktop && <Button className="button" disabled={working} onClick={() => void refreshInfo()}>刷新系统状态</Button>}
                 </div>
                 <label className="setting-toggle">
                   <span>
@@ -1136,20 +1125,6 @@ function App() {
                 </label>
                 <label className="setting-toggle">
                   <span>
-                    便签始终置顶<small>仅便签模式生效，工作区保持普通窗口层级</small>
-                  </span>
-                  <input
-                    type="checkbox"
-                    aria-label="便签始终置顶"
-                    checked={info?.alwaysOnTop || false}
-                    disabled={!window.desktop || working}
-                    onChange={(e) =>
-                      changeSettings({ alwaysOnTop: e.target.checked })
-                    }
-                  />
-                </label>
-                <label className="setting-toggle">
-                  <span>
                     启动时隐藏窗口
                     <small>手动启动也常驻托盘，按快捷键呼出</small>
                   </span>
@@ -1163,48 +1138,24 @@ function App() {
                     }
                   />
                 </label>
-                <hr />
+                </>, backup: <>
                 <h3>保存一份完整备份</h3>
                 <p>
                   图片仅导出可见内容；完整备份保留全部文字、笔迹和未提交改动。
                 </p>
-                <button
-                  className="button"
-                  onClick={() =>
-                    download(
-                      new Blob(
-                        [
-                          JSON.stringify(
-                            {
-                              ...client.base,
-                              items: client.view(),
-                              conflicts: client.conflicts,
-                            },
-                            null,
-                            2,
-                          ),
-                        ],
-                        { type: "application/json" },
-                      ),
-                      "Arasn-完整备份.json",
-                    )
-                  }
-                >
-                  <Download size={16} /> 导出完整备份
-                </button>
                 <div className="modal-tip">
                   关闭窗口会隐藏到托盘；完全退出请使用托盘菜单。网页参与者不支持全局快捷键。
                 </div>
-              </div>
+              </> }}</SettingsLayout>
             )}
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
-      <LagoonMotion/>
-      {window.desktop && <FilePicker open={filesOpen} onOpenChange={setFilesOpen} onChoose={files => attachFiles(files, attachmentRecord ? "record" : "canvas")} />}
-      <Dialog.Root open={indexOpen} onOpenChange={setIndexOpen}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="modal lagoon-index"><Dialog.Title>此页便笺</Dialog.Title><Dialog.Description>选择便笺，继续记录。</Dialog.Description>{texts.map(([id,item]) => <button className="index-item" key={id} onClick={() => { setIndexOpen(false); locateNote(id); }}><FileText size={18}/><span>{(item.value as TextValue).text.split("\n")[0] || "未命名便笺"}</span></button>)}<Dialog.Close className="button">关闭</Dialog.Close></Dialog.Popup></Dialog.Portal></Dialog.Root>
-      <CompactRecordSearch session={records} open={recordSearchOpen} setOpen={open => { setRecordSearchOpen(open); if (!open) records.focus(); }} />
-      <Dialog.Root open={Boolean(deleteRecord)} onOpenChange={open => { if (!open) setDeleteRecord(""); }}>
+      <FocusModality /><LagoonMotion/>
+      {window.desktop && <FilePicker  open={filesOpen} onOpenChange={setFilesOpen} onChoose={files => attachFiles(files, attachmentRecord !== null ? "record" : "canvas", attachmentRecord === "" ? records.ensureRecord() : attachmentRecord)} />}
+      <Dialog.Root  open={indexOpen} onOpenChange={setIndexOpen}><Dialog.Portal><Dialog.Backdrop className="desk-backdrop"/><Dialog.Popup className="modal lagoon-index"><Dialog.Title>此页便笺</Dialog.Title><Dialog.Description>选择便笺，继续记录。</Dialog.Description>{texts.map(([id,item]) => <button className="index-item" key={id} onClick={() => { setIndexOpen(false); locateNote(id); }}><FileText size={18}/><span>{(item.value as TextValue).text.split("\n")[0] || "未命名便笺"}</span></button>)}<Dialog.Close className="button">关闭</Dialog.Close></Dialog.Popup></Dialog.Portal></Dialog.Root>
+      <GlobalRecordSearch  session={records} onSelect={() => { setQuickCapture(false); setWorkbenchPage("records"); }} blocked={recordImporting} open={recordSearchOpen} setOpen={open => { setRecordSearchOpen(open); if (!open) records.focus(); }} />
+      <Dialog.Root  open={Boolean(deleteRecord)} onOpenChange={open => { if (!open) setDeleteRecord(""); }}>
         <Dialog.Portal><Dialog.Backdrop className="desk-backdrop" />
           <Dialog.Popup className="modal xigra-record-dialog">
             <Dialog.Title>删除便笺</Dialog.Title>
@@ -1217,46 +1168,39 @@ function App() {
         </Dialog.Portal>
       </Dialog.Root>
       <CommandMenu
+
         open={commandOpen}
         onOpenChange={setCommandOpen}
+        operationsOnly={Boolean(window.desktop)}
         actions={[
           ...(window.desktop ? [{label:"文件",hint:"本机文件",run:openFilePage}] : []),
-          {
+          ...(!window.desktop ? [{
             label: "写一张便笺",
             hint: "新增",
-            disabled: !client.ready || inTopology || inFiles,
-            run: () => inRecords ? records.open("") : addText(),
-          },
+            disabled: newNoteDisabled,
+            run: newNote,
+          }] : []),
           {
             label: "自由绘图",
             hint: "画笔",
-            disabled: !expanded,
             run: () => { setWorkbenchPage("canvas"); setTool("pen"); },
           },
           { label: window.desktop ? "设备互传" : "白板共享", hint: window.desktop ? "连接设备与白板共享" : "共享当前白板", run: () => setDialog(window.desktop ? "devices" : "share") },
-          { label: "导出图片", hint: "PNG", disabled: !inCanvas, run: exportImage },
+          { label: "截图 / 导出", hint: "PNG", disabled: !inCanvas, run: exportImage },
           {
             label: "设置与快捷键",
             hint: "外观与偏好",
             run: () => setDialog("settings"),
           },
-          ...texts.map(([id, item], index) => ({
+          ...(!window.desktop ? texts.map(([id, item], index) => ({
             label: `定位：${(item.value as TextValue).text.split("\n")[0] || `未命名便笺 ${index + 1}`}`,
             hint: "便笺",
-            disabled: !expanded,
-            run: () => {
-              if (inRecords) records.open(id);
-              else { if (!inCanvas) setWorkbenchPage("canvas"); locateNote(id); }
-            },
-          })),
+            run: () => locateNote(id),
+          })) : []),
         ]}
       />
-      {!expanded && toast && (
-        <div className="toast xigra-notice" data-tone="neutral" role="status">
-          {toast}
-        </div>
-      )}
+      <Notification notice={notice} onDismiss={dismissNotice} />
     </div>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<NotificationProvider><App /></NotificationProvider>);

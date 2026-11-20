@@ -24,8 +24,10 @@ test("two clients share text and mouse drawing, recover offline edits and preser
   await page.mouse.move(paper!.x + 460, paper!.y + 160, { steps: 10 });
   await page.mouse.up();
   await expect(peer.getByTestId("stroke")).toHaveCount(1, { timeout: 10000 });
+  await page.getByRole("button", { name: "选择与拖动", exact: true }).click();
   await a.setOffline(true);
   await note.fill("离线整理的会议重点");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("arasn-recovery"))).toContain("离线整理的会议重点");
   // Browser reload needs the host again; the outbox survives the page being recreated.
   await a.setOffline(false);
   await page.goto(url);
@@ -92,9 +94,11 @@ test("two clients share text and mouse drawing, recover offline edits and preser
   await expect.poll(() => page.locator(".paper").evaluate(el => new DOMMatrix(getComputedStyle(el).transform).e)).toBeLessThan(beforePan - 40);
   expect(await page.locator(".paper svg path").count()).toBe(strokesBeforePan);
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "导出图片", exact: true }).click();
-  await page.getByRole("button", { name: "生成 PNG", exact: true }).click();
-  expect((await download).suggestedFilename()).toBe("Arasn-随手页.png");
+  await page.getByRole("button", { name: "截图 / 导出", exact: true }).click();
+  await page.getByRole("button", { name: "生成预览", exact: true }).click();
+  await page.getByRole("button", { name: "保存 PNG", exact: true }).click();
+  expect((await download).suggestedFilename()).toMatch(/^Arasn-自由画布-.*-1x\.png$/);
+  await page.getByRole("button", { name: "关闭截图导出", exact: true }).click();
   await expect(page.locator(".save-state")).toHaveText("已保存");
   await page.screenshot({ path: "test-results/office-board.png" });
   expect(errors).toEqual([]);

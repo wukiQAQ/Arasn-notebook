@@ -26,10 +26,12 @@ function validateTopology(value) {
       !["note", "question", "idea", "task", "file"].includes(value.kind) ||
       !["open", "active", "done"].includes(value.status) ||
       (value.hidden !== undefined && typeof value.hidden !== "boolean") ||
-      (value.locked !== undefined && typeof value.locked !== "boolean"))
+      (value.locked !== undefined && typeof value.locked !== "boolean") ||
+      (value.autoSize !== undefined && typeof value.autoSize !== "boolean") ||
+      (value.color !== undefined && (typeof value.color !== "string" || !/^#[0-9a-f]{6}$/i.test(value.color))))
     throw fail(400, "节点布局或状态无效");
-  const { x, y, width, height, kind, status, hidden, locked } = value;
-  return { x, y, width, height, kind, status, ...(hidden ? { hidden } : {}), ...(locked !== undefined ? { locked } : {}) };
+  const { x, y, width, height, kind, status, hidden, locked, autoSize, color } = value;
+  return { x, y, width, height, kind, status, ...(hidden ? { hidden } : {}), ...(locked !== undefined ? { locked } : {}), ...(autoSize !== undefined ? { autoSize } : {}), ...(color ? { color } : {}) };
 }
 
 const REFERENCE_TYPES = ["canvas-node", "canvas-edge", "content-link"];
@@ -76,9 +78,21 @@ function validateValue(value) {
   }
   if (["text", "node"].includes(value?.type) && value.title !== undefined &&
       (typeof value.title !== "string" || value.title.length > 200 || /[\r\n]/.test(value.title))) throw fail(400, "便签标题超出限制");
+  const placement = value?.freePlacement;
+  if (placement !== undefined && (
+    (value.type !== "node" && !(value.type === "text" && value.localOnly === true)) ||
+    !placement || !worldCoordinate(placement.x) || !worldCoordinate(placement.y) ||
+    (placement.width !== undefined && (!finite(placement.width, 1200) || placement.width < 120)) ||
+    (placement.height !== undefined && (!finite(placement.height, 1200) || placement.height < 96))
+  )) throw fail(400, "工作页位置无效");
+  const freePlacement = placement === undefined ? {} : { freePlacement: {
+    x: placement.x, y: placement.y,
+    ...(placement.width !== undefined ? { width: placement.width } : {}),
+    ...(placement.height !== undefined ? { height: placement.height } : {}),
+  } };
   if (value?.type === "node") {
     if (typeof value.text !== "string" || value.text.length > 10000) throw fail(400, "节点正文超出限制");
-    return { type: "node", text: value.text, ...(value.title !== undefined ? { title: value.title } : {}), topology: validateTopology(value.topology) };
+    return { type: "node", text: value.text, ...(value.title !== undefined ? { title: value.title } : {}), topology: validateTopology(value.topology), ...freePlacement };
   }
   if (
     !value ||
@@ -114,6 +128,7 @@ function validateValue(value) {
       ...(value.opacity !== undefined ? {opacity:value.opacity}:{}),
       ...(value.topology !== undefined ? { topology: validateTopology(value.topology) } : {}),
       ...(value.localOnly === true ? { localOnly: true } : {}),
+      ...freePlacement,
     };
   }
   if (value.type === "stroke") {

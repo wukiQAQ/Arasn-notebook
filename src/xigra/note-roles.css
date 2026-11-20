@@ -11,9 +11,7 @@
 :root .xigra-record-paper { border-radius: 8px; }
 :root .xigra-record-paper .xigra-note-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 88px; padding: 16px 24px; border-bottom: 1px solid var(--line); }
 .record-document-heading { display: flex; align-items: center; gap: 10px; color: var(--muted); }
-.record-document-heading > div { display: grid; gap: 3px; }
 :root .record-document-heading h2 { font-size: 16px; color: var(--ink); }
-.record-document-heading span { font-size: 12px; }
 :root .xigra-record-paper .xigra-note-actions { flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 :root .xigra-record-paper .record-files { display: inline-flex; align-items: center; gap: 6px; }
 :root .xigra-record-paper .record-canvas { background: var(--tint); color: var(--xigra-on-selected); }
@@ -30,7 +28,7 @@
 :root .topology-node .topology-node-meta > span:first-child { color: var(--node-kind-color); }
 :root .topology-node > strong { font-size: 15px; line-height: 22px; margin-bottom: 4px; }
 :root .topology-node .topology-node-summary { font-size: 12px; line-height: 18px; -webkit-line-clamp: 2; }
-:root .topology-node-footer { margin-top: auto; padding-top: 7px; font-size: 10px; border-top: 1px solid var(--line); }
+:root .topology-node-footer { margin-top: auto; padding-top: 7px; font-size: 10px; }
 .node-sync { display: inline-flex; align-items: center; gap: 4px; }
 .node-sync::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .node-sync[data-tone="saved"] { color: var(--xigra-success); }
@@ -58,7 +56,7 @@
   :root .xigra-record-index .xigra-record-filters { flex-shrink: 0; }
   :root .xigra-record-list:not(.compact) button { min-height: 54px; padding: 8px 10px; }
   :root .xigra-record-paper .xigra-note-heading { min-height: auto; padding: 12px; gap: 10px; }
-  :root .record-document-heading > svg, .record-document-heading span { display: none; }
+  :root .record-document-heading > svg { display: none; }
   :root .xigra-record-paper .xigra-note-actions { gap: 4px; }
   :root .xigra-record-paper .record-files { font-size: 12px; }
   :root .xigra-record-paper .xigra-record-editor { padding: 20px 16px; }

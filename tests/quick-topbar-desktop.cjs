@@ -6,7 +6,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const readline = require('node:readline');
 const phase = process.env.ARASN_TOPBAR_PHASE || 'after';
-const output = path.resolve('docs/screenshots/quick-topbar', phase);
+const output = path.resolve(process.env.ARASN_SCREENSHOTS || path.join('docs/screenshots/quick-topbar', phase));
 (async () => {
   await fs.mkdir(output, { recursive: true });
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'arasn-topbar-'));
@@ -24,12 +24,18 @@ const output = path.resolve('docs/screenshots/quick-topbar', phase);
       await expect(page.locator('.quick-input')).toBeFocused();
       await page.locator('.quick-input').fill('先把想法记下来。\n稍后整理资料，再加入关系画布。');
       await page.locator('.quick-title').fill('今天的灵感');
-      await expect(page.locator('.save-state')).toHaveText('已保存');
+      await expect(page.locator('.quick-panel .save-state')).toHaveText('已保存');
       if (phase !== 'before') {
         await expect(page.locator('.quick-panel .xigra-brand')).toHaveCount(0);
         await expect(page.locator('.quick-panel [data-hide-panel]')).toHaveCount(0);
+        const controls = page.locator('.window-navigation-controls');
+        await expect(controls.locator('[data-hide-panel]')).toHaveCount(0);
+        await expect(controls.getByRole('button')).toHaveCount(0);
+        const create = page.getByRole('button', { name: '新建便笺', exact: true });
+        await expect(create).toHaveCount(1);
+        await expect(page.locator('.quick-header').getByRole('button', { name: '新建便笺', exact: true })).toBeVisible();
         await expect(page.locator('.quick-header h1')).toHaveText('速记');
-        await expect(page.getByRole('button', { name: '打开工作区', exact: true })).toHaveAttribute('title', '打开工作区');
+        await expect(page.locator('.window-navigation-actions').getByRole('button', { name: '切换到工作区', exact: true })).toBeVisible();
       }
       const windows = [];
       for (const [width, height] of [[620, 700], [500, 540]]) {
@@ -39,12 +45,21 @@ const output = path.resolve('docs/screenshots/quick-topbar', phase);
           const rect = e => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom }; };
           return { dpr: devicePixelRatio, width: innerWidth, height: innerHeight, header: rect(document.querySelector('.quick-header')),
             content: rect(document.querySelector('.quick-content')), footer: rect(document.querySelector('.quick-footer')),
+            heading: rect(document.querySelector('.quick-header h1')),
+            title: rect(document.querySelector('.quick-title')),
+            create: rect(document.querySelector('.quick-heading-create') ?? document.querySelector('.quick-title')),
+            createRadius: getComputedStyle(document.querySelector('.quick-heading-create') ?? document.querySelector('.quick-title')).borderTopLeftRadius,
             overflow: document.documentElement.scrollWidth > innerWidth,
             buttons: [...document.querySelectorAll('.quick-header button')].map(rect) };
         });
         assert.ok(!measure.overflow && measure.footer.bottom <= measure.height + 1);
         if (phase !== 'before') {
           assert.ok(measure.header.height <= 60);
+          assert.ok(Math.abs(measure.title.x - measure.heading.x) <= 1);
+          assert.ok(Math.abs(measure.create.right - measure.title.right) <= 1);
+          assert.ok(Math.abs(measure.create.y + measure.create.height / 2 - measure.heading.y - measure.heading.height / 2) <= 1);
+          assert.equal(measure.createRadius, '10px');
+          assert.deepEqual([measure.create.width, measure.create.height], [36, 36]);
           for (const b of measure.buttons) assert.ok(b.right <= measure.width && b.y >= measure.header.y && b.bottom <= measure.header.bottom);
         }
         windows.push(measure);
@@ -59,7 +74,10 @@ const output = path.resolve('docs/screenshots/quick-topbar', phase);
           if (nativeImage) await fs.writeFile(path.join(output, `native-dpi${scale}.png`), Buffer.from(nativeImage, 'base64'));
         }
       }
-      const native = await win.evaluate(w => {
+      const captionPoint = await page.locator('.window-navigation-controls').evaluate(controls => ({
+        x: controls.getBoundingClientRect().right + 16, y: 15, scale: devicePixelRatio,
+      }));
+      const native = await win.evaluate((w, point) => {
         const req = process.getBuiltinModule('module').createRequire(process.cwd() + '/package.json');
         const lib = req('koffi').load('user32.dll');
         const style = lib.func('long __stdcall GetWindowLongW(intptr_t hwnd,int index)');
@@ -67,10 +85,10 @@ const output = path.resolve('docs/screenshots/quick-topbar', phase);
         const rect = lib.func('int __stdcall GetWindowRect(intptr_t hwnd,void *rect)');
         const dpi = lib.func('uint __stdcall GetDpiForWindow(intptr_t hwnd)');
         const handle = w.getNativeWindowHandle(); const hwnd = handle.length === 8 ? handle.readBigUInt64LE() : handle.readUInt32LE();
-        const r = Buffer.alloc(16); rect(hwnd, r); const ratio = dpi(hwnd) / 96;
-        const x = r.readInt32LE(0) + Math.round(100 * ratio), y = r.readInt32LE(4) + Math.round(15 * ratio);
+        const r = Buffer.alloc(16); rect(hwnd, r);
+        const x = r.readInt32LE(0) + Math.round(point.x * point.scale), y = r.readInt32LE(4) + Math.round(point.y * point.scale);
         return { caption: (style(hwnd, -16) & 0x00c00000) === 0x00c00000, captionHit: Number(hit(hwnd, 0x84, 0, ((y & 65535) << 16) | (x & 65535))), title: w.getTitle(), movable: w.isMovable(), closable: w.isClosable(), dpi: dpi(hwnd) };
-      });
+      }, captionPoint);
       assert.ok(native.caption && native.movable && native.closable); assert.equal(native.captionHit, 2); assert.equal(native.title, 'Arasn');
       let nativeDrag;
       if (phase !== 'before' && scale === 1) {
@@ -126,10 +144,15 @@ const output = path.resolve('docs/screenshots/quick-topbar', phase);
         await expect(page.locator('.quick-input')).toHaveValue('先把想法记下来。\n稍后整理资料，再加入关系画布。');
         await expect(page.locator('.quick-input')).toBeFocused();
         assert.equal(await page.locator('.quick-input').evaluate(e => e.selectionStart), 2);
-        await page.getByRole('button', { name: '打开工作区', exact: true }).click();
-        await expect(page.locator('.sidebar .xigra-wordmark')).toHaveText('Arasn');
-        await expect(page.locator('.topbar h1')).toHaveText('速记');
-        await page.getByRole('button', { name: '切换到便签区', exact: true }).click();
+        await page.getByRole('button', { name: '切换到工作区', exact: true }).click();
+        await expect(page.getByRole('button', { name: '写一张便笺', exact: true })).toBeVisible();
+        await expect(page.locator('.window-page-title > span')).toHaveText('便签');
+        await expect(page.locator('.window-navigation-controls [data-hide-panel]')).toBeVisible();
+        await expect(page.locator('.app-shell')).toHaveAttribute('data-layout-motion', 'idle');
+        const quickView = page.getByRole('button', { name: '切换到便签区', exact: true });
+        if (!await quickView.isVisible()) await page.getByRole('button', { name: '页面操作', exact: true }).click();
+        await quickView.click();
+        await expect(page.locator('.quick-input')).toBeVisible();
         await expect(page.locator('.quick-input')).toHaveValue('先把想法记下来。\n稍后整理资料，再加入关系画布。');
         await expect(page.locator('.quick-input')).toBeFocused();
       }

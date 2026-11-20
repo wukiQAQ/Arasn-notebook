@@ -31,7 +31,9 @@ test('record file attachments work before canvas migration, protect copies and r
   await assert.rejects(f.engine.call('board', { operation: op(randomUUID(), attachment), legacyOnly: true }), /本机拓扑/);
   await f.engine.call('board', { operation: op(link, attachment) });
   const metadata = await f.engine.call('metadata', { id: fileId });
-  assert.deepEqual(Object.keys(metadata).sort(), ['category', 'deleted_at', 'id', 'name', 'sha256', 'size', 'status']);
+  assert.deepEqual(Object.keys(metadata).sort(), ['attachmentOrigin', 'category', 'deleted_at', 'id', 'importOrigin', 'name', 'sha256', 'size', 'status']);
+  assert.equal(metadata.importOrigin, 'local');
+  assert.equal(metadata.attachmentOrigin, undefined); // No record context was requested.
   assert.equal((await f.engine.call('fileOwners', { id: fileId }))[0].id, link);
   await assert.rejects(f.engine.call('metadata', { id: '../invalid' }));
   assert.equal(await f.engine.call('getSetting', { key: 'canvas-migration' }), null);

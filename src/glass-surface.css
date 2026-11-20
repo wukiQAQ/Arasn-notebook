@@ -1,0 +1,104 @@
+:root {
+  --glass-bg: rgba(249, 251, 255, .78);
+  --glass-fallback: #f4f6fb;
+  --glass-border: rgba(80, 97, 126, .16);
+  --glass-highlight: rgba(255, 255, 255, .46);
+  --glass-shadow: 0 8px 24px rgba(28, 38, 59, .14);
+  --glass-text: #263044;
+  --glass-muted: #566279;
+  --glass-line: rgba(80, 97, 126, .14);
+  --glass-selection: rgba(101, 88, 255, .10);
+  --glass-focus: #6558ff;
+}
+[data-theme="dark"] {
+  --glass-bg: rgba(28, 32, 43, .78);
+  --glass-fallback: #1c202b;
+  --glass-border: rgba(255, 255, 255, .09);
+  --glass-highlight: rgba(255, 255, 255, .035);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+  --glass-text: #f0f2f8;
+  --glass-muted: #b5bed0;
+  --glass-line: rgba(255, 255, 255, .08);
+  --glass-selection: rgba(163, 152, 255, .13);
+  --glass-focus: #b3aaff;
+}
+/* A solid fallback comes first. Blur is bounded to the surface, never animated. */
+:root .glass-surface {
+  background: var(--glass-fallback);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+  color: var(--glass-text);
+}
+@supports (backdrop-filter: blur(10px)) {
+  :root .glass-surface {
+    background: linear-gradient(180deg, var(--glass-highlight), transparent 64px), var(--glass-bg);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+}
+:root .command-popup.glass-surface {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  --ink: var(--glass-text);
+  --muted: var(--glass-muted);
+  --line: var(--glass-line);
+}
+:root .command-popup.glass-surface .command-input {
+  flex-shrink: 0;
+  min-height: 66px;
+  padding: 16px 20px;
+  color: var(--glass-muted);
+  border-color: var(--glass-line);
+}
+:root .command-popup.glass-surface .command-input:focus-within {
+  box-shadow: inset 0 -1px color-mix(in srgb, var(--glass-focus) 65%, transparent);
+}
+:root .command-popup.glass-surface .command-results {
+  min-height: 0;
+  max-height: min(384px, calc(88dvh - 108px));
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+:root .command-popup.glass-surface .command-results button {
+  min-width: 0;
+  border-radius: 10px;
+  box-shadow: none;
+}
+:root .command-popup.glass-surface .command-results button[aria-selected="true"] {
+  background: var(--glass-selection);
+}
+:root .command-popup.glass-surface .command-glyph {
+  background: transparent;
+}
+:root .command-popup.glass-surface :is(button, input):focus-visible {
+  outline: 2px solid var(--glass-focus);
+  outline-offset: -2px;
+}
+:root .command-popup.glass-surface input:focus-visible { outline: none; }
+:root .command-popup.glass-surface footer {
+  flex-shrink: 0;
+  border-color: var(--glass-line);
+}
+@media (max-width: 639px) {
+  :root .command-popup.glass-surface .command-input { padding: 14px; }
+  :root .command-popup.glass-surface .command-results button { gap: 8px; padding-inline: 8px; }
+  :root .command-popup.glass-surface .command-results small {
+    max-width: 38%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root .glass-surface { background: var(--glass-fallback); backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .command-popup.glass-surface { transition: none; }
+}
+@media (forced-colors: active) {
+  :root .glass-surface { background: Canvas; color: CanvasText; border-color: ButtonText; box-shadow: none; backdrop-filter: none; }
+  :root .command-popup.glass-surface { --ink: CanvasText; --muted: CanvasText; --line: ButtonText; --glass-focus: Highlight; }
+  :root .command-popup.glass-surface .command-results button[aria-selected="true"] { outline: 2px solid Highlight; }
+}

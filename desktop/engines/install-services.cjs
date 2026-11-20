@@ -37,7 +37,7 @@ function installServices(
   });
   handle("files:drop", (paths) => files.import(paths));
   handle("files:action", async (action, args = {}) => {
-    if (["metadata", "rename", "trash", "reference", "unreference", "fileAreaPreview", "clearFileArea", "undoFileAreaClear"].includes(action))
+    if (["metadata", "attachmentOrigin", "rename", "trash", "reference", "unreference", "fileAreaPreview", "clearFileArea", "undoFileAreaClear"].includes(action))
       return storage.call(action, args);
     if (action === "export") {
       const r = await dialog.showSaveDialog(window, {
@@ -76,6 +76,7 @@ function installServices(
   });
   handle("panel:clear", () => store.clear());
   handle("clipboard:paste", () => clip.paste());
+  handle("clipboard:copyImage", bytes => require("./copy-image.cjs").copyImage(clipboard, nativeImage, require("electron").ClipboardItem, bytes));
   handle("clipboard:copyText", (text) => {
     if (typeof text !== "string" || Buffer.byteLength(text) > 24 * 1024 * 1024)
       throw new Error("剪贴板文本无效或过大");

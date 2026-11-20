@@ -1,0 +1,46 @@
+:root .record-search-backdrop { z-index:100; }
+:root .modal.xigra-record-dialog { width:min(560px,calc(100vw - 32px)); box-sizing:border-box; z-index:101; display:flex; flex-direction:column; max-height:calc(100dvh - 80px); overflow:hidden; }
+:root .xigra-record-dialog .xigra-record-search { min-height:44px; flex:none; }
+:root .xigra-record-dialog .xigra-record-list { min-height:0; max-height:min(360px,calc(100dvh - 240px)); overflow-y:auto; overscroll-behavior:contain; }
+:root .xigra-record-dialog .xigra-record-list button { font-weight:400; }
+:root .xigra-record-dialog .xigra-record-list button strong { font-weight:500; }
+:root .xigra-record-dialog .xigra-record-list button:is(:hover,[data-search-active]) { background:var(--tint); color:var(--ink); }
+/* Width changes do not remount workspace content or write canvas state. */
+@property --navigation-width {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+:root .app-shell.adaptive-shell[data-sidebar-mode] {
+  --navigation-width: var(--user-sidebar-width);
+}
+:root .app-shell.adaptive-shell[data-sidebar-motion] {
+  transition: --navigation-width 200ms ease-out;
+}
+:root .app-shell.adaptive-shell[data-sidebar-mode] > .sidebar.lagoon-rail { display:flex; padding-inline:min(8px, var(--navigation-width) / 8); overflow:hidden; }
+:root .adaptive-shell[data-sidebar-mode] .sidebar nav { min-width:48px; }
+:root .adaptive-shell[data-sidebar-mode] .sidebar .space { white-space:nowrap; }
+:root .adaptive-shell[data-sidebar-mode] .sidebar :is(nav .space.nav-item, .sidebar-bottom .space) {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: start;
+  width: 100%;
+  min-width: 48px;
+  padding-inline: 0;
+  gap: 0;
+}
+:root .adaptive-shell[data-sidebar-mode] .sidebar :is(.nav-item-icon, .sidebar-bottom .space > svg) {
+  justify-self: center;
+}
+:root .adaptive-shell[data-sidebar-mode="compact"] .sidebar-group-title { visibility: hidden; }
+:root .app-shell.adaptive-shell[data-sidebar-mode="hidden"] > .sidebar.lagoon-rail { visibility:hidden; transition:visibility 0s 200ms; }
+:root .adaptive-shell[data-sidebar-mode="hidden"] .sidebar :is(nav,.sidebar-bottom) { opacity:0; }
+:root .adaptive-shell[data-sidebar-mode="full"] .sidebar .space .nav-item-label { overflow:hidden; text-overflow:ellipsis; }
+.sidebar-resizer { position:absolute; right:0; top:0; bottom:0; width:8px; cursor:col-resize; touch-action:none; z-index:20; }
+:root .app-shell.adaptive-shell > .sidebar.lagoon-rail:has(> .sidebar-resizer:is(:hover,:focus-visible)) { border-inline-end-color:var(--accent); }
+:root .app-shell.adaptive-shell[data-sidebar-dragging], :root .app-shell.adaptive-shell[data-sidebar-dragging] > .sidebar.lagoon-rail { transition:none; user-select:none; cursor:col-resize; }
+@media(prefers-reduced-motion:reduce) { :root .app-shell.adaptive-shell[data-sidebar-mode], :root .app-shell.adaptive-shell[data-sidebar-mode] > .sidebar.lagoon-rail { transition:none; } }
+
+:root .xigra-record-dialog .xigra-record-list button { min-height:64px; padding:10px 12px; gap:4px; border:0; box-shadow:none; }
+:root .sidebar-resizer:focus-visible { outline:0; }

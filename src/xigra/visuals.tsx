@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { ArrowLeftRight } from "lucide-react";
 import type { BoardClient } from "../board";
+import { Button } from "../Button";
 
 export function XigraBrand({ markOnly = false }: { markOnly?: boolean }) {
   return (
@@ -8,15 +8,6 @@ export function XigraBrand({ markOnly = false }: { markOnly?: boolean }) {
       <img className="xigra-brand-mark" src="/assets/arasn-icon.svg" width="36" height="36" alt="" />
       <span className={markOnly ? "sr-only" : "xigra-wordmark"}>Arasn</span>
     </strong>
-  );
-}
-
-export function ViewSwitch({ inWorkbench = false, onClick, disabled = false }: { inWorkbench?: boolean; onClick(): void; disabled?: boolean }) {
-  return (
-    <button className="xigra-view-switch" type="button" onClick={onClick} disabled={disabled}>
-      <ArrowLeftRight size={16} aria-hidden="true" />
-      {inWorkbench ? "切换到便签区" : "打开工作区"}
-    </button>
   );
 }
 

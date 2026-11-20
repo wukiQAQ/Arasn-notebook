@@ -32,7 +32,7 @@ const output = process.env.ARASN_TEST_SCREENSHOTS || path.join(root, "docs/scree
     let win = await app.browserWindow(page);
     await win.evaluate(window => { window.show(); window.focus(); });
     const editor = () => page.locator(".quick-input");
-    const workbench = () => page.getByRole("button", { name: "打开工作区", exact: true });
+    const workbench = () => page.getByRole("button", { name: "切换到工作区", exact: true });
     const collapse = () => page.getByRole("button", { name: "切换到便签区", exact: true });
     const sizes = () => win.evaluate(window => ({ outer: window.getSize(), content: window.getContentSize() }));
     async function capture(file) {
@@ -52,7 +52,7 @@ const output = process.env.ARASN_TEST_SCREENSHOTS || path.join(root, "docs/scree
     await expect(page.locator(".quick-header h1")).toHaveText("速记");
     await expect(page.locator(".quick-header .xigra-brand")).toHaveCount(0);
     await expect(editor()).toBeFocused();
-    await expect(page.locator(".xigra-save-state")).toHaveText("等待输入");
+    await expect(page.locator(".xigra-save-state:visible")).toHaveText("等待输入");
     await expect(page.getByRole("tablist")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "设置与快捷键" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "添加文件", exact: true })).toBeVisible();
@@ -61,12 +61,12 @@ const output = process.env.ARASN_TEST_SCREENSHOTS || path.join(root, "docs/scree
     const first = "先记下临时想到的一句话。";
     const second = "评审后整理文件，更新交接记录。\n明早核对交付清单。";
     await editor().fill(first);
-    await expect(page.locator(".xigra-save-state")).toHaveText("已保存");
+    await expect(page.locator(".xigra-save-state:visible")).toHaveText("已保存");
     await page.getByRole("button", { name: "新建便笺", exact: true }).click();
     await expect(editor()).toBeFocused();
     await expect(editor()).toHaveValue("");
     await editor().fill(second);
-    await expect(page.locator(".xigra-save-state")).toHaveText("已保存");
+    await expect(page.locator(".xigra-save-state:visible")).toHaveText("已保存");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.evaluate(() => {
       window.viewEntries = [];
@@ -76,7 +76,7 @@ const output = process.env.ARASN_TEST_SCREENSHOTS || path.join(root, "docs/scree
     });
     await workbench().click();
     await expect.poll(() => page.evaluate(() => window.viewEntries)).toContain("MAIN");
-    await expect(page.locator(".xigra-workbench-title")).toHaveText("速记");
+    await expect(page.locator(".topbar .xigra-workbench-title > span")).toHaveText("速记");
     await expect(page.locator(".topbar")).not.toContainText(/我的(办公|随手)页/);
     await page.getByRole("button", { name: "我的随手页", exact: true }).click();
     await page.getByRole("button", { name: "工具属性", exact: true }).click();

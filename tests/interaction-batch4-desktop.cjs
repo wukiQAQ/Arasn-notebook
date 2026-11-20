@@ -46,7 +46,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
     await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; }); await capture('lan-dark-390');
     await btn('开启局域网').click(); await expect(btn('关闭局域网')).toBeVisible(); await expect(network).toBeDisabled();
     await expect(page.getByRole('region', { name: '局域网状态' })).toContainText('切换网卡需先关闭');
-    await networks([]); await btn('刷新网络').click(); await expect(page.getByRole('alert')).toContainText('监听地址已不可用'); await capture('lan-address-lost');
+    await networks([]); await btn('刷新网络').click(); await expect(page.getByRole('dialog').getByRole('alert')).toContainText('监听地址已不可用'); await capture('lan-address-lost');
     await btn('关闭局域网').click(); await expect(btn('开启局域网')).toBeDisabled();
     await networks(normalNetworks); await btn('刷新网络').click(); await expect(network).toContainText('Wi-Fi');
     await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -71,7 +71,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
       for (const width of [1440, 820, 390]) await sized(width, `share-${theme}-${width}`);
     }
     await networks([['Wi-Fi 办公网络', '127.0.0.1']]); await btn('刷新网络').click();
-    await expect(page.getByRole('alert')).toContainText('监听地址已不可用'); assert.equal((await ipcInfo()).links.length, 0);
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText('监听地址已不可用'); assert.equal((await ipcInfo()).links.length, 0);
     await capture('share-address-lost');
     // Stop failure stays active; injection affects only this process and only the isolated server.
     await app.evaluate((_, port) => {
@@ -79,7 +79,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
       global.b4Server = server; global.b4Close = server.close;
       server.close = callback => { callback(new Error('fixture: 停止共享失败')); };
     }, Number(link.port));
-    await btn('停止共享').click(); await expect(page.getByRole('alert').filter({ hasText: '停止共享失败' })).toBeVisible(); assert.equal((await ipcInfo()).sharing, true);
+    await btn('停止共享').click(); await expect(page.getByRole('dialog').getByRole('alert').filter({ hasText: '停止共享失败' })).toBeVisible(); assert.equal((await ipcInfo()).sharing, true);
     await app.evaluate(() => { global.b4Server.close = global.b4Close; });
     await btn('停止共享').click(); await expect(btn('开启共享')).toBeVisible();
     await assert.rejects(fetch(`${base}/api/board`, { headers: { Authorization: `Bearer ${token}` } }));
@@ -87,7 +87,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
     assert.equal((await fetch(`${new URL(info.links[0]).origin}/api/board`, { headers: { Authorization: `Bearer ${token}` } })).status, 401);
     await btn('停止共享').click();
     await networks([['未绑定的测试网卡', '10.253.254.253']]); await btn('刷新网络').click(); await btn('开启共享').click();
-    await expect(page.getByRole('alert')).toBeVisible(); assert.equal((await ipcInfo()).sharing, false); await capture('share-bind-error');
+    await expect(page.getByRole('dialog').getByRole('alert')).toBeVisible(); assert.equal((await ipcInfo()).sharing, false); await capture('share-bind-error');
     await networks(normalNetworks); await btn('刷新网络').click(); await page.keyboard.press('Escape');
 
     await btn('设置与快捷键').click(); await expect(page.getByLabel('开机自启动', { exact: true })).toBeDisabled(); await capture('startup-development');
@@ -109,7 +109,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
     await btn('刷新系统状态').click(); await expect(page.locator('[data-startup-status]')).toHaveAttribute('data-startup-status', 'blocked'); await capture('startup-system-disabled');
     await startup.uncheck(); await expect(page.locator('[data-startup-status]')).toHaveAttribute('data-startup-status', 'disabled');
     await app.evaluate(() => { global.b4Silent = true; }); await startup.click();
-    await expect(page.getByRole('alert')).toContainText('核验失败'); await expect(startup).not.toBeChecked(); await capture('startup-write-error');
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText('核验失败'); await expect(startup).not.toBeChecked(); await capture('startup-write-error');
     await app.evaluate(() => { global.b4Silent = false; });
     // A failure after OS registration must undo the registration too.
     await app.evaluate((_, filename) => {
@@ -117,7 +117,7 @@ const { selectOption } = require('./helpers/select-option.cjs');
       global.b4Storage = StorageEngine.prototype; global.b4StorageCall = StorageEngine.prototype.call;
       StorageEngine.prototype.call = function(method, ...args) { if (method === 'setSetting') return Promise.reject(new Error('fixture: 设置持久化失败')); return global.b4StorageCall.call(this, method, ...args); };
     }, path.resolve('desktop/engines/storage-engine.cjs'));
-    await startup.click(); await expect(page.getByRole('alert')).toContainText('设置持久化失败'); await expect(startup).not.toBeChecked(); assert.equal((await ipcInfo()).openAtLogin, false);
+    await startup.click(); await expect(page.getByRole('dialog').getByRole('alert')).toContainText('设置持久化失败'); await expect(startup).not.toBeChecked(); assert.equal((await ipcInfo()).openAtLogin, false);
     await app.evaluate(() => { global.b4Storage.call = global.b4StorageCall; process.env.PORTABLE_EXECUTABLE_FILE = 'C:\\Fixture\\Arasn-Portable.exe'; });
     await btn('刷新系统状态').click(); await expect(startup).toBeDisabled(); await expect(page.locator('[data-startup-status]')).toContainText('便携版'); await capture('startup-portable');
     for (const width of [1440, 820, 390]) await sized(width, `settings-dark-${width}`);

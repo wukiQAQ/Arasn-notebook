@@ -3,91 +3,76 @@ const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
 const { WindowManager } = require("../desktop/engines/window-manager.cjs");
 
-test("window levels are isolated by mode and passive reveals do not focus", () => {
-  const calls = [];
-  const window = {
-    setAlwaysOnTop: value => calls.push(["top", value]),
-    isMinimized: () => false,
-    isVisible: () => true,
-    show: () => calls.push(["show"]),
-    showInactive: () => calls.push(["inactive"]),
-    getBounds: () => ({ x: 0, y: 0, width: 620, height: 700 }),
-    isMaximized: () => false,
-  };
-  const screen = { getDisplayMatching: () => ({ id: 1, workArea: {} }) };
-  const manager = new WindowManager(window, {}, screen);
-  manager.saveQuickBounds = () => {};
-  manager.fit = bounds => bounds;
-  manager.quickBounds = window.getBounds();
-  assert.deepEqual(calls.pop(), ["top", true]);
-  manager.setLayout(true);
-  assert.deepEqual(calls.pop(), ["top", false]);
-  manager.setQuickAlwaysOnTop(true);
-  assert.deepEqual(calls.pop(), ["top", false]);
-  manager.reveal();
-  assert.deepEqual(calls.splice(0), [["top", false], ["show"]]);
-  manager.setLayout(false);
-  assert.deepEqual(calls.pop(), ["top", true]);
-  manager.setQuickAlwaysOnTop(false);
-  assert.deepEqual(calls.pop(), ["top", false]);
-  manager.setLayout(true);
-  manager.setLayout(false);
-  assert.deepEqual(calls.splice(0), [["top", false], ["top", false]]);
-  manager.reveal({ focus: false });
-  assert.deepEqual(calls.splice(0), [["top", false], ["inactive"]]);
-  window.isMinimized = () => true;
-  window.restore = () => calls.push(["restore"]);
-  manager.reflow = () => {};
-  manager.reveal({ focus: false });
-  assert.deepEqual(calls.splice(0), [["top", false], ["inactive"]]);
-});
-
-test("window bounds stay in DIP on a negative-coordinate display and fit after unplug", async () => {
-  const primary = { id: 1, scaleFactor: 1, workArea: { x: 0, y: 0, width: 1920, height: 1040 } };
-  const secondary = { id: 2, scaleFactor: 1.5, workArea: { x: -960, y: 40, width: 960, height: 600 } };
-  let plugged = true;
+const key = "workspace-window-state-v1";
+function fixture(settings = {}) {
+  const primary = { workArea: { x: 0, y: 0, width: 1920, height: 1040 } };
+  const secondary = { workArea: { x: -960, y: 40, width: 960, height: 600 } };
   const screen = Object.assign(new EventEmitter(), {
+    connected: true,
     getCursorScreenPoint: () => ({ x: -500, y: 320 }),
-    getDisplayNearestPoint: point => plugged && point.x < 0 ? secondary : primary,
-    getDisplayMatching: rect => plugged && rect.x < 0 ? secondary : primary,
+    getDisplayNearestPoint: () => secondary,
+    getDisplayMatching: ({ x }) => screen.connected && x < 0 ? secondary : primary,
   });
+  const calls = [];
   const window = Object.assign(new EventEmitter(), {
-    bounds: { x: 100, y: 100, width: 620, height: 700 },
+    bounds: { x: 0, y: 0, width: 1160, height: 820 },
     minimized: false,
-    visible: false,
+    maximized: false,
     getBounds() { return { ...this.bounds }; },
+    getNormalBounds() { return { ...this.bounds }; },
     setBounds(bounds) { this.bounds = bounds; },
-    setMinimumSize() {},
-    isMaximized: () => false,
+    setMinimumSize(width, height) { this.minimum = [width, height]; },
     isMinimized() { return this.minimized; },
-    restore() { this.minimized = false; },
-    isVisible() { return this.visible; },
-    show() { this.visible = true; this.emit("show"); },
+    isMaximized() { return this.maximized; },
+    show() { calls.push("show"); },
+    showInactive() { calls.push("inactive"); },
+    restore() { calls.push("restore"); this.minimized = false; },
+    maximize() { calls.push("maximize"); this.maximized = true; },
   });
-  const saved = new Map();
+  const writes = [];
   const storage = {
     async call(action, { key, value }) {
-      if (action === "getSetting") return saved.get(key);
-      saved.set(key, value);
+      if (action === "getSetting") return settings[key];
+      writes.push(key);
+      settings[key] = value;
     },
   };
-  const manager = new WindowManager(window, storage, screen);
+  return { manager: new WindowManager(window, storage, screen), window, screen, settings, calls, writes };
+}
+
+test("the workstation prefers saved bounds and restores minimized and maximized state", async () => {
+  const bounds = { x: -900, y: 60, width: 600, height: 480 };
+  const { manager, window, calls, settings } = fixture({
+    [key]: { bounds, maximized: true },
+    "quick-panel-bounds-v2": { x: 20, y: 20, width: 530, height: 430 },
+  });
   await manager.restore();
-  manager.reveal();
-  assert.deepEqual(window.bounds, { x: -790, y: 40, width: 620, height: 600 });
-  const moved = { ...window.bounds, x: -940 };
-  window.setBounds(moved);
-  await manager.saveQuickBounds();
-  manager.setLayout(true);
-  assert.deepEqual(window.bounds, secondary.workArea);
-  manager.setLayout(false);
-  assert.deepEqual(window.bounds, moved);
+  assert.deepEqual(window.bounds, bounds);
+  assert.deepEqual(window.minimum, [520, 420]);
   window.minimized = true;
-  plugged = false;
-  screen.emit("display-removed");
+  manager.reveal({ focus: false });
+  assert.deepEqual(calls.splice(0), ["inactive"]);
   manager.reveal();
-  assert.equal(window.minimized, false);
-  assert.deepEqual(window.bounds, { ...moved, x: 0 });
+  assert.deepEqual(calls, ["restore", "show", "maximize"]);
+  assert.deepEqual(window.bounds, bounds);
+  await manager.saveCurrentBounds();
+  assert.deepEqual(settings[key], { bounds, maximized: true });
+  window.emit("closed");
+});
+
+test("legacy bounds migrate by reading, and unplugged displays refit the workstation", async () => {
+  const legacy = { x: -930, y: 80, width: 640, height: 520 };
+  const { manager, window, screen, settings, writes } = fixture({ "quick-panel-bounds-v2": legacy });
+  await manager.restore();
+  assert.deepEqual(window.bounds, legacy);
+  assert.deepEqual(writes, []);
+  screen.connected = false;
+  screen.emit("display-removed");
+  await manager.saveCurrentBounds();
+  await manager.saveCurrentBounds();
+  assert.deepEqual(writes, [key]);
+  assert.deepEqual(settings[key], { bounds: { ...legacy, x: 0 }, maximized: false });
+  assert.deepEqual(settings["quick-panel-bounds-v2"], legacy);
   window.emit("closed");
   assert.equal(screen.listenerCount("display-removed"), 0);
 });

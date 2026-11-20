@@ -63,7 +63,7 @@ async function verify() {
     const draft = "恢复副本确认后才强退的草稿";
     await editor.fill(draft);
     await expect(status).toHaveText("已暂存 · 待同步", { timeout: 12000 });
-    await page.getByRole("button", { name: "隐藏到托盘", exact: true }).click();
+    await win.evaluate(window => window.close());
     await expect.poll(() => win.evaluate(window => window.isVisible())).toBe(false);
     await show();
     await expect(editor).toBeFocused();

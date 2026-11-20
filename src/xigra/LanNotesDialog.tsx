@@ -3,6 +3,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { X } from "../LagoonIcons";
 import { NetworkPicker, type NetworkInterface } from './NetworkPicker';
 import { AppSelect } from './AppSelect';
+import { HelpPopover } from './HelpPopover';
 import "./lan-notes.css";
 
 type Peer = { fingerprint: string; host: string; port: number; name: string };
@@ -93,8 +94,10 @@ export function LanNotesDialog({ lan, request, close, onIncoming }: {
       <Dialog.Backdrop className="desk-backdrop" />
       <Dialog.Popup className="modal xigra-lan-dialog">
         <Dialog.Close className="icon-button modal-close" aria-label="关闭便签互传"><X size={18} /></Dialog.Close>
-        <Dialog.Title>便签互传</Dialog.Title>
-        <Dialog.Description>向已配对的设备发送文字便签。对方确认后才会收到正文。</Dialog.Description>
+        <div className="network-help-heading lan-notes-heading">
+          <Dialog.Title>便签互传</Dialog.Title>
+          <HelpPopover topic="devices" />
+        </div>
         {error && <p className="xigra-notice" data-tone="error" role="alert">{error}</p>}
         {view && <div className="xigra-lan-sections">
           <section aria-label="局域网状态" className="xigra-lan-row">
@@ -105,7 +108,7 @@ export function LanNotesDialog({ lan, request, close, onIncoming }: {
                 ? <button className="button" disabled={busy} onClick={() => void act(async () => { await lan.stop(); setInvitation(undefined); })}>关闭局域网</button>
                 : <button className="button primary" disabled={busy || !network} onClick={() => void act(() => lan.start(network))}>开启局域网</button>}
             </div>
-            <p className="network-status" role="status">{view.active ? `正在监听 ${view.host}，仅已配对设备可请求发送。切换网卡需先关闭局域网。` : '选择与对方处于同一局域网的网卡。'}</p>
+            <p className="network-status" role="status">{view.active ? `正在监听 ${view.host}，仅已配对设备可请求发送。切换网卡需先关闭局域网。` : '局域网未开启。'}</p>
             {!view.addressAvailable && <p className="xigra-notice" data-tone="warning" role="alert">监听地址已不可用，请关闭局域网，刷新后重新选择。</p>}
           </section>
 
@@ -145,13 +148,13 @@ export function LanNotesDialog({ lan, request, close, onIncoming }: {
 
           <details>
             <summary>设备配对与撤销</summary>
-            <p>两台电脑都开启局域网，各自生成并交换配对信息，再通过独立渠道核对完整 SHA-256 指纹。配对信息有效期 2 分钟。</p>
             {view.active && <>
               <button className="button" disabled={busy} onClick={() => void act(async () => { setInvitation(await lan.invite()); setCopied(false); })}>生成本机配对信息</button>
               {invitation && <div className="xigra-lan-invite">
                 <label>本机 SHA-256 指纹 <output>{invitation.fingerprint}</output></label>
                 <button className="button" disabled={busy} onClick={() => void act(async () => { await window.desktop?.copyText(invitation.code); setCopied(true); })}>{copied ? "已复制本机配对信息" : "复制本机配对信息"}</button>
               </div>}
+              <p>保存配对前，请通过独立渠道核对对方的完整 SHA-256 指纹。</p>
               <form className="xigra-lan-fields" onSubmit={event => {
                 event.preventDefault();
                 void act(async () => { await lan.pair(code, fingerprint); setCode(""); setFingerprint(""); });
@@ -161,7 +164,7 @@ export function LanNotesDialog({ lan, request, close, onIncoming }: {
                 <button className="button primary" disabled={busy || !code.trim() || !fingerprint.trim()}>保存配对</button>
               </form>
               {view.candidates.length > 0 && <div>
-                <p>发现的设备。交换配对信息后可发送。</p>
+                <h3>发现的设备</h3>
                 <ul>{view.candidates.map(candidate => <li key={`${candidate.fingerprint}:${candidate.host}:${candidate.port}`}>
                   {candidate.host}:{candidate.port} · {view.peers.find(device => device.fingerprint === candidate.fingerprint)?.name || "待配对"}
                 </li>)}</ul>

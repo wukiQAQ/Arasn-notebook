@@ -26,12 +26,24 @@
 :root .app-select:disabled { opacity: .45; cursor: default; }
 .app-select-chevron { margin-inline-start: auto; display: flex; color: var(--muted); }
 .app-select-position { z-index: 70; outline: 0; }
+.app-select-position.app-select-relation-settings { z-index: 125; }
 .app-select-popup { min-width: var(--anchor-width); max-width: min(360px, calc(100vw - 24px)); padding: 5px; background: var(--graphite-l3); color: var(--ink); border: 1px solid var(--xigra-control-border); border-radius: 10px; box-shadow: var(--xigra-shadow-floating); outline: 0; }
 .app-select-list { max-height: min(300px, var(--available-height)); overflow-y: auto; scroll-padding: 5px; }
 .app-select-item { display: flex; align-items: center; gap: 9px; min-height: 36px; padding: 8px 10px; border-radius: 6px; font-size: 13px; line-height: 20px; cursor: pointer; outline: 0; }
 .app-select-item[data-selected] { background: var(--tint); color: var(--xigra-on-selected); }
 .app-select-item[data-highlighted] { background: var(--xigra-hover); box-shadow: inset 0 0 0 1px var(--xigra-control-border); }
 .app-select-check { display: flex; margin-inline-start: auto; color: var(--xigra-brand); }
+.app-select-network .app-select-popup { min-width: min(var(--anchor-width), var(--available-width)); max-width: min(var(--available-width), calc(100vw - 16px)); }
+.app-select-network .app-select-list { max-height: min(300px, calc(var(--available-height) - 12px)); }
+.app-select-network .app-select-item { color: var(--ink); overflow-wrap: anywhere; }
+.app-select-network .app-select-item:is(:hover, [data-highlighted]) { background: var(--xigra-hover); box-shadow: none; }
+.app-select-network .app-select-item[data-selected] { background: var(--tint); }
+.app-select-network .app-select-item[data-selected]:hover { background: color-mix(in srgb, var(--tint), var(--ink) 6%); }
+.app-select-network .app-select-item:focus-visible { outline: 1px solid var(--ui-focus); outline-offset: -1px; }
+.app-select-network .app-select-check { flex: none; }
+@media (forced-colors: active) {
+  .app-select-network .app-select-item:focus-visible { outline-color: Highlight; }
+}
 .app-type-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 7px; background: var(--type-tone); }
 .field-label > .app-select, .trigger-option > .app-select, .topology-fields .app-select { width: 100%; }
 @media (forced-colors: active) { :root input[type="checkbox"] { appearance: auto; } :root input[type="checkbox"]::before { display: none; } .app-type-dot { background: CanvasText; } }

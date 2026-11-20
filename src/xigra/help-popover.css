@@ -1,0 +1,39 @@
+.network-help-heading { display: flex; align-items: center; gap: 4px; min-width: 0; }
+:root body :is(.modal,.app-shell) button.network-help-trigger.arasn-button.arasn-icon-button[data-ui-button] {
+  flex: none;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ui-text-secondary);
+}
+:root body :is(.modal,.app-shell) button.network-help-trigger.arasn-button.arasn-icon-button[data-ui-button]:is(:hover, [data-popup-open]) {
+  background: var(--ui-hover);
+  color: var(--ui-text-primary);
+}
+.network-help-position { z-index: 160; }
+.network-help-popup {
+  box-sizing: border-box;
+  width: min(340px, var(--available-width), calc(100vw - 24px));
+  max-height: var(--available-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px;
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: var(--ui-radius-floating);
+  background: var(--ui-surface-floating);
+  color: var(--ui-text-primary);
+  box-shadow: var(--ui-shadow-floating);
+  font-size: 13px;
+  line-height: 1.55;
+}
+:root .network-help-popup:focus-visible { outline: none; }
+:root[data-focus-modality="keyboard"] .network-help-popup:focus-visible { outline: 1px solid var(--ui-focus); outline-offset: -1px; }
+.network-help-title { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.network-help-popup dl { display: grid; gap: 9px; margin: 0; }
+.network-help-popup dt { font-weight: 600; }
+.network-help-popup dd { margin: 2px 0 0; color: var(--ui-text-secondary); }

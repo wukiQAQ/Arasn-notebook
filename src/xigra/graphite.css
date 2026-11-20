@@ -82,12 +82,12 @@
   padding: 0 var(--xigra-space-6) var(--xigra-space-4);
 }
 :root .xigra-shell .quick-input { background: var(--surface); color: var(--ink); filter: none; }
-:root .xigra-shell .xigra-note-heading .xigra-quick-create:not(:disabled) {
+:root .xigra-shell .xigra-note-heading .xigra-quick-create:not(.arasn-button):not(:disabled) {
   color: var(--xigra-on-brand);
   background: var(--xigra-brand);
   font-weight: 600;
 }
-:root .xigra-shell .xigra-note-heading .xigra-quick-create:hover:not(:disabled) { background: var(--xigra-brand-hover); }
+:root .xigra-shell .xigra-note-heading .xigra-quick-create:not(.arasn-button):hover:not(:disabled) { background: var(--xigra-brand-hover); }
 
 :root .xigra-recent-records {
   padding: 2px 6px;
